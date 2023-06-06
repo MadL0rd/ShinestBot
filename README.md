@@ -8,32 +8,44 @@
 </p>
 
 <p align="center">
-  <img src="./documentation/images/logo.svg" width="512" alt="Shinest bot Logo" />
+  <img src="./documentation/images/logo.svg" width="512" height="256" alt="Shinest bot Logo" />
 </p>
 
-## Установка
-```bash
-# локально:
-$ npm i
+## Installation
 
-# в контейнере:
-$ docker-compose build
+### Local:
+```bash
+npm i
 ```
 
-## Запуск
-
+### Inside container:
 ```bash
-# обычный запуск (локально)
-$ nest start
-
-# режим разработки (локально)
-$ nest start --watch
-
-# запуск в докер контейнере с предварительной сборкой
-$ docker-compose up -d --build
-
-## Как смотреть логи
-```bash
-# внутри контейнера, последние 50 строк консольных логов
-$ docker-compose logs --tail 50
+docker-compose build
 ```
+
+## Launch
+
+### Regular local launch
+```bash
+nest start
+```
+
+### Development local launch
+```bash
+$ docker-compose up -d mongodb
+$ npm run start:dev
+```
+
+### Lounch with ontainer build
+```bash
+docker-compose up -d --build
+```
+
+### Container logs (last 50 lines of logs)
+```bash
+docker-compose logs --tail 50
+```
+
+## License
+
+Shinest Bot is licensed under the terms of the [MIT license](LICENSE.md). Please see the [LICENSE](LICENSE.md) file for full details.
