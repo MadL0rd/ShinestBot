@@ -15,6 +15,7 @@ import { User, UserDocument } from 'src/core/user/schemas/user.schema'
 import { content } from 'googleapis/build/src/apis/content'
 import { UserHistoryEvent } from 'src/core/user/enums/user-history-event.enum'
 import { Message } from 'typegram'
+import { SceneFactory } from 'src/presentation/scenes/scene-factory'
 
 export class PrivateDialogDispatcher implements IDispatcher {
     // =====================
@@ -146,17 +147,14 @@ export class PrivateDialogDispatcher implements IDispatcher {
     // =====================
 
     private createSceneWith(name: SceneName, user: UserDocument, botContent: BotContent): IScene {
-        // TODO: implement auto scene including
-        switch (name) {
-            case SceneName.mainMenu:
-                return new MainMenuScene(botContent, user, this.userService)
-            case SceneName.onboarding:
-                return new OnboardingScene(botContent, user, this.userService)
-            case SceneName.adminMenu:
-                return new MainMenuScene(botContent, user, this.userService)
-            default:
-                return new MainMenuScene(botContent, user, this.userService)
-        }
+        return SceneFactory.createSceneWith(
+            name,
+            {
+                user: user,
+                botContent: botContent,
+                userService: this.userService,
+            }
+        ) 
     }
 
     private getLanguageFor(user: UserDocument): LanguageEnum {

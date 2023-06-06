@@ -37,16 +37,26 @@ export interface PermissionsValidationResult {
     validationErrorMessage?: string
 }
 
+export interface ISceneConfigurationData {
+    readonly user: UserDocument
+    readonly botContent: BotContent
+    readonly userService: UserService
+}
+
 export class Scene implements IScene {
     readonly name: SceneName
     readonly completion = SceneHandlerCompletionTemplates
     readonly historyEvent = UserHistoryEvent
 
-    constructor(
-        public readonly content: BotContent,
-        public readonly user: UserDocument,
-        public readonly userService: UserService,
-    ) {}
+    public readonly content: BotContent
+    public readonly user: UserDocument
+    public readonly userService: UserService
+
+    constructor(readonly configuration: ISceneConfigurationData) {
+        this.content = configuration.botContent
+        this.user = configuration.user
+        this.userService = configuration.userService
+    }
 
     validateUseScenePermissions(permissions: UserPermissions[]): PermissionsValidationResult {
         if (permissions === null || permissions.length === 0) {
@@ -54,7 +64,7 @@ export class Scene implements IScene {
                 canUseScene: true,
             }
         }
-        if (permissions.find(permission => permission === UserPermissions.banned)) {
+        if (permissions.find((permission) => permission === UserPermissions.banned)) {
             return {
                 canUseScene: false,
                 validationErrorMessage: 'You are banned from using this scene',
