@@ -1,10 +1,9 @@
 import { Context } from 'telegraf'
-import { Message, ReplyKeyboardMarkup, Update } from 'telegraf/typings/core/types/typegram'
+import { Message, Update } from 'telegraf/typings/core/types/typegram'
 import { SceneName } from '../enums/scene-name.enum'
-import { IScene, SceneHandlerCompletion, Scene } from '../scene.interface'
+import { SceneHandlerCompletion, Scene } from '../scene.interface'
 import { Markup } from 'telegraf'
 import { logger } from 'src/app.logger'
-import { MainMenuScene } from './main-menu.scene'
 import { OnboardingPage } from 'src/core/bot-content/schemas/bot-content.schema'
 
 // =====================
@@ -28,7 +27,7 @@ export class OnboardingScene extends Scene {
 
     async handleEnterScene(ctx: Context<Update>): Promise<SceneHandlerCompletion> {
         logger.log(`${this.name} scene handleEnterScene. User: ${ctx.from.id} ${ctx.from.username}`)
-        await this.logToUserHistory(this.historyEvent.startModuleOnboarding)
+        await this.logToUserHistory(this.historyEvent.startSceneOnboarding)
 
         const onboardingPageIndex = 0
         const page = this.content.onboarding[onboardingPageIndex]
