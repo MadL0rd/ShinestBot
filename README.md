@@ -1,9 +1,3 @@
-
-
-<p align="center">
-  <img src="./documentation/images/logo.svg" width="512" alt="Shinest bot Logo" />
-</p>
-
 <p align="left">
   <a href="https://nestjs.com">
     <img src="https://img.shields.io/badge/Nest.js-gray.svg?logo=nestjs&colorB=FF0000&style=for-the-badge"/>
@@ -13,8 +7,11 @@
   </a>
 </p>
 
+<p align="center">
+  <img src="./documentation/images/logo.svg" width="512" alt="Shinest bot Logo" />
+</p>
 
-  ## Установка
+## Установка
 ```bash
 # локально:
 $ npm i

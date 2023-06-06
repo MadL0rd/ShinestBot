@@ -13,6 +13,7 @@ import { GoogleTablesService } from '../google-tables/google-tables.service'
 import { PageNameEnum } from '../google-tables/enums/page-name.enum'
 import { CreateBotContentDto } from './dto/create-bot-content.dto'
 import { UpdateBotContentDto } from './dto/update-bot-content.dto'
+import { logger } from 'src/app.logger'
 
 @Injectable()
 export class BotContentService implements OnModuleInit {
@@ -28,7 +29,10 @@ export class BotContentService implements OnModuleInit {
     async onModuleInit(): Promise<void> {
         for (const language in LanguageSupportedKey) {
             for (const pageName in PageNameEnum) {
-                await this.cacheSpreadsheetPage(PageNameEnum[pageName], LanguageSupportedKey[language])
+                await this.cacheSpreadsheetPage(
+                    PageNameEnum[pageName],
+                    LanguageSupportedKey[language]
+                )
             }
         }
     }
@@ -41,7 +45,10 @@ export class BotContentService implements OnModuleInit {
         return this.findOneBy(lang) as Promise<BotContentStable>
     }
 
-    async cacheSpreadsheetPage(pageName: PageNameEnum, language: LanguageSupportedKey): Promise<BotContent> {
+    async cacheSpreadsheetPage(
+        pageName: PageNameEnum,
+        language: LanguageSupportedKey
+    ): Promise<BotContent> {
         switch (pageName) {
             case PageNameEnum.uniqueMessages:
                 return this.cacheUniqueMessage(LanguageSupportedKey[language])
@@ -102,13 +109,39 @@ export class BotContentService implements OnModuleInit {
 
     /** Преобразоание массива ячеек в обьект уникальных сообщений */
     private createUniqueMessageObj(googleRows: any): UniqueMessage {
-        const uniqueMessageObj = {}
+        const uniqueMessageObj = UniqueMessage.prototype
         for (const element of googleRows) {
             if (element.length < 1) {
                 continue
             }
             uniqueMessageObj[element[0]] = element[1]
         }
+
+        logger.log(`UniqueMessages table health check START`, this.constructor.name)
+
+        const uniqueMessageKeys = Object.keys(new UniqueMessage())
+        const googleKeys = googleRows.map((row) => row[0]).filter((key) => !!key)
+
+        uniqueMessageKeys
+            .filter((key) => !googleKeys.includes(key))
+            .forEach((codeKey) => {
+                logger.error(
+                    `Google spreadsheet does not contains key: ${codeKey}`,
+                    this.constructor.name
+                )
+            })
+
+        googleKeys
+            .filter((key) => !uniqueMessageKeys.includes(key))
+            .forEach((codeKey) => {
+                logger.warn(
+                    `UniqueMessage class does not contains key: ${codeKey}`,
+                    this.constructor.name
+                )
+            })
+
+        logger.log(`UniqueMessages table health check COMPLETE`, this.constructor.name)
+
         return uniqueMessageObj
     }
 

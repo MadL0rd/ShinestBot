@@ -5,14 +5,14 @@ import { LanguageSupportedKey } from '../language-supported-key.enum'
 export type BotContentDocument = HydratedDocument<BotContent>
 
 export class UniqueMessage {
-    unknownState?: string
-    permissionDenied?: string
+    unknownState: string = ''
+    permissionDenied: string = ''
     
-    mainMenuText?: string
-    adminMenuText?: string
-    menuButtonReturnToMainMenu?: string
-    adminMenuButtonLoadData?: string
-    adminMenuButtonReloadData?: string
+    mainMenuText: string = ''
+    adminMenuText: string = ''
+    menuButtonReturnToMainMenu: string = ''
+    adminMenuButtonLoadData: string = ''
+    adminMenuButtonReloadData: string = ''
 }
 
 export class OnboardingPage {
