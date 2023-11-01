@@ -13,5 +13,6 @@ export enum UserHistoryEvent {
     startSceneAdminMenuGenerateMetrix = 'Перешел к сцене AdminMenuGenerateMetrix',
     startSceneAdminMenuMailing = 'Перешел к сцене AdminMenuMailing',
     startSceneAdminMenuUsersManagement = 'Перешел к сцене AdminMenuUsersManagement',
-    /** New scene event placeholder */
+    startSceneLanguageSettings = 'Перешел к сцене LanguageSettings',
+	/** New scene event placeholder */
 }

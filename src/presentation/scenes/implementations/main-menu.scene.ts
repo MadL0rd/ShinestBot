@@ -9,7 +9,6 @@ import { UserPermissions } from 'src/core/user/enums/user-permissions.enum'
 // =====================
 // Scene data class
 // =====================
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface ISceneData {}
 
 export class MainMenuScene extends Scene<ISceneData> {
@@ -41,6 +40,9 @@ export class MainMenuScene extends Scene<ISceneData> {
                 await ctx.replyWithHTML(this.text.mainMenu.textRepoLink)
                 return this.completion.inProgress()
 
+            case this.text.mainMenu.buttonLanguageSettings:
+                return this.completion.complete(SceneName.languageSettings)
+
             case this.text.mainMenu.buttonAdminMenu:
                 return this.completion.complete(SceneName.adminMenu)
         }
@@ -66,6 +68,7 @@ export class MainMenuScene extends Scene<ISceneData> {
 
         return this.keyboardMarkupFor([
             [this.text.mainMenu.buttonRepoLink],
+            [this.text.mainMenu.buttonLanguageSettings],
             ownerOrAdmin ? [this.text.mainMenu.buttonAdminMenu] : [],
         ])
     }

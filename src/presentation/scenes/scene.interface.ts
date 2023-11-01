@@ -131,12 +131,13 @@ export class Scene<SceneDataType extends object> implements IScene {
     }
 
     keyboardMarkupWithAutoLayoutFor(
-        keyboard: string[]
+        keyboard: string[],
+        twoColumnsForce: boolean = false
     ): Markup.Markup<ReplyKeyboardMarkup | ReplyKeyboardRemove> {
         keyboard = keyboard.compact
         let keyboardWithAutoLayout: string[][]
 
-        if (keyboard.length < 5) {
+        if (keyboard.length < 5 && !twoColumnsForce) {
             // For short keyboards place 1 button on every row
             keyboardWithAutoLayout = keyboard.map((button) => [button])
         } else {

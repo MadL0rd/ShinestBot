@@ -6,6 +6,7 @@ import { AdminMenuScene } from './implementations/admin-menu/admin-menu.scene'
 import { AdminMenuGenerateMetrixScene } from './implementations/admin-menu/admin-menu-generate-metrix.scene'
 import { AdminMenuMailingScene } from './implementations/admin-menu/admin-menu-mailing.scene'
 import { AdminMenuUsersManagementScene } from './implementations/admin-menu/admin-menu-users-management.scene'
+import { LanguageSettingsScene } from './implementations/language-settings.scene'
 /** New scene import placeholder */
 
 export class SceneFactory {
@@ -23,6 +24,8 @@ export class SceneFactory {
                 return new AdminMenuMailingScene(configuration)
             case SceneName.adminMenuUsersManagement:
                 return new AdminMenuUsersManagementScene(configuration)
+            case SceneName.languageSettings:
+                return new LanguageSettingsScene(configuration)
             /** New scene generation placeholder */
         }
     }

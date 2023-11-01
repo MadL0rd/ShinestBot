@@ -14,6 +14,7 @@ export class AppUpdate {
     // =====================
     // Properties
     // =====================
+
     private readonly privateDialogDispatcher: IDispatcher
 
     constructor(

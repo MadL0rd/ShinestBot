@@ -22,7 +22,7 @@ export class BotContentService implements OnModuleInit {
     private botContentCache: Map<string, BotContentStable>
 
     constructor(
-        @InjectModel(BotContent.name) private botContentModel: Model<BotContent>,
+        @InjectModel(BotContent.name) private model: Model<BotContent>,
         private readonly googleTablesService: GoogleTablesService,
         private readonly localizationService: LocalizationService
     ) {
@@ -40,6 +40,11 @@ export class BotContentService implements OnModuleInit {
     // =====================
     // Public methods
     // =====================
+
+    async getLocalLanguages(): Promise<string[]> {
+        const botContent = await this.model.find({}).select({ language: 1 }).lean().exec()
+        return botContent.compactMap((content) => content.language)
+    }
 
     async getContent(language: string): Promise<BotContentStable> {
         const contentCache = this.botContentCache[language]
@@ -75,20 +80,20 @@ export class BotContentService implements OnModuleInit {
     // =====================
 
     private async create(createBotContentDto: CreateBotContentDto): Promise<BotContent> {
-        return this.botContentModel.create(createBotContentDto)
+        return this.model.create(createBotContentDto)
     }
 
     private async update(
         updateBotContentDto: UpdateBotContentDto,
         existingContent: BotContentDocument
     ): Promise<BotContent | unknown> {
-        return this.botContentModel
+        return this.model
             .updateOne({ _id: existingContent._id }, updateBotContentDto, { new: true })
             .exec()
     }
 
     private async findOneBy(lang: string): Promise<BotContent> {
-        return this.botContentModel.findOne({ language: lang }).exec()
+        return this.model.findOne({ language: lang }).exec()
     }
 
     // =====================
@@ -116,9 +121,7 @@ export class BotContentService implements OnModuleInit {
                 uniqueMessage: uniqueMessageObj,
             }
 
-            const existingContent = await this.botContentModel
-                .findOne({ language: language })
-                .exec()
+            const existingContent = await this.model.findOne({ language: language }).exec()
             if (existingContent && !existingContent.isNew) {
                 await this.update(createBotContentDto, existingContent)
             } else {
@@ -145,9 +148,7 @@ export class BotContentService implements OnModuleInit {
                 onboarding: conboardingContent,
             }
 
-            const existingContent = await this.botContentModel
-                .findOne({ language: language })
-                .exec()
+            const existingContent = await this.model.findOne({ language: language }).exec()
             if (existingContent && !existingContent.isNew) {
                 await this.update(createBotContentDto, existingContent)
             } else {

@@ -26,7 +26,7 @@ export class PrivateDialogDispatcher implements IDispatcher {
     // Properties
     // =====================
 
-    private readonly startSceneName: SceneName = SceneName.onboarding
+    private readonly startSceneName: SceneName = SceneName.languageSettings
     private readonly defaultSceneName: SceneName = SceneName.mainMenu
 
     constructor(
