@@ -84,12 +84,12 @@ export class OnboardingScene extends Scene<ISceneData> {
     // =====================
 
     private async showOnboardingPage(ctx: Context<Update>, page?: OnboardingPage): Promise<void> {
-        if (page) {
-            await ctx.replyWithHTML(
-                page.messageText,
-                super.keyboardMarkupWithAutoLayoutFor([page.buttonText])
-            )
-            await this.replyMediaContent(ctx, page.media)
-        }
+        if (!page) return
+
+        await ctx.replyWithHTML(
+            page.messageText,
+            super.keyboardMarkupWithAutoLayoutFor([page.buttonText])
+        )
+        await this.replyMediaContent(ctx, page.media)
     }
 }
