@@ -1,4 +1,4 @@
-import { Action, Hears, InjectBot, On, Start, Update } from 'nestjs-telegraf'
+import { InjectBot, On, Start, Update } from 'nestjs-telegraf'
 import { Telegraf, Context, Markup } from 'telegraf'
 import { UserService } from './core/user/user.service'
 import { BotContentService } from './core/bot-content/bot-content.service'

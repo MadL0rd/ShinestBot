@@ -8,7 +8,7 @@ import {
 } from 'telegraf/typings/core/types/typegram'
 import { Markup } from 'telegraf'
 import { logger } from 'src/app.logger'
-import { UserDocument, UserPermission } from 'src/core/user/schemas/user.schema'
+import { UserDocument } from 'src/core/user/schemas/user.schema'
 import { UserPermissions } from 'src/core/user/enums/user-permissions.enum'
 import { BotContent } from 'src/core/bot-content/schemas/bot-content.schema'
 import { UserService } from 'src/core/user/user.service'

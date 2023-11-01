@@ -272,7 +272,7 @@ export class PrivateDialogDispatcher implements IDispatcher {
             userService: this.userService,
             botContentService: this.botContentService,
             userActivePermissions: data.userActivePermissions,
-            localizationService: this.localizationService
+            localizationService: this.localizationService,
         })
     }
 

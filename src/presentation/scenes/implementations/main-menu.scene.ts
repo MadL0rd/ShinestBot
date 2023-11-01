@@ -1,9 +1,9 @@
 import { Context } from 'telegraf'
-import { Message, ReplyKeyboardMarkup, Update } from 'telegraf/typings/core/types/typegram'
+import { Message, Update } from 'telegraf/typings/core/types/typegram'
 import { SceneName } from '../enums/scene-name.enum'
 import { SceneHandlerCompletion, Scene, SceneCallbackData } from '../scene.interface'
-import { Markup } from 'telegraf'
 import { logger } from 'src/app.logger'
+import { Markup } from 'telegraf'
 import { UserPermissions } from 'src/core/user/enums/user-permissions.enum'
 
 // =====================
@@ -37,8 +37,9 @@ export class MainMenuScene extends Scene<ISceneData> {
         const message = ctx.message as Message.TextMessage
 
         switch (message?.text) {
-            // case this.text.mainMenuButtonSalesAssistance:
-            //     return this.completion.complete(SceneName.salesAssistanceStart)
+            case this.text.mainMenu.buttonRepoLink:
+                await ctx.replyWithHTML(this.text.mainMenu.textRepoLink)
+                return this.completion.inProgress()
 
             case this.text.mainMenu.buttonAdminMenu:
                 return this.completion.complete(SceneName.adminMenu)
@@ -64,7 +65,7 @@ export class MainMenuScene extends Scene<ISceneData> {
             this.userActivePermissions.includes(UserPermissions.owner)
 
         return this.keyboardMarkupFor([
-            ['Jopa'],
+            [this.text.mainMenu.buttonRepoLink],
             ownerOrAdmin ? [this.text.mainMenu.buttonAdminMenu] : [],
         ])
     }
