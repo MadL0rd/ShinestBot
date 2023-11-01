@@ -43,7 +43,7 @@ export class AdminMenuScene extends Scene<ISceneData> {
         await this.logToUserHistory(this.historyEvent.startSceneAdminMenu)
 
         await ctx.replyWithHTML(
-            `${this.text.adminMenu.text}\n\nVersion: ${process.env.npm_package_version}`,
+            `${this.text.adminMenu.text}\n\nVersion: <b>${process.env.npm_package_version}</b>`,
             this.menuMarkup()
         )
         return this.completion.inProgress(this.generateData({}))

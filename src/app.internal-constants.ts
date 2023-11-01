@@ -1,6 +1,6 @@
 interface InternalConstants {
     readonly defaultLanguage: string
-    readonly appTimeZone: string
+    readonly appTimeZoneUtcOffset: string
     readonly fileStorageChatId: number
     readonly moderationChannelId: number
     readonly moderationChatId: number
@@ -14,7 +14,7 @@ interface InternalConstants {
 
 export const internalConstants: InternalConstants = {
     defaultLanguage: 'RU',
-    appTimeZone: process.env.APP_TZ ?? 'Europe/Moscow',
+    appTimeZoneUtcOffset: process.env.APP_TZ_OFFSET ?? '+3',
     fileStorageChatId: Number(process.env.FILE_STORAGE_CHAT_ID) ?? -1001906380557,
     moderationChannelId: Number(process.env.MODERATION_CHANNEL_ID) ?? -1001769686606,
     moderationChatId: Number(process.env.MODERATION_CHATL_ID) ?? -1001901508400,

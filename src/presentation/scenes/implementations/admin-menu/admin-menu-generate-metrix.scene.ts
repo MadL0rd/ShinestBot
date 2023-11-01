@@ -1,6 +1,6 @@
 import { Context } from 'telegraf'
 import { Message, Update } from 'telegraf/typings/core/types/typegram'
-import moment from 'moment'
+import * as moment from 'moment'
 import 'moment-timezone'
 import { SceneName } from '../../enums/scene-name.enum'
 import {
@@ -118,13 +118,11 @@ export class AdminMenuGenerateMetrixScene extends Scene<ISceneData> {
             const statisticService = new StatisticService(this.userService, this.botContentService)
             const dateFormat = 'DD.MM.yyyy'
             const beginningDateString = moment(beginningDate)
-                .tz(internalConstants.appTimeZone)
+                .utcOffset(internalConstants.appTimeZoneUtcOffset)
                 .format(dateFormat)
-                .toString()
             const currentDateString = moment(currentDate)
-                .tz(internalConstants.appTimeZone)
+                .utcOffset(internalConstants.appTimeZoneUtcOffset)
                 .format(dateFormat)
-                .toString()
             const resultFileName = `${FileName.statisticsMain} c ${beginningDateString} по ${currentDateString}.xlsx`
             const resultMetricsTable = await statisticService.createTable(
                 beginningDate,

@@ -1,3 +1,3 @@
 export enum FileName {
-    statisticsMain = 'JustSell - Cтатистика основное',
+    statisticsMain = 'Cтатистика основное',
 }
