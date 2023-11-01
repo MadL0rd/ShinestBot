@@ -2,7 +2,7 @@ import { Model } from 'mongoose'
 import { Injectable } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import { CreateUserDto } from './dto/create-user.dto'
-import { User, UserDocument, UserHistoryRecord } from './schemas/user.schema'
+import { User, UserDocument, UserHistoryRecord, UserInternalInfo } from './schemas/user.schema'
 import { UpdateUserDto } from './dto/update-user.dto'
 import { logger } from 'src/app.logger'
 import { UserHistoryEvent } from './enums/user-history-event.enum'
@@ -12,12 +12,15 @@ export class UserService {
     constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
 
     async createIfNeededAndGet(createUserDto: CreateUserDto): Promise<UserDocument> {
-        const existingUser = await this.findByTelegramId(createUserDto.telegramId)
+        const existingUser = await this.findOneByTelegramId(createUserDto.telegramId)
         if (existingUser) {
             return existingUser
         }
 
         const createdUser = new this.userModel(createUserDto)
+        if (!createdUser.internalInfo) {
+            createdUser.internalInfo = new UserInternalInfo()
+        }
         await createdUser.save()
         await this.logToUserHistory(
             createdUser,
@@ -29,17 +32,57 @@ export class UserService {
     }
 
     async update(updateUserDto: UpdateUserDto): Promise<UserDocument> {
-        logger.debug(`Update user`, updateUserDto)
+        logger.debug(`Update user ${updateUserDto}`)
         return this.userModel
             .findOneAndUpdate({ telegramId: updateUserDto.telegramId }, updateUserDto)
+            .lean()
             .exec()
     }
 
     //=====
     // Get User document without user history
     //=====
-    async findByTelegramId(telegramId: number): Promise<UserDocument> {
-        return this.userModel.findOne({ telegramId: telegramId }).select({ userHistory: 0 }).exec()
+    async findOneByTelegramId(telegramId: number): Promise<UserDocument> {
+        return this.userModel
+            .findOne({ telegramId: telegramId })
+            .select({ userHistory: 0 })
+            .lean()
+            .exec()
+    }
+
+    async findOneById(id: string): Promise<UserDocument> {
+        try {
+            const user = await this.userModel.findById(id).exec()
+            return user
+        } catch (err) {
+            return null
+        }
+    }
+
+    async findByTelegramUsername(telegramUsername: string): Promise<UserDocument> {
+        if (telegramUsername.includes('@', 0)) {
+            telegramUsername = telegramUsername.replace('@', '')
+        }
+        logger.log(`telegramUsername: ${telegramUsername}`)
+        return this.userModel
+            .findOne({ 'telegramInfo.username': telegramUsername })
+            .select({ userHistory: 0 })
+            .lean()
+            .exec()
+    }
+
+    //=====
+    // Get users
+    //=====
+
+    async findAllTelegramIds(): Promise<number[]> {
+        const users = await this.userModel.find({}).select({ telegramId: 1 }).lean().exec()
+        const ids = users.map((user) => user.telegramId)
+        return ids
+    }
+
+    async findAll(): Promise<UserDocument[]> {
+        return this.userModel.find({}).select({ userHistory: 0 }).lean().exec()
     }
 
     //=====
@@ -49,6 +92,7 @@ export class UserService {
         const result = await this.userModel
             .findOne({ telegramId: telegramId })
             .select({ userHistory: 1 })
+            .lean()
             .exec()
         return result.userHistory
     }
@@ -63,9 +107,17 @@ export class UserService {
             event: event,
             content: content,
         }
-        let existingHistory = await this.findUserHistoryByTelegramId(user.telegramId)
+        /*let existingHistory = await this.findUserHistoryByTelegramId(user.telegramId)
         existingHistory ? existingHistory.push(historyStep) : (existingHistory = [historyStep])
         user.userHistory = existingHistory
-        await user.save()
+        await user.save()*/
+
+        await this.userModel
+            .updateOne(
+                { telegramId: user.telegramId },
+                { $push: { userHistory: historyStep } },
+                { lean: true, new: true }
+            )
+            .exec()
     }
 }

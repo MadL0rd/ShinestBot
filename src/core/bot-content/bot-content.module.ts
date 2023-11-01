@@ -3,6 +3,7 @@ import { BotContentService } from './bot-content.service'
 import { MongooseModule } from '@nestjs/mongoose'
 import { BotContent, BotContentSchema } from './schemas/bot-content.schema'
 import { GoogleTablesModule } from '../google-tables/google-tables.module'
+import { LocalizationModule } from '../localization/localization.module'
 
 @Module({
     imports: [
@@ -13,6 +14,7 @@ import { GoogleTablesModule } from '../google-tables/google-tables.module'
             },
         ]),
         GoogleTablesModule,
+        LocalizationModule,
     ],
     providers: [BotContentService],
     exports: [BotContentService],

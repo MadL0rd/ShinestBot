@@ -1,4 +1,4 @@
-import { SceneData, TelegramInfo, UserHistoryRecord, UserInternalInfo } from '../schemas/user.schema'
+import { SceneData, TelegramInfo, UserInternalInfo } from '../schemas/user.schema'
 
 export class CreateUserDto {
     readonly telegramId: number

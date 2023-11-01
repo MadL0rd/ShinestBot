@@ -10,8 +10,10 @@ services:
       - mongodb
     ports:
       - ${APP_PORTS}
+      - ${APP_PORTS_WEBHOOK}
     expose:
       - ${APP_EXPOSE_PORT}
+      - ${APP_EXPOSE_PORT_WEBHOOK}
     env_file:
       - .env.sample
   

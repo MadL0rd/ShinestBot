@@ -18,6 +18,10 @@
 npm i
 ```
 
+### Access to google spreadsheets
+Put file `credentials.json` in the root folder
+File must contains json credentials for GoogleSpreadsheet API service account
+
 ### Inside container:
 ```bash
 docker-compose build

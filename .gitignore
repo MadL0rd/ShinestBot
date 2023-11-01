@@ -3,6 +3,8 @@
 /node_modules
 .env
 
+*.xlsx
+
 *.log
 npm-debug.log*
 pnpm-debug.log*
@@ -33,3 +35,10 @@ lerna-debug.log*
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
+.hypothesis
+
+# Python 
+__pycache__/
+
+# Creds for google spreadsheet
+credentials.json
