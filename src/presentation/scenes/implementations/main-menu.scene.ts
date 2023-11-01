@@ -1,9 +1,10 @@
 import { Context } from 'telegraf'
 import { Message, ReplyKeyboardMarkup, Update } from 'telegraf/typings/core/types/typegram'
 import { SceneName } from '../enums/scene-name.enum'
-import { IScene, SceneHandlerCompletion, Scene } from '../scene.interface'
+import { SceneHandlerCompletion, Scene, SceneCallbackData } from '../scene.interface'
 import { Markup } from 'telegraf'
 import { logger } from 'src/app.logger'
+import { UserPermissions } from 'src/core/user/enums/user-permissions.enum'
 
 // =====================
 // Scene data class
@@ -11,7 +12,7 @@ import { logger } from 'src/app.logger'
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface ISceneData {}
 
-export class MainMenuScene extends Scene {
+export class MainMenuScene extends Scene<ISceneData> {
     // =====================
     // Properties
     // =====================
@@ -23,32 +24,33 @@ export class MainMenuScene extends Scene {
     // =====================
 
     async handleEnterScene(ctx: Context<Update>): Promise<SceneHandlerCompletion> {
-        logger.log(
-            `${this.name} scene handleEnterScene. User: ${ctx.from.id} ${ctx.from.username}`
-        )
-        ctx.replyWithMarkdownV2(
-            `Started *${this.name}* scene ${this.name}`,
-            super.keyboardMarkupWithAutoLayoutFor([
-                'Givno',
-                'Zalupa',
-                'Penis',
-                'Her',
-                'Davalka',
-                'Hui',
-                'Bliadina',
-            ])
-        )
+        logger.log(`${this.name} scene handleEnterScene. User: ${ctx.from.id} ${ctx.from.username}`)
+        await this.logToUserHistory(this.historyEvent.startSceneMainMenu)
 
-        return this.completion.inProgress({})
+        await ctx.replyWithHTML(this.text.mainMenu.text, this.menuMarkup())
+
+        return this.completion.inProgress()
     }
 
-    async handleMessage(ctx: Context<Update>, dataRaw: Object): Promise<SceneHandlerCompletion> {
+    async handleMessage(ctx: Context<Update>, dataRaw: object): Promise<SceneHandlerCompletion> {
         logger.log(`${this.name} scene handleMessage. User: ${ctx.from.id} ${ctx.from.username}`)
+        const message = ctx.message as Message.TextMessage
 
-        return this.completion.canNotHandle({})
+        switch (message?.text) {
+            // case this.text.mainMenuButtonSalesAssistance:
+            //     return this.completion.complete(SceneName.salesAssistanceStart)
+
+            case this.text.mainMenu.buttonAdminMenu:
+                return this.completion.complete(SceneName.adminMenu)
+        }
+
+        return this.completion.canNotHandle()
     }
 
-    async handleCallback(ctx: Context<Update>, dataRaw: Object): Promise<SceneHandlerCompletion> {
+    async handleCallback(
+        ctx: Context<Update>,
+        data: SceneCallbackData
+    ): Promise<SceneHandlerCompletion> {
         throw new Error('Method not implemented.')
     }
 
@@ -56,12 +58,14 @@ export class MainMenuScene extends Scene {
     // Private methods
     // =====================
 
-    private generateData(data: ISceneData): ISceneData {
-        return data
-    }
+    private menuMarkup(): object {
+        const ownerOrAdmin =
+            this.userActivePermissions.includes(UserPermissions.admin) ||
+            this.userActivePermissions.includes(UserPermissions.owner)
 
-    private restoreData(dataRaw: object): ISceneData {
-        const data: ISceneData = dataRaw as ISceneData
-        return data
+        return this.keyboardMarkupFor([
+            ['Jopa'],
+            ownerOrAdmin ? [this.text.mainMenu.buttonAdminMenu] : [],
+        ])
     }
 }

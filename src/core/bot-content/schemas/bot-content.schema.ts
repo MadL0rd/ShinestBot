@@ -1,30 +1,14 @@
 import { HydratedDocument } from 'mongoose'
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose'
-import { LanguageSupportedKey } from '../language-supported-key.enum'
+import { UniqueMessage } from './models/bot-content.unique-message'
+import { OnboardingPage } from './models/bot-content.onboarding-page'
 
 export type BotContentDocument = HydratedDocument<BotContent>
-
-export class UniqueMessage {
-    unknownState: string = ''
-    permissionDenied: string = ''
-    
-    mainMenuText: string = ''
-    adminMenuText: string = ''
-    menuButtonReturnToMainMenu: string = ''
-    adminMenuButtonLoadData: string = ''
-    adminMenuButtonReloadData: string = ''
-}
-
-export class OnboardingPage {
-    id: string
-    messageText: string
-    buttonText: string
-}
 
 @Schema()
 export class BotContent {
     @Prop()
-    lang: LanguageSupportedKey
+    language: string
 
     @Prop()
     uniqueMessage?: UniqueMessage

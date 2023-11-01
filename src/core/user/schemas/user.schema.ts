@@ -1,7 +1,6 @@
 import { HydratedDocument } from 'mongoose'
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose'
 import { UserHistoryEvent as UserHistoryEvent } from '../enums/user-history-event.enum'
-import { LanguageSupportedKey } from 'src/core/bot-content/language-supported-key.enum'
 import { UserPermissions } from '../enums/user-permissions.enum'
 
 export type UserDocument = HydratedDocument<User>
@@ -21,9 +20,18 @@ export class SceneData {
 }
 
 export class UserInternalInfo {
-    readonly startParam?: string = null
-    readonly language?: LanguageSupportedKey
-    readonly permissions?: [UserPermission]
+    startParam: string | null = null
+    language?: string
+    permissions?: UserPermission[]
+}
+
+export class AdvertsSearchFilters {
+    inhabitedLocality?: string
+    estateTypeName?: string
+    priceMin?: number
+    priceMax?: number
+    withСommissionOnly?: boolean
+    fromEstateOwnerOnly?: boolean
 }
 
 export class UserPermission {

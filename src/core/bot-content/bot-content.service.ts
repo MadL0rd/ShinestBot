@@ -1,19 +1,17 @@
 import { Injectable, OnModuleInit } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import { Model } from 'mongoose'
-import {
-    BotContent,
-    BotContentDocument,
-    BotContentStable,
-    OnboardingPage,
-    UniqueMessage,
-} from './schemas/bot-content.schema'
-import { LanguageSupportedKey } from './language-supported-key.enum'
+import { BotContent, BotContentDocument, BotContentStable } from './schemas/bot-content.schema'
 import { GoogleTablesService } from '../google-tables/google-tables.service'
 import { PageNameEnum } from '../google-tables/enums/page-name.enum'
 import { CreateBotContentDto } from './dto/create-bot-content.dto'
 import { UpdateBotContentDto } from './dto/update-bot-content.dto'
 import { logger } from 'src/app.logger'
+import { OnboardingPage } from './schemas/models/bot-content.onboarding-page'
+import { UniqueMessage } from './schemas/models/bot-content.unique-message'
+import { MediaContent } from './schemas/models/bot-content.media-content'
+import { internalConstants } from 'src/app.internal-constants'
+import { LocalizationService } from '../localization/localization.service'
 
 @Injectable()
 export class BotContentService implements OnModuleInit {
@@ -21,19 +19,21 @@ export class BotContentService implements OnModuleInit {
     // Initializer
     // =====================
 
+    private botContentCache: Map<string, BotContentStable>
+
     constructor(
         @InjectModel(BotContent.name) private botContentModel: Model<BotContent>,
-        private readonly googleTablesService: GoogleTablesService
-    ) {}
+        private readonly googleTablesService: GoogleTablesService,
+        private readonly localizationService: LocalizationService
+    ) {
+        this.botContentCache = new Map<string, BotContentStable>()
+    }
 
     async onModuleInit(): Promise<void> {
-        for (const language in LanguageSupportedKey) {
-            for (const pageName in PageNameEnum) {
-                await this.cacheSpreadsheetPage(
-                    PageNameEnum[pageName],
-                    LanguageSupportedKey[language]
-                )
-            }
+        if (internalConstants.cacheBotContentOnStart == false) return
+
+        for (const pageName in PageNameEnum) {
+            await this.cacheSpreadsheetPage(PageNameEnum[pageName])
         }
     }
 
@@ -41,21 +41,32 @@ export class BotContentService implements OnModuleInit {
     // Public methods
     // =====================
 
-    async getContent(lang: LanguageSupportedKey): Promise<BotContentStable> {
-        return this.findOneBy(lang) as Promise<BotContentStable>
+    async getContent(language: string): Promise<BotContentStable> {
+        const contentCache = this.botContentCache[language]
+        if (contentCache) {
+            return contentCache
+        }
+        const contentPage = await this.findOneBy(language)
+        if (!contentPage) {
+            if (language == internalConstants.defaultLanguage) throw Error('No content')
+            return await this.getContent(internalConstants.defaultLanguage)
+        }
+
+        this.botContentCache[language] = contentPage
+        return this.botContentCache[language]
     }
 
-    async cacheSpreadsheetPage(
-        pageName: PageNameEnum,
-        language: LanguageSupportedKey
-    ): Promise<BotContent> {
+    async cacheSpreadsheetPage(pageName: PageNameEnum) {
         switch (pageName) {
             case PageNameEnum.uniqueMessages:
-                return this.cacheUniqueMessage(LanguageSupportedKey[language])
+                await this.cacheUniqueMessage()
+                break
 
             case PageNameEnum.onboarding:
-                return this.cacheOnboarding(LanguageSupportedKey[language])
+                await this.cacheOnboarding()
+                break
         }
+        this.botContentCache = new Map<string, BotContentStable>()
     }
 
     // =====================
@@ -69,15 +80,15 @@ export class BotContentService implements OnModuleInit {
 
     private async update(
         updateBotContentDto: UpdateBotContentDto,
-        existingContent: BotContentDocument //BotContent
-    ): Promise<any> {
+        existingContent: BotContentDocument
+    ): Promise<BotContent | unknown> {
         return this.botContentModel
             .updateOne({ _id: existingContent._id }, updateBotContentDto, { new: true })
             .exec()
     }
 
-    private async findOneBy(lang: LanguageSupportedKey): Promise<BotContent> {
-        return this.botContentModel.findOne({ lang: lang }).exec()
+    private async findOneBy(lang: string): Promise<BotContent> {
+        return this.botContentModel.findOne({ language: lang }).exec()
     }
 
     // =====================
@@ -85,112 +96,115 @@ export class BotContentService implements OnModuleInit {
     // Google spreadsheets
     // =====================
 
-    private async cacheUniqueMessage(lang: LanguageSupportedKey): Promise<BotContent> {
-        const createBotContentDto: CreateBotContentDto = { lang: lang }
-        const content = await this.googleTablesService.getContentByListName(
-            PageNameEnum.uniqueMessages,
-            'A2:B150'
-        )
-        if (!content) {
-            throw Error('No content')
-        }
-
-        createBotContentDto.uniqueMessage = this.createUniqueMessageObj(content)
-
-        const existingContent = await this.botContentModel
-            .findOne({ lang: createBotContentDto.lang })
-            .exec()
-        if (existingContent && !existingContent.isNew) {
-            return this.update(createBotContentDto, existingContent)
-        }
-
-        return this.create(createBotContentDto)
-    }
-
-    /** Преобразоание массива ячеек в обьект уникальных сообщений */
-    private createUniqueMessageObj(googleRows: any): UniqueMessage {
-        const uniqueMessageObj = UniqueMessage.prototype
-        for (const element of googleRows) {
-            if (element.length < 1) {
-                continue
-            }
-            uniqueMessageObj[element[0]] = element[1]
-        }
-
-        logger.log(`UniqueMessages table health check START`, this.constructor.name)
-
+    private async cacheUniqueMessage() {
         const uniqueMessageKeys = Object.keys(new UniqueMessage())
-        const googleKeys = googleRows.map((row) => row[0]).filter((key) => !!key)
+        const uniqueMessageObj = UniqueMessage.prototype
 
-        uniqueMessageKeys
-            .filter((key) => !googleKeys.includes(key))
-            .forEach((codeKey) => {
-                logger.error(
-                    `Google spreadsheet does not contains key: ${codeKey}`,
-                    this.constructor.name
-                )
-            })
+        const languages = await this.localizationService.getRemoteLanguages()
+        for (const language of languages) {
+            for (const groupName of uniqueMessageKeys) {
+                const localizedGroup = await this.localizationService.findOneByGroupName(groupName)
+                const groupObject = new Object()
+                for (const localizedString of localizedGroup.content) {
+                    groupObject[localizedString.key] = localizedString.localizedValues[language]
+                }
+                uniqueMessageObj[groupName] = groupObject
+            }
 
-        googleKeys
-            .filter((key) => !uniqueMessageKeys.includes(key))
-            .forEach((codeKey) => {
-                logger.warn(
-                    `UniqueMessage class does not contains key: ${codeKey}`,
-                    this.constructor.name
-                )
-            })
+            const createBotContentDto: CreateBotContentDto = {
+                language: language,
+                uniqueMessage: uniqueMessageObj,
+            }
 
-        logger.log(`UniqueMessages table health check COMPLETE`, this.constructor.name)
-
-        return uniqueMessageObj
+            const existingContent = await this.botContentModel
+                .findOne({ language: language })
+                .exec()
+            if (existingContent && !existingContent.isNew) {
+                await this.update(createBotContentDto, existingContent)
+            } else {
+                await this.create(createBotContentDto)
+            }
+        }
     }
 
-    private async cacheOnboarding(lang: LanguageSupportedKey): Promise<BotContent> {
-        const createBotContentDto: CreateBotContentDto = { lang: lang }
+    private async cacheOnboarding() {
         const content = await this.googleTablesService.getContentByListName(
             PageNameEnum.onboarding,
-            'A2:C50'
+            'A2:F50'
         )
         if (!content) {
             throw Error('No content')
         }
+        const conboardingContent = this.createOnboardingArray(content)
 
-        createBotContentDto.onboarding = this.createOnboardingArray(content)
+        // TODO: add localized content for collections
+        const languages = await this.localizationService.getRemoteLanguages()
+        for (const language of languages) {
+            const createBotContentDto: CreateBotContentDto = {
+                language: language,
+                onboarding: conboardingContent,
+            }
 
-        const existingContent = await this.botContentModel
-            .findOne({ lang: createBotContentDto.lang })
-            .exec()
-        if (existingContent && !existingContent.isNew) {
-            return this.update(createBotContentDto, existingContent)
+            const existingContent = await this.botContentModel
+                .findOne({ language: language })
+                .exec()
+            if (existingContent && !existingContent.isNew) {
+                await this.update(createBotContentDto, existingContent)
+            } else {
+                await this.create(createBotContentDto)
+            }
         }
-
-        return this.create(createBotContentDto)
     }
 
-    /** Преобразоание массива ячеек в массив обьектов онборбинга */
-    private createOnboardingArray(googleRows: any): [OnboardingPage] {
+    /** Map spreadsheet content to OnboardingPage array */
+    private createOnboardingArray(googleRows: string[][]): [OnboardingPage] {
         let onbordingArray: [OnboardingPage]
         for (const element of googleRows) {
             if (element.length < 1) {
-                continue
-            }
-            if (!onbordingArray) {
-                onbordingArray = [
-                    {
-                        id: element[0],
-                        messageText: element[1],
-                        buttonText: element[2],
-                    },
-                ]
                 continue
             }
             const onboardinjObj: OnboardingPage = {
                 id: element[0],
                 messageText: element[1],
                 buttonText: element[2],
+                media: this.createMediaContentFromCells(element[3], element[4], element[5]),
             }
-            onbordingArray.push(onboardinjObj)
+            if (!onbordingArray) {
+                onbordingArray = [onboardinjObj]
+            } else {
+                onbordingArray.push(onboardinjObj)
+            }
         }
         return onbordingArray
+    }
+
+    private createMediaContentFromCells(
+        videosCell?: string,
+        imagesCell?: string,
+        audioCell?: string,
+        documentsCell?: string
+    ): MediaContent {
+        return {
+            videos:
+                videosCell
+                    ?.split('\n')
+                    .map((url) => url.trim())
+                    .filter((url) => url.length > 0) ?? [],
+            images:
+                imagesCell
+                    ?.split('\n')
+                    .map((url) => url.trim())
+                    .filter((url) => url.length > 0) ?? [],
+            audio:
+                audioCell
+                    ?.split('\n')
+                    .map((url) => url.trim())
+                    .filter((url) => url.length > 0) ?? [],
+            documents:
+                documentsCell
+                    ?.split('\n')
+                    .map((url) => url.trim())
+                    .filter((url) => url.length > 0) ?? [],
+        }
     }
 }
