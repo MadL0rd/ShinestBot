@@ -4,7 +4,7 @@ db.createUser({
     roles: [
         {
             role: 'readWrite',
-            db: process.env.MONGODB_DATABASE,
+            db: process.env.MONGO_INITDB_DATABASE,
         },
     ],
 })

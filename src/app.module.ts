@@ -7,24 +7,29 @@ import { UserModule } from './core/user/user.module'
 import { BotContentModule } from './core/bot-content/bot-content.module'
 import { LocalizationModule } from './core/localization/localization.module'
 import * as mediaGroup from 'telegraf-media-group'
+import { internalConstants } from './app.internal-constants'
 
 @Module({
     imports: [
-        ConfigModule.forRoot({ isGlobal: true }),
+        ConfigModule.forRoot({
+            isGlobal: true,
+            envFilePath: '.env',
+        }),
         MongooseModule.forRoot(
-            `mongodb://${process.env.MONGODB_USER}:${process.env.MONGODB_PASSWORD}@${process.env.MONGODB_ADDRESS}/`
+            `mongodb://${internalConstants.mongodbUser}:${internalConstants.mongodbPassword}@${internalConstants.mongodbAddress}/`,
+            { dbName: internalConstants.mongodbDatabase }
         ),
         TelegrafModule.forRoot({
             launchOptions:
-                process.env.IS_WEBHOOK_ACTIVE === 'true'
+                internalConstants.isWebhookActive === 'true'
                     ? {
                           webhook: {
-                              domain: process.env.WEBHOOK_DOMAIN,
-                              port: Number(process.env.APP_EXPOSE_PORT_WEBHOOK),
+                              domain: internalConstants.webhookDomain,
+                              port: Number(internalConstants.appExposePortWebhook),
                           },
                       }
                     : {},
-            token: process.env.BOT_TOKEN,
+            token: internalConstants.botToken,
             middlewares: [mediaGroup()],
         }),
         UserModule,

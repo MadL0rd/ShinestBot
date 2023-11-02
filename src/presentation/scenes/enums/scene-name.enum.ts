@@ -7,7 +7,7 @@ export enum SceneName {
     adminMenuMailing = 'adminMenuMailing',
     adminMenuUsersManagement = 'adminMenuUsersManagement',
     languageSettings = 'languageSettings',
-	/** New scene name placeholder */
+    /** New scene name placeholder */
 }
 
 export namespace SceneName {

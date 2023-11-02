@@ -1,7 +1,7 @@
 import { HydratedDocument } from 'mongoose'
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose'
 import { UserHistoryEvent as UserHistoryEvent } from '../enums/user-history-event.enum'
-import { UserPermissions } from '../enums/user-permissions.enum'
+import { UserInternalInfo } from './models/user.internal-info'
 
 export type UserDocument = HydratedDocument<User>
 
@@ -17,27 +17,6 @@ export class TelegramInfo {
 export class SceneData {
     sceneName?: string
     data?: object
-}
-
-export class UserInternalInfo {
-    startParam: string | null = null
-    language?: string
-    permissions?: UserPermission[]
-}
-
-export class AdvertsSearchFilters {
-    inhabitedLocality?: string
-    estateTypeName?: string
-    priceMin?: number
-    priceMax?: number
-    withСommissionOnly?: boolean
-    fromEstateOwnerOnly?: boolean
-}
-
-export class UserPermission {
-    readonly permissionName: UserPermissions
-    readonly startDate?: Date
-    readonly expirationDate?: Date
 }
 
 export class UserHistoryRecord {

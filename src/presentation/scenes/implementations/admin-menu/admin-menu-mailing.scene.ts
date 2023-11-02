@@ -37,7 +37,7 @@ export class AdminMenuMailingScene extends Scene<ISceneData> {
     async handleMessage(ctx: Context<Update>, dataRaw: object): Promise<SceneHandlerCompletion> {
         logger.log(`${this.name} scene handleMessage. User: ${ctx.from.id} ${ctx.from.username}`)
 
-        let data = this.restoreData(dataRaw)
+        const data = this.restoreData(dataRaw)
         const message = ctx.message as Message.TextMessage
 
         if (message === null) {
