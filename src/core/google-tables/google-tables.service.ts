@@ -5,6 +5,7 @@ import { PageNameEnum } from './enums/page-name.enum'
 import { ConfigService } from '@nestjs/config'
 import { logger } from '../../app.logger'
 import { replaceMarkdownWithHtml } from 'src/utils/replaceMarkdownWithHtml'
+import { internalConstants } from 'src/app.internal-constants'
 
 @Injectable()
 export class GoogleTablesService {
@@ -13,7 +14,7 @@ export class GoogleTablesService {
         private readonly googleCredentialsService: GoogleCredentialsService
     ) {}
 
-    private readonly spreadsheetId = '1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA'
+    private readonly spreadsheetId = internalConstants.googleSpreadsheetId
 
     async getContentByListName(
         pageName: PageNameEnum | string,

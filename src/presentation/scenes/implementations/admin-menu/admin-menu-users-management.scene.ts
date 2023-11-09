@@ -58,7 +58,7 @@ export class AdminMenuUsersManagementScene extends Scene<ISceneData> {
     async handleMessage(ctx: Context<Update>, dataRaw: object): Promise<SceneHandlerCompletion> {
         logger.log(`${this.name} scene handleMessage. User: ${ctx.from.id} ${ctx.from.username}`)
 
-        let data = this.restoreData(dataRaw)
+        const data = this.restoreData(dataRaw)
         const message = ctx.message as Message.TextMessage
         const messageText = message?.text
 
@@ -103,7 +103,7 @@ export class AdminMenuUsersManagementScene extends Scene<ISceneData> {
                         data.targetUserTelegramId
                     )
                     const targetUserActivePermissions = getActiveUserPermissions(targetUser)
-                    let buttons: string[] = []
+                    const buttons: string[] = []
                     for (const permission in UserPermissions) {
                         const permissionValue = UserPermissions[permission]
                         const prefix = targetUserActivePermissions.includes(permissionValue)

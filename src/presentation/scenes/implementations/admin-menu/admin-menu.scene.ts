@@ -10,6 +10,7 @@ import {
 import { logger } from 'src/app.logger'
 import { UserPermissions } from 'src/core/user/enums/user-permissions.enum'
 import { PageNameEnum } from 'src/core/google-tables/enums/page-name.enum'
+import { internalConstants } from 'src/app.internal-constants'
 
 // =====================
 // Scene data class
@@ -43,7 +44,7 @@ export class AdminMenuScene extends Scene<ISceneData> {
         await this.logToUserHistory(this.historyEvent.startSceneAdminMenu)
 
         await ctx.replyWithHTML(
-            `${this.text.adminMenu.text}\n\nVersion: <b>${process.env.npm_package_version}</b>`,
+            `${this.text.adminMenu.text}\n\nVersion: <b>${internalConstants.npmPackageVersion}</b>`,
             this.menuMarkup()
         )
         return this.completion.inProgress(this.generateData({}))
@@ -52,7 +53,7 @@ export class AdminMenuScene extends Scene<ISceneData> {
     async handleMessage(ctx: Context<Update>, dataRaw: object): Promise<SceneHandlerCompletion> {
         logger.log(`${this.name} scene handleMessage. User: ${ctx.from.id} ${ctx.from.username}`)
 
-        const data: ISceneData = this.restoreData(dataRaw)
+        // const data: ISceneData = this.restoreData(dataRaw)
 
         const message = ctx.message as Message.TextMessage
 

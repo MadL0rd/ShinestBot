@@ -52,8 +52,6 @@ async function bootstrap() {
         }),
     })
 
-    // app.useLogger(app.get(WINSTON_MODULE_NEST_PROVIDER))
-
     logger.log(`Internal constants:\n${JSON.stringify(internalConstants, null, 2)}`)
 
     if (internalConstants.enableInternalCors == true) {
@@ -62,6 +60,7 @@ async function bootstrap() {
     }
 
     await app.listen(3000)
+
     logger.log(`http://localhost:3000/`)
 }
 bootstrap().then()
