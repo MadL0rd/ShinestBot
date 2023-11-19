@@ -11,7 +11,7 @@ import { Markup } from 'telegraf'
 import { logger } from 'src/app.logger'
 import { UserDocument } from 'src/core/user/schemas/user.schema'
 import { replaceMarkdownWithHtml } from 'src/utils/replaceMarkdownWithHtml'
-import { UserPermissions } from 'src/core/user/enums/user-permissions.enum'
+import { UserPermissionNames } from 'src/core/user/enums/user-permission-names.enum'
 import { getActiveUserPermissions } from 'src/utils/getActiveUserPermissions'
 
 // =====================
@@ -35,8 +35,8 @@ export class AdminMenuUsersManagementScene extends Scene<ISceneData> {
 
     validateUseScenePermissions(): PermissionsValidationResult {
         const ownerOrAdmin =
-            this.userActivePermissions.includes(UserPermissions.admin) ||
-            this.userActivePermissions.includes(UserPermissions.owner)
+            this.userActivePermissions.includes(UserPermissionNames.admin) ||
+            this.userActivePermissions.includes(UserPermissionNames.owner)
         if (ownerOrAdmin) {
             return { canUseScene: true }
         }
@@ -104,8 +104,8 @@ export class AdminMenuUsersManagementScene extends Scene<ISceneData> {
                     )
                     const targetUserActivePermissions = getActiveUserPermissions(targetUser)
                     const buttons: string[] = []
-                    for (const permission in UserPermissions) {
-                        const permissionValue = UserPermissions[permission]
+                    for (const permission in UserPermissionNames) {
+                        const permissionValue = UserPermissionNames[permission]
                         const prefix = targetUserActivePermissions.includes(permissionValue)
                             ? '✅'
                             : '❌'
@@ -152,7 +152,7 @@ export class AdminMenuUsersManagementScene extends Scene<ISceneData> {
             if (messageText.split(' ').length != 2) {
                 return this.completion.canNotHandle(data)
             }
-            const targetPermission = UserPermissions[messageText.split(' ')[1]]
+            const targetPermission = UserPermissionNames[messageText.split(' ')[1]]
             if (targetPermission == null) {
                 return this.completion.canNotHandle(data)
             }
@@ -164,22 +164,22 @@ export class AdminMenuUsersManagementScene extends Scene<ISceneData> {
             // Include only enabled actions
             switch (targetPermission) {
                 // Any actions with owner can do only developer
-                case UserPermissions.owner:
+                case UserPermissionNames.owner:
                     break
 
                 // Only owner can set admin permission
-                case UserPermissions.admin:
-                    if (this.userActivePermissions.includes(UserPermissions.owner)) {
+                case UserPermissionNames.admin:
+                    if (this.userActivePermissions.includes(UserPermissionNames.owner)) {
                         permissionUpdateEnable = true
                     }
                     break
 
                 // Owner and admin can ban user
                 // Nobody can ban owner and admin
-                case UserPermissions.banned:
+                case UserPermissionNames.banned:
                     if (
-                        targetUserActivePermissions.includes(UserPermissions.owner) == false &&
-                        targetUserActivePermissions.includes(UserPermissions.admin) == false
+                        targetUserActivePermissions.includes(UserPermissionNames.owner) == false &&
+                        targetUserActivePermissions.includes(UserPermissionNames.admin) == false
                     ) {
                         permissionUpdateEnable = true
                     }
@@ -198,19 +198,23 @@ export class AdminMenuUsersManagementScene extends Scene<ISceneData> {
             if (targetUserActivePermissions.includes(targetPermission)) {
                 // Remove permission
                 targetUser.internalInfo.permissions = targetUser.internalInfo.permissions.filter(
-                    (permission) => UserPermissions[permission.permissionName] != targetPermission
+                    (permission) =>
+                        UserPermissionNames[permission.permissionName] != targetPermission
                 )
             } else {
                 // Add permission
+                const comment = `Выдано пользователем ${this.user.telegramInfo.username} id ${this.user.telegramId}`
                 if (targetUser.internalInfo.permissions) {
                     targetUser.internalInfo.permissions.push({
                         permissionName: targetPermission,
+                        comment: comment,
                         startDate: new Date(),
                     })
                 } else {
                     targetUser.internalInfo.permissions = [
                         {
                             permissionName: targetPermission,
+                            comment: comment,
                             startDate: new Date(),
                         },
                     ]
@@ -251,6 +255,7 @@ export class AdminMenuUsersManagementScene extends Scene<ISceneData> {
         result += `\n\nМодификаторы доступа:\n`
         for (const permission of user.internalInfo.permissions ?? []) {
             result += `\n*${permission.permissionName}*`
+            if (permission.comment) result += `\nКомментарий: ${permission.comment}`
             result += `\nВыдан: ${permission.startDate ?? 'Неизвестно'}`
             result += `\nИстекает: ${permission.expirationDate ?? 'Никогда'}`
             result += '\n'

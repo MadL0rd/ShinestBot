@@ -10,7 +10,7 @@ import {
 } from 'src/presentation/scenes/scene.interface'
 import { SceneName } from 'src/presentation/scenes/enums/scene-name.enum'
 import { logger } from 'src/app.logger'
-import { UserPermissions } from 'src/core/user/enums/user-permissions.enum'
+import { UserPermissionNames } from 'src/core/user/enums/user-permission-names.enum'
 import { BotContentStable } from 'src/core/bot-content/schemas/bot-content.schema'
 import { UserDocument } from 'src/core/user/schemas/user.schema'
 import { UserHistoryEvent } from 'src/core/user/enums/user-history-event.enum'
@@ -48,6 +48,7 @@ export class PrivateDialogDispatcher implements IDispatcher {
             telegramInfo: ctx.from,
             internalInfo: {
                 startParam: startParam,
+                permissions: [],
             },
         })
 
@@ -324,7 +325,7 @@ export class PrivateDialogDispatcher implements IDispatcher {
 
 interface TransactionUserData {
     user: UserDocument
-    userActivePermissions: UserPermissions[]
+    userActivePermissions: UserPermissionNames[]
     userLanguage: string
     botContent: BotContentStable
 }

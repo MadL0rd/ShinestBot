@@ -9,7 +9,7 @@ import {
 import { Markup } from 'telegraf'
 import { logger } from 'src/app.logger'
 import { UserDocument } from 'src/core/user/schemas/user.schema'
-import { UserPermissions } from 'src/core/user/enums/user-permissions.enum'
+import { UserPermissionNames } from 'src/core/user/enums/user-permission-names.enum'
 import { BotContent } from 'src/core/bot-content/schemas/bot-content.schema'
 import { UserService } from 'src/core/user/user.service'
 import { UserHistoryEvent } from 'src/core/user/enums/user-history-event.enum'
@@ -54,7 +54,7 @@ export interface ISceneConfigurationData {
     readonly userService: UserService
     readonly botContentService: BotContentService
     readonly localizationService: LocalizationService
-    readonly userActivePermissions: UserPermissions[]
+    readonly userActivePermissions: UserPermissionNames[]
 }
 
 export class Scene<SceneDataType extends object> implements IScene {
@@ -68,7 +68,7 @@ export class Scene<SceneDataType extends object> implements IScene {
     public readonly content: BotContent
     public readonly text: UniqueMessage
     public readonly user: UserDocument
-    public readonly userActivePermissions: UserPermissions[]
+    public readonly userActivePermissions: UserPermissionNames[]
     public readonly userService: UserService
     public readonly bot: Telegraf<Context>
     public readonly botContentService: BotContentService
@@ -90,7 +90,7 @@ export class Scene<SceneDataType extends object> implements IScene {
         if (this.userActivePermissions === null || this.userActivePermissions.length === 0) {
             return { canUseScene: true }
         }
-        if (this.userActivePermissions.includes(UserPermissions.banned)) {
+        if (this.userActivePermissions.includes(UserPermissionNames.banned)) {
             return {
                 canUseScene: false,
                 validationErrorMessage: this.text.common.bannedUserMessage,

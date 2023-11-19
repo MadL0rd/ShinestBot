@@ -1,7 +1,7 @@
-import { UserPermissions } from 'src/core/user/enums/user-permissions.enum'
+import { UserPermissionNames } from 'src/core/user/enums/user-permission-names.enum'
 import { UserDocument } from 'src/core/user/schemas/user.schema'
 
-export function getActiveUserPermissions(user: UserDocument): UserPermissions[] {
+export function getActiveUserPermissions(user: UserDocument): UserPermissionNames[] {
     return (
         user.internalInfo?.permissions
             ?.map((permission) => {

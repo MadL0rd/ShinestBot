@@ -4,7 +4,7 @@ import { SceneName } from '../enums/scene-name.enum'
 import { SceneHandlerCompletion, Scene, SceneCallbackData } from '../scene.interface'
 import { logger } from 'src/app.logger'
 import { Markup } from 'telegraf'
-import { UserPermissions } from 'src/core/user/enums/user-permissions.enum'
+import { UserPermissionNames } from 'src/core/user/enums/user-permission-names.enum'
 
 // =====================
 // Scene data class
@@ -37,7 +37,17 @@ export class MainMenuScene extends Scene<ISceneData> {
 
         switch (message?.text) {
             case this.text.mainMenu.buttonRepoLink:
-                await ctx.replyWithHTML(this.text.mainMenu.textRepoLink)
+                await ctx.replyWithHTML(
+                    this.text.mainMenu.textRepoLink,
+                    Markup.inlineKeyboard([
+                        [
+                            Markup.button.webApp(
+                                'KekWait',
+                                'https://dnd-tokenizer-41471e.netlify.app/'
+                            ),
+                        ],
+                    ])
+                )
                 return this.completion.inProgress()
 
             case this.text.mainMenu.buttonLanguageSettings:
@@ -63,8 +73,8 @@ export class MainMenuScene extends Scene<ISceneData> {
 
     private menuMarkup(): object {
         const ownerOrAdmin =
-            this.userActivePermissions.includes(UserPermissions.admin) ||
-            this.userActivePermissions.includes(UserPermissions.owner)
+            this.userActivePermissions.includes(UserPermissionNames.admin) ||
+            this.userActivePermissions.includes(UserPermissionNames.owner)
 
         return this.keyboardMarkupFor([
             [this.text.mainMenu.buttonRepoLink],

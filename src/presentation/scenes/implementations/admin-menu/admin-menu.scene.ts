@@ -8,7 +8,7 @@ import {
     SceneHandlerCompletion,
 } from '../../scene.interface'
 import { logger } from 'src/app.logger'
-import { UserPermissions } from 'src/core/user/enums/user-permissions.enum'
+import { UserPermissionNames } from 'src/core/user/enums/user-permission-names.enum'
 import { PageNameEnum } from 'src/core/google-tables/enums/page-name.enum'
 import { internalConstants } from 'src/app.internal-constants'
 
@@ -31,8 +31,8 @@ export class AdminMenuScene extends Scene<ISceneData> {
 
     validateUseScenePermissions(): PermissionsValidationResult {
         const ownerOrAdmin =
-            this.userActivePermissions.includes(UserPermissions.admin) ||
-            this.userActivePermissions.includes(UserPermissions.owner)
+            this.userActivePermissions.includes(UserPermissionNames.admin) ||
+            this.userActivePermissions.includes(UserPermissionNames.owner)
         if (ownerOrAdmin) {
             return { canUseScene: true }
         }

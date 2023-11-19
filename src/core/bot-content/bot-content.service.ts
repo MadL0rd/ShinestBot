@@ -30,7 +30,7 @@ export class BotContentService implements OnModuleInit {
     }
 
     async onModuleInit(): Promise<void> {
-        if (internalConstants.cacheBotContentOnStart == false) return
+        if (internalConstants.cacheBotContentOnStart === false) return
 
         for (const pageName in PageNameEnum) {
             await this.cacheSpreadsheetPage(PageNameEnum[pageName])

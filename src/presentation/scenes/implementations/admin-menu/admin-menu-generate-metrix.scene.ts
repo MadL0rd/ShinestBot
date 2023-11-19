@@ -10,7 +10,7 @@ import {
     SceneCallbackData,
 } from '../../scene.interface'
 import { logger } from 'src/app.logger'
-import { UserPermissions } from '../../../../core/user/enums/user-permissions.enum'
+import { UserPermissionNames } from '../../../../core/user/enums/user-permission-names.enum'
 import { StatisticService } from '../../../../core/user/statistic.service'
 import { FileName } from '../../enums/file-name.enum'
 import { internalConstants } from 'src/app.internal-constants'
@@ -32,8 +32,8 @@ export class AdminMenuGenerateMetrixScene extends Scene<ISceneData> {
 
     validateUseScenePermissions(): PermissionsValidationResult {
         const ownerOrAdmin =
-            this.userActivePermissions.includes(UserPermissions.admin) ||
-            this.userActivePermissions.includes(UserPermissions.owner)
+            this.userActivePermissions.includes(UserPermissionNames.admin) ||
+            this.userActivePermissions.includes(UserPermissionNames.owner)
         if (ownerOrAdmin) {
             return { canUseScene: true }
         }
