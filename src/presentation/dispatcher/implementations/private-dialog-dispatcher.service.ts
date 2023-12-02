@@ -95,7 +95,8 @@ export class PrivateDialogDispatcher implements IDispatcher {
         const sceneName = SceneName[data.user.sceneData?.sceneName]
         const currentScene = this.createSceneWith(sceneName, data)
         let sceneCompletion: SceneHandlerCompletion = null
-        if (!sceneNameFromCommandSegue && this.validateUserCanUseScene(ctx, data, currentScene)) {
+        const userCanUseStoredScene = await this.validateUserCanUseScene(ctx, data, currentScene)
+        if (!sceneNameFromCommandSegue && userCanUseStoredScene === true) {
             logger.log(
                 `${currentScene.name} handleMessage. User: ${ctx.from.id} ${ctx.from.username}`
             )
@@ -112,7 +113,7 @@ export class PrivateDialogDispatcher implements IDispatcher {
         while (nextSceneName) {
             nextScene = this.createSceneWith(nextSceneName, data)
 
-            if (this.validateUserCanUseScene(ctx, data, nextScene, false)) {
+            if (await this.validateUserCanUseScene(ctx, data, nextScene, false)) {
                 sceneCompletion = await nextScene.handleEnterScene(ctx)
                 data = await this.getHandlingTransactionUserData(ctx)
             } else {
@@ -172,7 +173,7 @@ export class PrivateDialogDispatcher implements IDispatcher {
         const sceneName = SceneName[callbackData.sceneName]
         const currentScene = this.createSceneWith(sceneName, data)
         let sceneCompletion: SceneHandlerCompletion = null
-        if (this.validateUserCanUseScene(ctx, data, currentScene)) {
+        if (await this.validateUserCanUseScene(ctx, data, currentScene)) {
             logger.log(
                 `${currentScene.name} handleMessage. User: ${ctx.from.id} ${ctx.from.username}`
             )
@@ -199,7 +200,7 @@ export class PrivateDialogDispatcher implements IDispatcher {
         while (nextSceneName) {
             nextScene = this.createSceneWith(nextSceneName, data)
 
-            if (this.validateUserCanUseScene(ctx, data, nextScene, false)) {
+            if (await this.validateUserCanUseScene(ctx, data, nextScene, false)) {
                 sceneCompletion = await nextScene.handleEnterScene(ctx)
                 data = await this.getHandlingTransactionUserData(ctx)
                 didStartedAnyScene = true
@@ -277,15 +278,13 @@ export class PrivateDialogDispatcher implements IDispatcher {
         })
     }
 
-    private validateUserCanUseScene(
+    private async validateUserCanUseScene(
         ctx: Context,
         data: TransactionUserData,
         scene?: IScene,
         needToSendMessage: boolean = true
-    ): boolean {
-        if (!scene) {
-            return false
-        }
+    ): Promise<boolean> {
+        if (!scene) return false
         const validationResult = scene.validateUseScenePermissions()
 
         if (validationResult.canUseScene) {
@@ -293,7 +292,7 @@ export class PrivateDialogDispatcher implements IDispatcher {
         } else {
             logger.log(`${scene?.name.toUpperCase()} validation failed`)
             if (needToSendMessage) {
-                ctx.replyWithHTML(
+                await ctx.replyWithHTML(
                     validationResult.validationErrorMessage ??
                         data.botContent.uniqueMessage.common.permissionDenied
                 )
