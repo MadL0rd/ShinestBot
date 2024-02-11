@@ -32,8 +32,7 @@ export class UserService {
         return createdUser
     }
 
-    async update(updateUserDto: UpdateUserDto): Promise<UserDocument> {
-        logger.debug(`Update user ${updateUserDto}`)
+    async update(updateUserDto: UpdateUserDto): Promise<UserDocument | null> {
         return this.userModel
             .findOneAndUpdate({ telegramId: updateUserDto.telegramId }, updateUserDto)
             .lean()
@@ -43,7 +42,7 @@ export class UserService {
     //=====
     // Get User document without user history
     //=====
-    async findOneByTelegramId(telegramId: number): Promise<UserDocument> {
+    async findOneByTelegramId(telegramId: number): Promise<UserDocument | null> {
         return this.userModel
             .findOne({ telegramId: telegramId })
             .select({ userHistory: 0 })
@@ -51,16 +50,17 @@ export class UserService {
             .exec()
     }
 
-    async findOneById(id: string): Promise<UserDocument> {
+    async findOneById(id: string): Promise<UserDocument | null> {
         try {
             const user = await this.userModel.findById(id).exec()
             return user
-        } catch (err) {
+        } catch (error) {
+            logger.warn(`User with _id ${id} not found`)
             return null
         }
     }
 
-    async findByTelegramUsername(telegramUsername: string): Promise<UserDocument> {
+    async findByTelegramUsername(telegramUsername: string): Promise<UserDocument | null> {
         if (telegramUsername.includes('@', 0)) {
             telegramUsername = telegramUsername.replace('@', '')
         }
@@ -95,13 +95,13 @@ export class UserService {
             .select({ userHistory: 1 })
             .lean()
             .exec()
-        return result.userHistory
+        return result?.userHistory ?? []
     }
 
     async logToUserHistory(
         user: UserDocument,
         event: UserHistoryEvent,
-        content?: string
+        content?: object | string
     ): Promise<void> {
         const historyStep: UserHistoryRecord = {
             timeStamp: new Date(),

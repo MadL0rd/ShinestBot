@@ -4,5 +4,5 @@ import { AgregationType } from '../enums/agregation-type.enum'
 export class CreateStatisticTableDto {
     readonly event: UserHistoryEvent
     readonly agregationType: AgregationType
-    readonly tableTitle?: string
+    readonly tableTitle: string
 }

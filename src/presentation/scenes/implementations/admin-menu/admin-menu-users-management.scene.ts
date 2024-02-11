@@ -11,8 +11,8 @@ import { Markup } from 'telegraf'
 import { logger } from 'src/app.logger'
 import { UserDocument } from 'src/core/user/schemas/user.schema'
 import { replaceMarkdownWithHtml } from 'src/utils/replaceMarkdownWithHtml'
-import { UserPermissionNames } from 'src/core/user/enums/user-permission-names.enum'
-import { getActiveUserPermissions } from 'src/utils/getActiveUserPermissions'
+import { UserPermissionNamesStable } from 'src/core/user/enums/user-permission.enum'
+import { getActiveUserPermissionNames } from 'src/utils/getActiveUserPermissions'
 
 // =====================
 // Scene data class
@@ -35,8 +35,8 @@ export class AdminMenuUsersManagementScene extends Scene<ISceneData> {
 
     validateUseScenePermissions(): PermissionsValidationResult {
         const ownerOrAdmin =
-            this.userActivePermissions.includes(UserPermissionNames.admin) ||
-            this.userActivePermissions.includes(UserPermissionNames.owner)
+            this.userActivePermissions.includes(UserPermissionNamesStable.admin) ||
+            this.userActivePermissions.includes(UserPermissionNamesStable.owner)
         if (ownerOrAdmin) {
             return { canUseScene: true }
         }
@@ -44,7 +44,9 @@ export class AdminMenuUsersManagementScene extends Scene<ISceneData> {
     }
 
     async handleEnterScene(ctx: Context<Update>): Promise<SceneHandlerCompletion> {
-        logger.log(`${this.name} scene handleEnterScene. User: ${ctx.from.id} ${ctx.from.username}`)
+        logger.log(
+            `${this.name} scene handleEnterScene. User: ${this.user.telegramInfo.id} ${this.user.telegramInfo.username}`
+        )
         await this.logToUserHistory(this.historyEvent.startSceneAdminMenuUsersManagement)
 
         await ctx.replyWithHTML(
@@ -56,7 +58,9 @@ export class AdminMenuUsersManagementScene extends Scene<ISceneData> {
     }
 
     async handleMessage(ctx: Context<Update>, dataRaw: object): Promise<SceneHandlerCompletion> {
-        logger.log(`${this.name} scene handleMessage. User: ${ctx.from.id} ${ctx.from.username}`)
+        logger.log(
+            `${this.name} scene handleMessage. User: ${this.user.telegramInfo.id} ${this.user.telegramInfo.username}`
+        )
 
         const data = this.restoreData(dataRaw)
         const message = ctx.message as Message.TextMessage
@@ -67,7 +71,7 @@ export class AdminMenuUsersManagementScene extends Scene<ISceneData> {
         }
 
         if (data.targetUserTelegramId == null) {
-            let targetUser: UserDocument
+            let targetUser: UserDocument | null = null
             if (messageText.includes('@', 0)) {
                 targetUser = await this.userService.findByTelegramUsername(messageText)
             } else if (parseInt(messageText)) {
@@ -102,10 +106,12 @@ export class AdminMenuUsersManagementScene extends Scene<ISceneData> {
                     const targetUser = await this.userService.findOneByTelegramId(
                         data.targetUserTelegramId
                     )
-                    const targetUserActivePermissions = getActiveUserPermissions(targetUser)
+                    if (!targetUser) return this.completion.canNotHandle(data)
+
+                    const targetUserActivePermissions = getActiveUserPermissionNames(targetUser)
                     const buttons: string[] = []
-                    for (const permission in UserPermissionNames) {
-                        const permissionValue = UserPermissionNames[permission]
+                    for (const permission in UserPermissionNamesStable) {
+                        const permissionValue = UserPermissionNamesStable[permission]
                         const prefix = targetUserActivePermissions.includes(permissionValue)
                             ? '✅'
                             : '❌'
@@ -137,6 +143,8 @@ export class AdminMenuUsersManagementScene extends Scene<ISceneData> {
                     const targetUser = await this.userService.findOneByTelegramId(
                         data.targetUserTelegramId
                     )
+                    if (!targetUser) return this.completion.canNotHandle(data)
+
                     await ctx.replyWithHTML(
                         `Найден пользователь: \n${this.generateUserInfoString(targetUser)}`,
                         this.keyboardMarkupWithAutoLayoutFor([
@@ -145,41 +153,44 @@ export class AdminMenuUsersManagementScene extends Scene<ISceneData> {
                             this.text.adminMenu.returnBack,
                         ])
                     )
-                    data.editPermissionsModeEnabled = null
+                    data.editPermissionsModeEnabled = undefined
                     return this.completion.inProgress(data)
             }
 
             if (messageText.split(' ').length != 2) {
                 return this.completion.canNotHandle(data)
             }
-            const targetPermission = UserPermissionNames[messageText.split(' ')[1]]
+            const targetPermission = UserPermissionNamesStable[messageText.split(' ')[1]]
             if (targetPermission == null) {
                 return this.completion.canNotHandle(data)
             }
             let permissionUpdateEnable = false
 
             const targetUser = await this.userService.findOneByTelegramId(data.targetUserTelegramId)
-            const targetUserActivePermissions = getActiveUserPermissions(targetUser)
+            if (!targetUser) return this.completion.canNotHandle(data)
+            const targetUserActivePermissions = getActiveUserPermissionNames(targetUser)
 
             // Include only enabled actions
             switch (targetPermission) {
                 // Any actions with owner can do only developer
-                case UserPermissionNames.owner:
+                case UserPermissionNamesStable.owner:
                     break
 
                 // Only owner can set admin permission
-                case UserPermissionNames.admin:
-                    if (this.userActivePermissions.includes(UserPermissionNames.owner)) {
+                case UserPermissionNamesStable.admin:
+                    if (this.userActivePermissions.includes(UserPermissionNamesStable.owner)) {
                         permissionUpdateEnable = true
                     }
                     break
 
                 // Owner and admin can ban user
                 // Nobody can ban owner and admin
-                case UserPermissionNames.banned:
+                case UserPermissionNamesStable.banned:
                     if (
-                        targetUserActivePermissions.includes(UserPermissionNames.owner) == false &&
-                        targetUserActivePermissions.includes(UserPermissionNames.admin) == false
+                        targetUserActivePermissions.includes(UserPermissionNamesStable.owner) ===
+                            false &&
+                        targetUserActivePermissions.includes(UserPermissionNamesStable.admin) ===
+                            false
                     ) {
                         permissionUpdateEnable = true
                     }
@@ -199,7 +210,7 @@ export class AdminMenuUsersManagementScene extends Scene<ISceneData> {
                 // Remove permission
                 targetUser.internalInfo.permissions = targetUser.internalInfo.permissions.filter(
                     (permission) =>
-                        UserPermissionNames[permission.permissionName] != targetPermission
+                        UserPermissionNamesStable[permission.permissionName] != targetPermission
                 )
             } else {
                 // Add permission
@@ -230,7 +241,7 @@ export class AdminMenuUsersManagementScene extends Scene<ISceneData> {
                     this.text.adminMenu.returnBack,
                 ])
             )
-            data.editPermissionsModeEnabled = null
+            data.editPermissionsModeEnabled = undefined
             return this.completion.inProgress(data)
         }
 
@@ -238,7 +249,7 @@ export class AdminMenuUsersManagementScene extends Scene<ISceneData> {
     }
 
     async handleCallback(
-        ctx: Context<Update>,
+        ctx: Context<Update.CallbackQueryUpdate>,
         data: SceneCallbackData
     ): Promise<SceneHandlerCompletion> {
         throw new Error('Method not implemented.')

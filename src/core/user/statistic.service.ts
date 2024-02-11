@@ -83,8 +83,9 @@ export class StatisticService {
             )
 
             for (const row of tableContent) {
-                if (statisticMap.get(row[0])) {
-                    row.push(statisticMap.get(row[0]).toString())
+                const value = statisticMap.get(row[0])
+                if (value) {
+                    row.push(value.toString())
                 } else {
                     row.push('0')
                 }

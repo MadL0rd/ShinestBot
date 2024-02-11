@@ -15,8 +15,6 @@
 
 ### Local:
 ```bash
-npm i -g env-cmd
-npm i -g @nestjs/cli
 npm i
 ```
 
@@ -51,6 +49,9 @@ docker-compose up -d --build
 ```bash
 docker-compose logs --tail 50
 ```
+
+## Test spreadsheet
+[Google spreadsheet](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/)
 
 ## Nest cli tips
 

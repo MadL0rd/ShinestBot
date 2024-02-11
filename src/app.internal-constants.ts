@@ -1,3 +1,5 @@
+import { logger } from './app.logger'
+
 enum EnvKeys {
     // Mongo
     mongodbAddress = 'MONGODB_ADDRESS',
@@ -17,16 +19,23 @@ enum EnvKeys {
     // Bot configuration
     botToken = 'BOT_TOKEN',
     fileStorageChatId = 'FILE_STORAGE_CHAT_ID',
-    moderationChannelId = 'MODERATION_CHANNEL_ID',
-    moderationChatId = 'MODERATION_CHAT_ID',
-    advertsMainChannelId = 'ADVERTS_MAIN_CHANNEL_ID',
-    advertsMainChannelName = 'ADVERTS_MAIN_CHANNEL_NAME',
-    advertsWebPageBaseUrl = 'ADVERTS_WEB_PAGE_BASE_URL',
+    errorsChatId = 'ERRORS_CHAT_ID',
+
+    // GPT
+    gptApiKey = 'GPT_API_KEY',
+    gptModel = 'GPT_MODEL',
+    gptMaxTokens = 'GPT_MAX_TOKENS',
+    gptModelTemperature = 'GPT_MODEL_TEMPERATURE',
+    gptProxyUrl = 'GPT_PROXY_URL',
+
+    // Payment
+    paymentProviderToken = 'PAYMENT_PROVIDER_TOKEN',
 
     // Other
     appTz = 'APP_TZ',
     googleSpreadsheetId = 'GOOGLE_SPREADSHEET_ID',
     cacheBotContentOnStart = 'CACHE_BOT_CONTENT_ON_START',
+    projectVersion = 'PROJECT_VERSION',
 }
 
 class InternalConstants {
@@ -35,82 +44,92 @@ class InternalConstants {
     // =====================
 
     // Mongo
-    get mongodbAddress(): string | null {
+    get mongodbAddress(): string {
         return this.getEnvString(EnvKeys.mongodbAddress)
     }
-    get mongodbDatabase(): string | null {
+    get mongodbDatabase(): string {
         return this.getEnvString(EnvKeys.mongodbDatabase)
     }
-    get mongodbUser(): string | null {
+    get mongodbUser(): string {
         return this.getEnvString(EnvKeys.mongodbUser)
     }
-    get mongodbPassword(): string | null {
+    get mongodbPassword(): string {
         return this.getEnvString(EnvKeys.mongodbPassword)
     }
 
     // Webhook and ports
-    get isWebhookActive(): string | null {
-        return this.getEnvString(EnvKeys.isWebhookActive)
+    get isWebhookActive(): boolean {
+        return this.getEnvBoolean(EnvKeys.isWebhookActive)
     }
-    get webhookDomain(): string | null {
+    get webhookDomain(): string {
         return this.getEnvString(EnvKeys.webhookDomain)
     }
-    get appExposePort(): number | null {
+    get appExposePort(): number {
         return this.getEnvNumber(EnvKeys.appExposePort)
     }
-    get appExposePortWebhook(): number | null {
+    get appExposePortWebhook(): number {
         return this.getEnvNumber(EnvKeys.appExposePortWebhook)
     }
-    get appPorts(): string | null {
+    get appPorts(): string {
         return this.getEnvString(EnvKeys.appPorts)
     }
-    get appPortsWebhook(): string | null {
+    get appPortsWebhook(): string {
         return this.getEnvString(EnvKeys.appPortsWebhook)
     }
-    get enableInternalCors(): boolean | null {
+    get enableInternalCors(): boolean {
         return this.getEnvBoolean(EnvKeys.enableInternalCors)
     }
 
     // Bot configuration
-    get botToken(): string | null {
+    get botToken(): string {
         return this.getEnvString(EnvKeys.botToken)
     }
-    get fileStorageChatId(): number | null {
+    get fileStorageChatId(): number {
         return this.getEnvNumber(EnvKeys.fileStorageChatId)
     }
-    get moderationChannelId(): number | null {
-        return this.getEnvNumber(EnvKeys.moderationChannelId)
+    get errorsChatId(): number {
+        return this.getEnvNumber(EnvKeys.errorsChatId)
     }
-    get moderationChatId(): number | null {
-        return this.getEnvNumber(EnvKeys.moderationChatId)
+
+    // GPT
+    get gptApiKey(): string {
+        return this.getEnvString(EnvKeys.gptApiKey)
     }
-    get advertsMainChannelId(): number | null {
-        return this.getEnvNumber(EnvKeys.advertsMainChannelId)
+    get gptModel(): string {
+        return this.getEnvString(EnvKeys.gptModel)
     }
-    get advertsMainChannelName(): string | null {
-        return this.getEnvString(EnvKeys.advertsMainChannelName)
+    get gptMaxTokens(): string {
+        return this.getEnvString(EnvKeys.gptMaxTokens)
     }
-    get advertsWebPageBaseUrl(): string | null {
-        return this.getEnvString(EnvKeys.advertsWebPageBaseUrl)
+    get gptModelTemperature(): number {
+        return this.getEnvNumber(EnvKeys.gptModelTemperature)
+    }
+    get gptProxyUrl(): string {
+        return this.getEnvString(EnvKeys.gptProxyUrl)
+    }
+
+    // Payment
+    get paymentProviderToken(): string {
+        return this.getEnvString(EnvKeys.paymentProviderToken)
     }
 
     // Other
-    get npmPackageVersion(): string | null {
-        return process.env.npm_package_version
+    get npmPackageVersion(): string {
+        return process.env.npm_package_version ?? this.getEnvString(EnvKeys.projectVersion) ?? null
     }
-    get defaultLanguage(): string | null {
+    get defaultLanguage(): string {
         return 'RU'
     }
-    get loadingServiceChatMessagePrefix(): string | null {
+    get loadingServiceChatMessagePrefix(): string {
         return 'Loading...\nid:'
     }
-    get appTimeZoneUtcOffset(): string | null {
-        return this.getEnvString(EnvKeys.appTz)
+    get appTimeZoneUtcOffset(): number {
+        return this.getEnvNumber(EnvKeys.appTz)
     }
-    get googleSpreadsheetId(): string | null {
+    get googleSpreadsheetId(): string {
         return this.getEnvString(EnvKeys.googleSpreadsheetId)
     }
-    get cacheBotContentOnStart(): boolean | null {
+    get cacheBotContentOnStart(): boolean {
         return this.getEnvBoolean(EnvKeys.cacheBotContentOnStart)
     }
 
@@ -131,7 +150,8 @@ class InternalConstants {
                         const val = (this as any)[key]
                         jsonObj[key] = val
                     } catch (error) {
-                        console.error(`Error calling getter ${key}`, error)
+                        logger.error(`Error calling getter ${key}`, error)
+                        throw error
                     }
                 }
             })
@@ -139,22 +159,35 @@ class InternalConstants {
         return jsonObj
     }
 
+    dropProcessCache() {
+        for (const key in EnvKeys) {
+            process.env[EnvKeys[key]] = undefined
+        }
+    }
+
     // =====================
     // Private methods
     // =====================
 
-    private getEnvString(key: EnvKeys): string | null {
-        return process.env[key] ?? null
+    private getEnvString(key: EnvKeys): string {
+        const envValue = process.env[key]
+        if (!envValue) throw new Error(`Fail to get env string value for key: ${key}`)
+        return envValue
     }
 
-    private getEnvNumber(key: EnvKeys): number | null {
-        return Number(process.env[key]) ?? null
+    private getEnvNumber(key: EnvKeys): number {
+        const envValue = Number(process.env[key])
+        if (!envValue) throw new Error(`Fail to get env number value for key: ${key}`)
+        return envValue
     }
 
-    private getEnvBoolean(key: EnvKeys): boolean | null {
-        const value = process.env[key]
-        if (typeof value != 'string') return null
-        return value == 'true'
+    private getEnvBoolean(key: EnvKeys): boolean {
+        const envValue = process.env[key]
+        if (!envValue) throw new Error(`Fail to get env boolean value for key: ${key}`)
+        if (envValue !== 'true' && envValue !== 'false') {
+            throw new Error(`Fail to get env boolean value for key: ${key}`)
+        }
+        return envValue === 'true'
     }
 }
 

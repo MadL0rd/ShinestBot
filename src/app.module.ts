@@ -8,6 +8,9 @@ import { BotContentModule } from './core/bot-content/bot-content.module'
 import { LocalizationModule } from './core/localization/localization.module'
 import * as mediaGroup from 'telegraf-media-group'
 import { internalConstants } from './app.internal-constants'
+import { ScheduleModule } from '@nestjs/schedule'
+import { NotificationModule } from './presentation/notification/notification.module'
+import { GptApiModule } from './core/gpt-api/gpt-api.module'
 
 @Module({
     imports: [
@@ -17,11 +20,11 @@ import { internalConstants } from './app.internal-constants'
         }),
         MongooseModule.forRoot(
             `mongodb://${internalConstants.mongodbUser}:${internalConstants.mongodbPassword}@${internalConstants.mongodbAddress}/`,
-            { dbName: internalConstants.mongodbDatabase }
+            { dbName: internalConstants.mongodbDatabase ?? undefined }
         ),
         TelegrafModule.forRoot({
             launchOptions:
-                internalConstants.isWebhookActive === 'true'
+                internalConstants.isWebhookActive === true
                     ? {
                           webhook: {
                               domain: internalConstants.webhookDomain,
@@ -32,9 +35,12 @@ import { internalConstants } from './app.internal-constants'
             token: internalConstants.botToken,
             middlewares: [mediaGroup()],
         }),
+        ScheduleModule.forRoot(),
         UserModule,
         LocalizationModule,
         BotContentModule,
+        NotificationModule,
+        GptApiModule,
     ],
     providers: [AppUpdate],
 })

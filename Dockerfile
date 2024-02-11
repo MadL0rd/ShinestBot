@@ -8,7 +8,8 @@ WORKDIR /usr/src/app
 COPY package*.json ./
 
 # Install app dependencies
-RUN npm i --legacy-peer-deps
+RUN npm ci
+RUN npm i -g @nestjs/cli
 
 # Bundle app source
 COPY . .

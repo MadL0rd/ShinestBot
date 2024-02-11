@@ -11,10 +11,10 @@ export class BotContent {
     language: string
 
     @Prop()
-    uniqueMessage?: UniqueMessage
+    uniqueMessage: UniqueMessage
 
     @Prop()
-    onboarding?: OnboardingPage[]
+    onboarding: OnboardingPage[]
 }
 
 export type BotContentStable = Required<BotContent>

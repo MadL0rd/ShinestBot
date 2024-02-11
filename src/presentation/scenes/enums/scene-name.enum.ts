@@ -7,7 +7,8 @@ export enum SceneName {
     adminMenuMailing = 'adminMenuMailing',
     adminMenuUsersManagement = 'adminMenuUsersManagement',
     languageSettings = 'languageSettings',
-    /** New scene name placeholder */
+    payment = 'payment',
+	/** New scene name placeholder */
 }
 
 export namespace SceneName {
@@ -29,5 +30,9 @@ export namespace SceneName {
         }
 
         return null
+    }
+
+    export function getBySceneName(name: string | any): SceneName | null {
+        return SceneName[name] ?? null
     }
 }

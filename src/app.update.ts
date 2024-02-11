@@ -1,15 +1,15 @@
-import { InjectBot, On, Start, Update } from 'nestjs-telegraf'
+import { InjectBot, On, Start, Update as UpdateNest } from 'nestjs-telegraf'
 import { Telegraf, Context, Markup } from 'telegraf'
 import { UserService } from './core/user/user.service'
 import { BotContentService } from './core/bot-content/bot-content.service'
 import { IDispatcher } from './presentation/dispatcher/dispatcher.interface'
 import { PrivateDialogDispatcher } from './presentation/dispatcher/implementations/private-dialog-dispatcher.service'
-import { Message } from 'telegraf/typings/core/types/typegram'
+import { Message, Update } from 'telegraf/typings/core/types/typegram'
 import { logger } from './app.logger'
 import { internalConstants } from './app.internal-constants'
 import { LocalizationService } from './core/localization/localization.service'
 
-@Update()
+@UpdateNest()
 export class AppUpdate {
     // =====================
     // Properties
@@ -36,8 +36,9 @@ export class AppUpdate {
     // =====================
 
     @Start()
-    async startCommand(ctx: Context) {
-        logger.log(`User ${ctx.from.id} ${ctx.from.first_name} has started the bot`)
+    async startCommand(ctx: Context<Update>) {
+        if (ctx.chat?.type !== 'private') return
+        logger.log(`User ${ctx.from?.id} ${ctx.from?.first_name} has started the bot`)
         await this.privateDialogDispatcher.handleUserStart(ctx)
     }
 
@@ -55,27 +56,52 @@ export class AppUpdate {
         'venue',
         'invoice',
     ])
-    async on(ctx: Context) {
+    async on(ctx: Context<Update>) {
         const message = ctx.message as Message.TextMessage
         const messageText = message?.text
         if (messageText) {
             logger.log(
-                `User ${ctx.from.id} ${ctx.from.first_name} has sent a message: "${messageText}"`
+                `User ${ctx.from?.id} ${ctx.from?.first_name} has sent a message: "${messageText}"`
             )
         } else {
-            logger.log(
-                `From ${ctx.from.id} ${ctx.from.first_name} receive ${JSON.stringify(ctx.message)}`
-            )
+            const messageJsonString = JSON.stringify(ctx.message)
+            logger.log(`From ${ctx.from?.id} ${ctx.from?.first_name} receive ${messageJsonString}`)
         }
 
-        if (ctx.chat.type === 'private') {
+        if (ctx.chat?.type === 'private') {
             // Message from private chat with user
             await this.privateDialogDispatcher.handleUserMessage(ctx)
-        } else if (ctx.chat.id == internalConstants.moderationChatId) {
-            // Message in moderation chat
-            logger.error('ModerationChatDispatcher does not implemented')
-        } else if (ctx.chat.id == internalConstants.fileStorageChatId) {
+        } else if (ctx.chat?.id == internalConstants.fileStorageChatId) {
             // Message in file storage chat
+
+            const textMessage = ctx.message as Message.TextMessage
+            if (textMessage?.text && textMessage?.text.includes(':')) {
+                const commandComponents = textMessage.text
+                    .split(':')
+                    .map((component) => component.trimmed)
+                if (commandComponents.length != 2) return
+
+                const fileId = commandComponents[1]
+                try {
+                    switch (commandComponents[0]) {
+                        case 'video':
+                            await ctx.sendVideo(fileId)
+                            return
+                        case 'photo':
+                            await ctx.sendPhoto(fileId)
+                            return
+                        case 'audio':
+                            await ctx.sendAudio(fileId)
+                            return
+                        case 'document':
+                            await ctx.sendDocument(fileId)
+                            return
+                    }
+                } catch {
+                    await ctx.sendMessage('Не удалось отправить файл')
+                    return
+                }
+            }
 
             // Photo
             const messagePhoto = ctx.message as Message.PhotoMessage
@@ -105,18 +131,54 @@ export class AppUpdate {
                 await ctx.reply(documentFileId)
             }
         } else {
-            logger.log(`ChatId ${ctx.chat.id}`)
+            logger.log(`ChatId ${ctx.chat?.id}`)
+        }
+    }
+    @On(['pre_checkout_query'])
+    async answerPreChekoutQuerry(ctx: Context<Update.PreCheckoutQueryUpdate>) {
+        const preCheckoutResult = true
+
+        // Checking for endless subscription
+        // const payload = ctx.preCheckoutQuery.invoice_payload
+        const user = await this.userService.findOneByTelegramId(ctx.from.id)
+        if (!user) {
+            logger.error(`PRE_CHECKOUT_QUERY: Failed to find user: ${JSON.stringify(ctx.from.id)}`)
+            return
+        }
+
+        await ctx.answerPreCheckoutQuery(preCheckoutResult)
+        const querry = ctx.preCheckoutQuery
+        if (preCheckoutResult) {
+            logger.log(
+                `PRE_CHECKOUT_QUERY: Answered pre checkout querry from ${querry.from.username}. Id ${querry.id}`
+            )
+        } else {
+            logger.error(
+                `PRE_CHECKOUT_QUERY: Cant answer pre checkout querry from ${querry.from.username}. Id ${querry.id}`
+            )
         }
     }
 
+    @On(['successful_payment'])
+    async paymentHandler(ctx: Context<Update.MessageUpdate>) {
+        logger.log(`PAYMENT: Successful payment detected`)
+
+        const user = await this.userService.findOneByTelegramId(ctx.from.id)
+        if (!user) {
+            logger.error(`PAYMENT: Failed to find user: ${JSON.stringify(ctx.from.id)}`)
+            return
+        }
+        logger.log(`PAYMENT: Successful payment for user ${user.telegramInfo.username}`)
+    }
+
     @On(['callback_query'])
-    async onInlineButton(ctx: Context) {
+    async onInlineButton(ctx: Context<Update.CallbackQueryUpdate>) {
         logger.log(
-            `User ${ctx.from.id} ${ctx.from.first_name} pressed the inline button ${ctx.callbackQuery}"`
+            `User ${ctx.from?.id} ${ctx.from?.first_name} pressed the inline button ${ctx.callbackQuery}"`
         )
         logger.log(ctx.callbackQuery)
 
-        if (ctx.chat.type === 'private') {
+        if (ctx.chat?.type === 'private') {
             // Message from private chat with user
             await this.privateDialogDispatcher.handleUserCallback(ctx)
         }

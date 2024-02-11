@@ -26,7 +26,9 @@ export class AdminMenuMailingScene extends Scene<ISceneData> {
     // =====================
 
     async handleEnterScene(ctx: Context<Update>): Promise<SceneHandlerCompletion> {
-        logger.log(`${this.name} scene handleEnterScene. User: ${ctx.from.id} ${ctx.from.username}`)
+        logger.log(
+            `${this.name} scene handleEnterScene. User: ${this.user.telegramInfo.id} ${this.user.telegramInfo.username}`
+        )
         await this.logToUserHistory(this.historyEvent.startSceneAdminMenuMailing)
 
         await ctx.replyWithHTML(this.text.adminMenu.mailingText, Markup.removeKeyboard())
@@ -35,12 +37,14 @@ export class AdminMenuMailingScene extends Scene<ISceneData> {
     }
 
     async handleMessage(ctx: Context<Update>, dataRaw: object): Promise<SceneHandlerCompletion> {
-        logger.log(`${this.name} scene handleMessage. User: ${ctx.from.id} ${ctx.from.username}`)
+        logger.log(
+            `${this.name} scene handleMessage. User: ${this.user.telegramInfo.id} ${this.user.telegramInfo.username}`
+        )
 
         const data = this.restoreData(dataRaw)
         const message = ctx.message as Message.TextMessage
 
-        if (message === null) {
+        if (!message.text || !ctx.chat) {
             return this.completion.canNotHandle(data)
         }
 
@@ -57,70 +61,71 @@ export class AdminMenuMailingScene extends Scene<ISceneData> {
                 ])
             )
             return this.completion.inProgress(data)
-        } else {
-            switch (message.text) {
-                case this.text.adminMenu.mailingButtonSend:
-                    const allUsersTelegramIdList = await this.userService.findAllTelegramIds()
-                    const adminMessage = await ctx.replyWithHTML(
-                        `Отправлено сообщений: 0/${allUsersTelegramIdList.length}\nПользователей заблокировало бота: 0`
-                    )
+        }
+        switch (message.text) {
+            case this.text.adminMenu.mailingButtonSend:
+                const allUsersTelegramIdList = await this.userService.findAllTelegramIds()
+                const adminMessage = await ctx.replyWithHTML(
+                    `Отправлено сообщений: 0/${allUsersTelegramIdList.length}\nПользователей заблокировало бота: 0`
+                )
 
-                    let blockedUsersCount = 0
-                    for (const [index, userId] of allUsersTelegramIdList.entries()) {
-                        try {
-                            await ctx.telegram.sendMessage(userId, data.mailingMessageText, {
-                                parse_mode: 'HTML',
-                            })
-                        } catch (e) {
-                            blockedUsersCount += 1
+                let blockedUsersCount = 0
+                for (const [index, userId] of allUsersTelegramIdList.entries()) {
+                    try {
+                        await ctx.telegram.sendMessage(userId, data.mailingMessageText, {
+                            parse_mode: 'HTML',
+                        })
+                    } catch (error) {
+                        logger.warn(`Fail to send message to user with telegramId ${userId}`, error)
 
-                            const user = await this.userService.findOneByTelegramId(userId)
+                        blockedUsersCount += 1
+
+                        const user = await this.userService.findOneByTelegramId(userId)
+                        if (user) {
                             await this.userService.logToUserHistory(
                                 user,
                                 UserHistoryEvent.botIsBlockedDetected
                             )
                         }
-                        if (index % 10 == 0) {
-                            await ctx.telegram.editMessageText(
-                                ctx.chat.id,
-                                adminMessage.message_id,
-                                undefined,
-                                `Отправлено сообщений: ${index + 1 - blockedUsersCount}/${
-                                    allUsersTelegramIdList.length
-                                }\nПользователей заблокировало бота: ${blockedUsersCount}`,
-                                {
-                                    parse_mode: 'HTML',
-                                }
-                            )
-                        }
                     }
+                    if (index % 10 == 0) {
+                        await ctx.telegram.editMessageText(
+                            ctx.chat.id,
+                            adminMessage.message_id,
+                            undefined,
+                            `Отправлено сообщений: ${index + 1 - blockedUsersCount}/${
+                                allUsersTelegramIdList.length
+                            }\nПользователей заблокировало бота: ${blockedUsersCount}`,
+                            {
+                                parse_mode: 'HTML',
+                            }
+                        )
+                    }
+                }
 
-                    await ctx.telegram.editMessageText(
-                        ctx.chat.id,
-                        adminMessage.message_id,
-                        undefined,
-                        `Отправлено сообщений: ${
-                            allUsersTelegramIdList.length - blockedUsersCount
-                        }/${
-                            allUsersTelegramIdList.length
-                        }\nПользователей заблокировало бота: ${blockedUsersCount}`,
-                        {
-                            parse_mode: 'HTML',
-                        }
-                    )
+                await ctx.telegram.editMessageText(
+                    ctx.chat.id,
+                    adminMessage.message_id,
+                    undefined,
+                    `Отправлено сообщений: ${allUsersTelegramIdList.length - blockedUsersCount}/${
+                        allUsersTelegramIdList.length
+                    }\nПользователей заблокировало бота: ${blockedUsersCount}`,
+                    {
+                        parse_mode: 'HTML',
+                    }
+                )
 
-                    return this.completion.complete(SceneName.adminMenu)
+                return this.completion.complete(SceneName.adminMenu)
 
-                case this.text.adminMenu.mailingButtonCancel:
-                    return this.completion.complete(SceneName.adminMenu)
-            }
+            case this.text.adminMenu.mailingButtonCancel:
+                return this.completion.complete(SceneName.adminMenu)
         }
 
         return this.completion.canNotHandle(data)
     }
 
     async handleCallback(
-        ctx: Context<Update>,
+        ctx: Context<Update.CallbackQueryUpdate>,
         data: SceneCallbackData
     ): Promise<SceneHandlerCompletion> {
         throw new Error('Method not implemented.')

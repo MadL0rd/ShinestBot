@@ -7,6 +7,8 @@ export class UniqueMessage {
     readonly mainMenu = new MainMenu()
     readonly adminMenu = new AdminMenu()
     readonly adminMenuMetrics = new AdminMenuMetrics()
+    readonly payment = new Payment()
+    readonly notification = new Notification()
 }
 
 export class Common {
@@ -18,6 +20,7 @@ export class Common {
     readonly bannedUserMessage = 'Похоже, что вам больше нельзя пользоваться этим ботом'
     readonly comingSoon = 'Эта функция скоро появится'
     readonly selectLanguageText = 'Выберите язык'
+    readonly errorMessage = 'Кажется, что-то пошло не по плану 🙄'
 }
 
 export class MainMenu {
@@ -25,6 +28,7 @@ export class MainMenu {
     readonly textRepoLink = 'https://github.com/MadL0rd/ShinestBot'
     readonly buttonAdminMenu = '🔐 Меню администратора'
     readonly buttonRepoLink = '📂 Репозиторий'
+    readonly buttonPayment = 'Оплата'
     readonly buttonLanguageSettings = '🌎 Выбрать другой язык'
 }
 
@@ -50,4 +54,26 @@ export class AdminMenuMetrics {
     readonly selectDateMonth = 'Месяц'
     readonly selectDateQuarter = 'Квартал'
     readonly selectDateYear = 'Год'
+}
+
+export class Payment {
+    readonly text = 'Что хотите приобрести?'
+}
+
+export class Notification {
+    readonly morningTextDefault = 'Доброе утро!'
+    readonly morningTextGptPromt = 'Напишите текст утреннего уведомления для человека неизвестного пола.'
+    readonly eveningTextDefault = 'Добрый вечер!'
+    readonly eveningTextGptPromt = 'Напишите текст вечернего уведомления для человека неизвестного пола.'
+    readonly buttonFairytale = 'Написать терапевтическую сказку'
+    readonly buttonMainMenu = 'Перейти в главное меню'
+    readonly subscriptionText = 'Дорогой друг, некоторые твои подписки скоро истекают:'
+    readonly buttonSubscriptionText = 'Оплатить'
+    readonly quantityDaysBeforeSubscriptionNotification = '7'
+    readonly morningTimeList = '07:00\n07:30\n08:00\n08:30\n09:00\n09:30\n10:00\n10:30\n11:00'
+    readonly morningTimeDefault = '08:00'
+    readonly eveningTimeList = '18:00\n18:30\n19:00\n19:30\n20:00\n20:30\n21:00\n21:30\n22:00'
+    readonly eveningTimeDefault = '22:15'
+    readonly subscriptionTime = '20:04'
+    readonly buttonDontSend = 'Не отправлять'
 }

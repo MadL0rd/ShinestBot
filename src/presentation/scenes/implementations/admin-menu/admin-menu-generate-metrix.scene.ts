@@ -1,6 +1,5 @@
 import { Context } from 'telegraf'
 import { Message, Update } from 'telegraf/typings/core/types/typegram'
-import * as moment from 'moment'
 import 'moment-timezone'
 import { SceneName } from '../../enums/scene-name.enum'
 import {
@@ -10,10 +9,10 @@ import {
     SceneCallbackData,
 } from '../../scene.interface'
 import { logger } from 'src/app.logger'
-import { UserPermissionNames } from '../../../../core/user/enums/user-permission-names.enum'
+import { UserPermissionNamesStable } from '../../../../core/user/enums/user-permission.enum'
 import { StatisticService } from '../../../../core/user/statistic.service'
 import { FileName } from '../../enums/file-name.enum'
-import { internalConstants } from 'src/app.internal-constants'
+
 // =====================
 // Scene data class
 // =====================
@@ -32,8 +31,8 @@ export class AdminMenuGenerateMetrixScene extends Scene<ISceneData> {
 
     validateUseScenePermissions(): PermissionsValidationResult {
         const ownerOrAdmin =
-            this.userActivePermissions.includes(UserPermissionNames.admin) ||
-            this.userActivePermissions.includes(UserPermissionNames.owner)
+            this.userActivePermissions.includes(UserPermissionNamesStable.admin) ||
+            this.userActivePermissions.includes(UserPermissionNamesStable.owner)
         if (ownerOrAdmin) {
             return { canUseScene: true }
         }
@@ -41,7 +40,9 @@ export class AdminMenuGenerateMetrixScene extends Scene<ISceneData> {
     }
 
     async handleEnterScene(ctx: Context<Update>): Promise<SceneHandlerCompletion> {
-        logger.log(`${this.name} scene handleEnterScene. User: ${ctx.from.id} ${ctx.from.username}`)
+        logger.log(
+            `${this.name} scene handleEnterScene. User: ${this.user.telegramInfo.id} ${this.user.telegramInfo.username}`
+        )
         await this.logToUserHistory(this.historyEvent.startSceneAdminMenuGenerateMetrix)
 
         await ctx.replyWithHTML(this.text.adminMenuMetrics.selectDateText, this.menuMarkup())
@@ -50,11 +51,13 @@ export class AdminMenuGenerateMetrixScene extends Scene<ISceneData> {
     }
 
     async handleMessage(ctx: Context<Update>): Promise<SceneHandlerCompletion> {
-        logger.log(`${this.name} scene handleMessage. User: ${ctx.from.id} ${ctx.from.username}`)
+        logger.log(
+            `${this.name} scene handleMessage. User: ${this.user.telegramInfo.id} ${this.user.telegramInfo.username}`
+        )
 
         const message = ctx.message as Message.TextMessage
         const currentDate = new Date()
-        let beginningDate: Date
+        let beginningDate: Date | null = null
 
         switch (message?.text) {
             case this.text.adminMenuMetrics.selectDateMonth:
@@ -117,12 +120,8 @@ export class AdminMenuGenerateMetrixScene extends Scene<ISceneData> {
         if (beginningDate) {
             const statisticService = new StatisticService(this.userService, this.botContentService)
             const dateFormat = 'DD.MM.yyyy'
-            const beginningDateString = moment(beginningDate)
-                .utcOffset(internalConstants.appTimeZoneUtcOffset)
-                .format(dateFormat)
-            const currentDateString = moment(currentDate)
-                .utcOffset(internalConstants.appTimeZoneUtcOffset)
-                .format(dateFormat)
+            const beginningDateString = beginningDate.formattedWithAppTimeZone(dateFormat)
+            const currentDateString = currentDate.formattedWithAppTimeZone(dateFormat)
             const resultFileName = `${FileName.statisticsMain} c ${beginningDateString} по ${currentDateString}.xlsx`
             const resultMetricsTable = await statisticService.createTable(
                 beginningDate,
@@ -139,7 +138,7 @@ export class AdminMenuGenerateMetrixScene extends Scene<ISceneData> {
     }
 
     async handleCallback(
-        ctx: Context<Update>,
+        ctx: Context<Update.CallbackQueryUpdate>,
         data: SceneCallbackData
     ): Promise<SceneHandlerCompletion> {
         throw new Error('Method not implemented.')

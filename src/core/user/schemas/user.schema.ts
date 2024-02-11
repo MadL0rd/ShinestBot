@@ -22,7 +22,7 @@ export class SceneData {
 export class UserHistoryRecord {
     timeStamp: Date
     event: UserHistoryEvent
-    content?: string
+    content?: object | string
 }
 
 @Schema()

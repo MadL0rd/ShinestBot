@@ -8,7 +8,7 @@ import {
     SceneHandlerCompletion,
 } from '../../scene.interface'
 import { logger } from 'src/app.logger'
-import { UserPermissionNames } from 'src/core/user/enums/user-permission-names.enum'
+import { UserPermissionNamesStable } from 'src/core/user/enums/user-permission.enum'
 import { PageNameEnum } from 'src/core/google-tables/enums/page-name.enum'
 import { internalConstants } from 'src/app.internal-constants'
 
@@ -17,6 +17,12 @@ import { internalConstants } from 'src/app.internal-constants'
 // =====================
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface ISceneData {}
+
+enum SpreadsheetPageCacheStatus {
+    loading = 'loading',
+    success = 'success',
+    error = 'error',
+}
 
 export class AdminMenuScene extends Scene<ISceneData> {
     // =====================
@@ -31,8 +37,8 @@ export class AdminMenuScene extends Scene<ISceneData> {
 
     validateUseScenePermissions(): PermissionsValidationResult {
         const ownerOrAdmin =
-            this.userActivePermissions.includes(UserPermissionNames.admin) ||
-            this.userActivePermissions.includes(UserPermissionNames.owner)
+            this.userActivePermissions.includes(UserPermissionNamesStable.admin) ||
+            this.userActivePermissions.includes(UserPermissionNamesStable.owner)
         if (ownerOrAdmin) {
             return { canUseScene: true }
         }
@@ -40,7 +46,9 @@ export class AdminMenuScene extends Scene<ISceneData> {
     }
 
     async handleEnterScene(ctx: Context<Update>): Promise<SceneHandlerCompletion> {
-        logger.log(`${this.name} scene handleEnterScene. User: ${ctx.from.id} ${ctx.from.username}`)
+        logger.log(
+            `${this.name} scene handleEnterScene. User: ${this.user.telegramInfo.id} ${this.user.telegramInfo.username}`
+        )
         await this.logToUserHistory(this.historyEvent.startSceneAdminMenu)
 
         await ctx.replyWithHTML(
@@ -51,7 +59,9 @@ export class AdminMenuScene extends Scene<ISceneData> {
     }
 
     async handleMessage(ctx: Context<Update>, dataRaw: object): Promise<SceneHandlerCompletion> {
-        logger.log(`${this.name} scene handleMessage. User: ${ctx.from.id} ${ctx.from.username}`)
+        logger.log(
+            `${this.name} scene handleMessage. User: ${this.user.telegramInfo.id} ${this.user.telegramInfo.username}`
+        )
 
         // const data: ISceneData = this.restoreData(dataRaw)
 
@@ -80,7 +90,7 @@ export class AdminMenuScene extends Scene<ISceneData> {
 
     async handleCallback(
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        ctx: Context<Update>,
+        ctx: Context<Update.CallbackQueryUpdate>,
         data: SceneCallbackData
     ): Promise<SceneHandlerCompletion> {
         throw new Error('Method not implemented.')
@@ -91,47 +101,78 @@ export class AdminMenuScene extends Scene<ISceneData> {
     // =====================
 
     private async cacheBotContent(ctx: Context<Update>): Promise<void> {
-        let messageText = 'Список языков: '
+        let messagePrefix = 'Список языков: '
         const languages = await this.localizationService.getRemoteLanguages()
-        messageText += languages.join('; ')
-        messageText += '\n'
+        messagePrefix += languages.join('; ')
+        messagePrefix += '\n'
 
-        for (const pageName in PageNameEnum) {
-            messageText += `\n🔴 ${PageNameEnum[pageName]}`
-        }
+        const statuses = new Map<PageNameEnum, SpreadsheetPageCacheStatus | Error>()
+        Object.keys(PageNameEnum).forEach(
+            (pageName) => (statuses[pageName] = SpreadsheetPageCacheStatus.loading)
+        )
 
-        const messageInfo = await ctx.replyWithHTML(messageText)
-
-        for (const pageName in PageNameEnum) {
-            await this.botContentService.cacheSpreadsheetPage(PageNameEnum[pageName])
-            messageText = messageText.replace('🔴', '🟢')
-            await ctx.telegram.editMessageText(
-                ctx.chat.id,
-                messageInfo.message_id,
-                undefined,
-                messageText,
-                {
-                    parse_mode: 'HTML',
+        const messageInfo = await ctx.replyWithHTML(
+            messagePrefix + this.generageTextForCacheStatuses(statuses)
+        )
+        const botContentService = this.botContentService
+        const loadingPromises = Object.keys(PageNameEnum).map((pageName) => {
+            const cacheSpreadsheetFunc = async function (): Promise<void> {
+                try {
+                    await botContentService.cacheSpreadsheetPage(PageNameEnum[pageName])
+                    statuses[pageName] = SpreadsheetPageCacheStatus.success
+                } catch (error) {
+                    statuses[pageName] = error
+                    logger.error(`Fail to cache spreadsheep page ${pageName}`, error)
                 }
-            )
-        }
+            }
+            return cacheSpreadsheetFunc()
+        })
+        await Promise.all(loadingPromises)
+
+        if (!ctx.chat) return
         await ctx.telegram.editMessageText(
             ctx.chat.id,
             messageInfo.message_id,
             undefined,
-            '❇️ Тексты обновлены',
+            messagePrefix +
+                this.generageTextForCacheStatuses(statuses) +
+                '\n\nПроцесс обновления завершен',
             {
-                parse_mode: 'HTML',
+                parse_mode: 'MarkdownV2',
             }
         )
+    }
+    private generageTextForCacheStatuses(
+        statuses: Map<PageNameEnum, SpreadsheetPageCacheStatus | Error>
+    ): string {
+        let result = ''
+        for (const pageName in PageNameEnum) {
+            result += `\n`
+            if (statuses[pageName] instanceof Error) {
+                result += `❌ ${PageNameEnum[pageName]}:\n\`\`\`\n${statuses[pageName]}\n\`\`\``
+            } else {
+                const status: SpreadsheetPageCacheStatus = statuses[pageName]
+                switch (status) {
+                    case SpreadsheetPageCacheStatus.loading:
+                        result += '🔍'
+                        break
+                    case SpreadsheetPageCacheStatus.success:
+                        result += '🟢'
+                        break
+                    case SpreadsheetPageCacheStatus.error:
+                        result += '❌'
+                        break
+                }
+                result += PageNameEnum[pageName]
+            }
+        }
+        return result
     }
 
     private menuMarkup(): object {
         return this.keyboardMarkupFor([
-            [this.text.adminMenu.buttonReloadData],
-            [this.text.adminMenu.buttonDownloadTables],
-            [this.text.adminMenu.buttonUsersManagement],
-            [this.text.adminMenu.buttonMailing],
+            [this.text.adminMenu.buttonReloadData, this.text.adminMenu.buttonDownloadTables],
+            [this.text.adminMenu.buttonUsersManagement, this.text.adminMenu.buttonMailing],
             [this.text.common.buttonReturnToMainMenu],
         ])
     }

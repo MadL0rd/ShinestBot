@@ -32,7 +32,9 @@ export class OnboardingScene extends Scene<ISceneData> {
     // =====================
 
     async handleEnterScene(ctx: Context<Update>): Promise<SceneHandlerCompletion> {
-        logger.log(`${this.name} scene handleEnterScene. User: ${ctx.from.id} ${ctx.from.username}`)
+        logger.log(
+            `${this.name} scene handleEnterScene. User: ${this.user.telegramInfo.id} ${this.user.telegramInfo.username}`
+        )
         await this.logToUserHistory(this.historyEvent.startSceneOnboarding)
 
         const onboardingPageIndex = 0
@@ -46,7 +48,9 @@ export class OnboardingScene extends Scene<ISceneData> {
     }
 
     async handleMessage(ctx: Context<Update>, dataRaw: object): Promise<SceneHandlerCompletion> {
-        logger.log(`${this.name} scene handleMessage. User: ${ctx.from.id} ${ctx.from.username}`)
+        logger.log(
+            `${this.name} scene handleMessage. User: ${this.user.telegramInfo.id} ${this.user.telegramInfo.username}`
+        )
 
         const data: ISceneData = this.restoreData(dataRaw)
         const message = ctx.message as Message.TextMessage
@@ -73,7 +77,7 @@ export class OnboardingScene extends Scene<ISceneData> {
     }
 
     async handleCallback(
-        ctx: Context<Update>,
+        ctx: Context<Update.CallbackQueryUpdate>,
         data: SceneCallbackData
     ): Promise<SceneHandlerCompletion> {
         throw new Error('Method not implemented.')

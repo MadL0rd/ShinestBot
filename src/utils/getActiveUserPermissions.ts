@@ -1,15 +1,20 @@
-import { UserPermissionNames } from 'src/core/user/enums/user-permission-names.enum'
+import {
+    UserPermissionNamesStable as UserPermissionName,
+    UserPermissionNamesStable,
+} from 'src/core/user/enums/user-permission.enum'
 import { UserDocument } from 'src/core/user/schemas/user.schema'
 
-export function getActiveUserPermissions(user: UserDocument): UserPermissionNames[] {
+export function getActiveUserPermissionNames(user: UserDocument): UserPermissionName[] {
     return (
-        user.internalInfo?.permissions
-            ?.map((permission) => {
-                if (permission.expirationDate < new Date()) {
-                    return undefined
-                }
-                return permission?.permissionName ?? undefined
-            })
-            .filter((x) => !!x) ?? []
+        user.internalInfo?.permissions?.compactMap((permission) => {
+            if (permission.expirationDate && permission.expirationDate < new Date()) {
+                return null
+            }
+            return (
+                UserPermissionNamesStable[permission?.permissionName] ??
+                permission?.permissionName ??
+                null
+            )
+        }) ?? []
     )
 }

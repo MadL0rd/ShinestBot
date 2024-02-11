@@ -1,14 +1,17 @@
-import { UserPermissionNames } from '../../enums/user-permission-names.enum'
+import { UserPermissionName } from '../../enums/user-permission.enum'
 
 export class UserInternalInfo {
     startParam: string | null = null
+    registrationDate: Date = new Date()
     language?: string
-    permissions: UserPermission[] = []
+    permissions: UserPermission[]
+    morningNotificationTime?: string
+    eveningNotification?: string
 }
 
 export class UserPermission {
-    readonly permissionName: UserPermissionNames
-    readonly comment?: string
-    readonly startDate?: Date
-    readonly expirationDate?: Date
+    permissionName: UserPermissionName | string
+    comment?: string
+    startDate: Date = new Date()
+    expirationDate?: Date
 }

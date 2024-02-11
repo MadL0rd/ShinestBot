@@ -26,7 +26,9 @@ export class LanguageSettingsScene extends Scene<ISceneData> {
     // =====================
 
     async handleEnterScene(ctx: Context<Update>): Promise<SceneHandlerCompletion> {
-        logger.log(`${this.name} scene handleEnterScene. User: ${ctx.from.id} ${ctx.from.username}`)
+        logger.log(
+            `${this.name} scene handleEnterScene. User: ${this.user.telegramInfo.id} ${this.user.telegramInfo.username}`
+        )
         await this.logToUserHistory(this.historyEvent.startSceneLanguageSettings)
 
         const languages = await this.botContentService.getLocalLanguages()
@@ -41,7 +43,9 @@ export class LanguageSettingsScene extends Scene<ISceneData> {
     }
 
     async handleMessage(ctx: Context<Update>, dataRaw: object): Promise<SceneHandlerCompletion> {
-        logger.log(`${this.name} scene handleMessage. User: ${ctx.from.id} ${ctx.from.username}`)
+        logger.log(
+            `${this.name} scene handleMessage. User: ${this.user.telegramInfo.id} ${this.user.telegramInfo.username}`
+        )
 
         const message = ctx.message as Message.TextMessage
         const messageText = message?.text
@@ -58,7 +62,7 @@ export class LanguageSettingsScene extends Scene<ISceneData> {
     }
 
     async handleCallback(
-        ctx: Context<Update>,
+        ctx: Context<Update.CallbackQueryUpdate>,
         dataRaw: SceneCallbackData
     ): Promise<SceneHandlerCompletion> {
         throw new Error('Method not implemented.')

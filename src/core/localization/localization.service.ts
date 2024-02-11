@@ -1,4 +1,4 @@
-import { Injectable, OnModuleInit } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import { LocalizedGroup } from './schemas/localization.schema'
 import { Model } from 'mongoose'
@@ -9,7 +9,7 @@ import { LocalizedString } from './schemas/models/localization.localized-string'
 import { logger } from 'src/app.logger'
 
 @Injectable()
-export class LocalizationService implements OnModuleInit {
+export class LocalizationService {
     // Spreadsheet cache constants
     private readonly cachedTrueValue = 'TRUE'
     private readonly languagesStartSheetLetter = 'F'
@@ -26,15 +26,11 @@ export class LocalizationService implements OnModuleInit {
         private readonly googleTablesService: GoogleTablesService
     ) {}
 
-    async onModuleInit(): Promise<void> {
-        await this.cacheLocalization()
-    }
-
     // =====================
     // Public methods
     // =====================
 
-    async findOneByGroupName(groupName: string): Promise<LocalizedGroup> {
+    async findOneByGroupName(groupName: string): Promise<LocalizedGroup | null> {
         return this.model.findOne({ name: groupName }).exec()
     }
 
@@ -43,37 +39,22 @@ export class LocalizationService implements OnModuleInit {
             PageNameEnum.uniqueMessages,
             `${this.languagesStartSheetLetter}${this.configurationRowIndex}:${this.lastLetter}${this.configurationRowIndex}`
         )
-        if (!contentLanguages) {
+        if (!contentLanguages || contentLanguages.isEmpty) {
             throw Error('No languages content')
         }
         const languages = contentLanguages[0]
+        if (languages.isEmpty) {
+            throw Error('No languages')
+        }
         return languages
     }
 
-    // =====================
-    // Private methods:
-    // Database
-    // =====================
-
-    private async createOrUpdate(
-        createLocalizedGroupDto: LocalizedGroupDto
-    ): Promise<LocalizedGroup | unknown> {
-        await this.model.deleteOne({ name: createLocalizedGroupDto.name }).exec()
-        return await this.model.create(createLocalizedGroupDto)
-    }
-
-    // =====================
-    // Private methods:
-    // Google spreadsheets
-    // =====================
-
-    private async cacheLocalization() {
+    async cacheLocalization() {
         const languages = await this.getRemoteLanguages()
         const rowEstimatedLength =
             this.languagesStartSheetLetterIndex - this.firstLetterIndex + languages.length
 
-        logger.log(`Languages: ${languages}`)
-        logger.log(`Estimated row length: ${rowEstimatedLength}`)
+        logger.log(`\nLanguages: ${languages}\nEstimated row length: ${rowEstimatedLength}`)
 
         // Get localization content
         const languagesLastLetter = String.fromCharCode(
@@ -110,11 +91,26 @@ export class LocalizationService implements OnModuleInit {
 
         // Create and save localized groups
         const groupNames: string[] = localizedStrings.map((value) => value.groupName).uniqueOnly
+
         for (const groupName of groupNames) {
             await this.createOrUpdate({
                 name: groupName,
-                content: localizedStrings.filter((value) => value.groupName == groupName),
+                content: localizedStrings
+                    .filter((value) => value.groupName == groupName)
+                    .generateItemsRecord((localizedString) => localizedString.key),
             })
         }
+    }
+
+    // =====================
+    // Private methods:
+    // Database
+    // =====================
+
+    private async createOrUpdate(
+        createLocalizedGroupDto: LocalizedGroupDto
+    ): Promise<LocalizedGroup | unknown> {
+        await this.model.deleteOne({ name: createLocalizedGroupDto.name }).exec()
+        return await this.model.create(createLocalizedGroupDto)
     }
 }
