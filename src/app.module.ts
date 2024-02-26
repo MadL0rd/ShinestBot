@@ -10,7 +10,9 @@ import { internalConstants } from './app.internal-constants'
 import { ScheduleModule } from '@nestjs/schedule'
 import { NotificationsModule } from './presentation/notifications/notifications.module'
 import { GptApiModule } from './core/gpt-api/gpt-api.module'
-// const mediaGroup = require('telegraf-media-group')
+import { DispatchersModule } from './presentation/dispatchers/dispatchers.module'
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const mediaGroup = require('telegraf-media-group')
 
 @Module({
     imports: [
@@ -33,8 +35,7 @@ import { GptApiModule } from './core/gpt-api/gpt-api.module'
                       }
                     : {},
             token: internalConstants.botToken,
-            middlewares: [],
-            // middlewares: [mediaGroup()],
+            middlewares: [mediaGroup()],
         }),
         ScheduleModule.forRoot(),
         UserModule,
@@ -42,6 +43,7 @@ import { GptApiModule } from './core/gpt-api/gpt-api.module'
         BotContentModule,
         NotificationsModule,
         GptApiModule,
+        DispatchersModule,
     ],
     providers: [AppUpdate],
 })

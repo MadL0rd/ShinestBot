@@ -106,16 +106,16 @@ export class Scene<SceneDataType extends object> implements IScene {
     }
 
     handleEnterScene(ctx: Context<Update>): Promise<SceneHandlerCompletion> {
-        throw new Error('Method not implemented.')
+        throw Error('Method not implemented.')
     }
     handleMessage(ctx: Context<Update>, dataRaw: object): Promise<SceneHandlerCompletion> {
-        throw new Error('Method not implemented.')
+        throw Error('Method not implemented.')
     }
     handleCallback(
         ctx: Context<Update.CallbackQueryUpdate>,
         dataRaw: SceneCallbackData
     ): Promise<SceneHandlerCompletion> {
-        throw new Error('Method not implemented.')
+        throw Error('Method not implemented.')
     }
 
     generateData(data: SceneDataType | null): SceneDataType {

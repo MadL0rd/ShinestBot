@@ -1,5 +1,5 @@
+import { Injectable } from '@nestjs/common'
 import { Context, Telegraf } from 'telegraf'
-import { IDispatcher } from '../dispatcher.interface'
 import { BotContentService } from 'src/core/bot-content/bot-content.service'
 import { UserService } from 'src/core/user/user.service'
 import {
@@ -9,9 +9,6 @@ import {
 } from 'src/presentation/scenes/scene.interface'
 import { SceneNames } from 'src/presentation/scenes/enums/scene-name.enum'
 import { logger } from 'src/app.logger'
-import { UserPermissionNames } from 'src/core/user/enums/user-permission-names.enum'
-import { BotContentStable } from 'src/core/bot-content/schemas/bot-content.schema'
-import { UserDocument } from 'src/core/user/schemas/user.schema'
 import { UserHistoryEvent } from 'src/core/user/enums/user-history-event.enum'
 import { SceneFactory } from 'src/presentation/scenes/scene-factory'
 import { getActiveUserPermissionNames } from 'src/utils/getActiveUserPermissions'
@@ -24,8 +21,11 @@ import {
     CallbackQuery,
     User as UserTelegram,
 } from 'node_modules/telegraf/typings/core/types/typegram'
+import { TransactionUserData } from './models/transaction-user-data.model'
+import { InjectBot } from 'nestjs-telegraf'
 
-export class PrivateDialogDispatcher implements IDispatcher {
+@Injectable()
+export class PrivateDialogDispatcherService {
     // =====================
     // Properties
     // =====================
@@ -37,7 +37,7 @@ export class PrivateDialogDispatcher implements IDispatcher {
         private readonly botContentService: BotContentService,
         private readonly localizationService: LocalizationService,
         private readonly userService: UserService,
-        private readonly bot: Telegraf<Context>
+        @InjectBot() private readonly bot: Telegraf<Context>
     ) {}
 
     // =====================
@@ -380,11 +380,4 @@ export class PrivateDialogDispatcher implements IDispatcher {
             botContent,
         }
     }
-}
-
-interface TransactionUserData {
-    user: UserDocument
-    userActivePermissions: UserPermissionNames.union[]
-    userLanguage: string
-    botContent: BotContentStable
 }
