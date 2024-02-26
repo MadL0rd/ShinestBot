@@ -13,9 +13,10 @@ export class GoogleTablesService {
     private readonly spreadsheetId = internalConstants.googleSpreadsheetId
 
     async getContentByListName(
-        pageName: SpreadsheetPageTitles.keysUnion,
+        pageNameKey: SpreadsheetPageTitles.keysUnion,
         range: string
     ): Promise<string[][]> {
+        const pageName = SpreadsheetPageTitles.items[pageNameKey]
         logger.log(`Start cache ${pageName}`)
 
         const auth = await this.googleCredentialsService.authorize()

@@ -3,7 +3,7 @@ import { SceneNames } from '../enums/scene-name.enum'
 import { SceneHandlerCompletion, Scene, SceneCallbackData } from '../scene.interface'
 import { Markup } from 'telegraf'
 import { logger } from 'src/app.logger'
-import { getLanguageName } from 'src/utils/languages-info/getFlagEmoji'
+import { getLanguageName } from 'src/utils/languages-info/getLanguageName'
 import { Update, Message } from 'node_modules/telegraf/typings/core/types/typegram'
 
 // =====================

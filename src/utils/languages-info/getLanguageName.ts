@@ -14,6 +14,6 @@ export function getLanguageName(countryCode: string): string {
 
     const languageName = language.nativeName ?? countryCode
 
-    if (language.emoji) return languageName
+    if (!language.emoji) return languageName
     else return `${language.emoji} ${languageName}`
 }

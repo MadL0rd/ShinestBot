@@ -7,7 +7,6 @@ import {
     SceneHandlerCompletion,
 } from '../../scene.interface'
 import { logger } from 'src/app.logger'
-import { UserPermissionNames } from 'src/core/user/enums/user-permission-names.enum'
 import { SpreadsheetPageTitles } from 'src/core/google-tables/enums/spreadsheet-page-titles'
 import { internalConstants } from 'src/app.internal-constants'
 import { Message, Update } from 'node_modules/telegraf/typings/core/types/typegram'
@@ -149,20 +148,19 @@ export class AdminMenuScene extends Scene<ISceneData> {
         statuses: Map<SpreadsheetPageTitles.keysUnion, SpreadsheetPageCacheStatus | Error>
     ): string {
         let result = ''
-        for (const pageNameString in SpreadsheetPageTitles.allKeys) {
-            const pageName = pageNameString as SpreadsheetPageTitles.keysUnion
+        for (const pageNameKey of SpreadsheetPageTitles.allKeys) {
             result += `\n`
 
-            const status = statuses.get(pageName)
+            const status = statuses.get(pageNameKey)
             if (status === undefined) {
                 continue
             } else if (status instanceof Error) {
-                result += `❌ ${SpreadsheetPageTitles.items[pageName]}:\n\`\`\`\n${statuses.get(
-                    pageName
+                result += `❌ ${SpreadsheetPageTitles.items[pageNameKey]}:\n\`\`\`\n${statuses.get(
+                    pageNameKey
                 )}\n\`\`\``
             } else {
                 const status: SpreadsheetPageCacheStatus = statuses.get(
-                    pageName
+                    pageNameKey
                 ) as SpreadsheetPageCacheStatus
                 switch (status) {
                     case SpreadsheetPageCacheStatus.loading:
@@ -175,7 +173,7 @@ export class AdminMenuScene extends Scene<ISceneData> {
                         result += '❌'
                         break
                 }
-                result += SpreadsheetPageTitles.items[pageName]
+                result += SpreadsheetPageTitles.items[pageNameKey]
             }
         }
         return result
