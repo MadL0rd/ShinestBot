@@ -1,10 +1,11 @@
-import { Context } from 'telegraf'
-import { Message, Update } from 'telegraf/typings/core/types/typegram'
-import { SceneName } from '../enums/scene-name.enum'
+// import { Context } from 'telegraf'
+// import { Message, Update } from 'telegraf/typings/core/types/typegram'
+import { SceneNames } from '../enums/scene-name.enum'
 import { SceneHandlerCompletion, Scene, SceneCallbackData } from '../scene.interface'
-import { Markup } from 'telegraf'
+import { Context, Markup } from 'telegraf'
 import { logger } from 'src/app.logger'
 import { OnboardingPage } from 'src/core/bot-content/schemas/models/bot-content.onboarding-page'
+import { Update, Message } from 'node_modules/telegraf/typings/core/types/typegram'
 
 // =====================
 // Scene data class
@@ -19,7 +20,7 @@ export class OnboardingScene extends Scene<ISceneData> {
     // Properties
     // =====================
 
-    readonly name: SceneName = SceneName.onboarding
+    readonly name: SceneNames.union = 'onboarding'
     get dataDefault(): ISceneData {
         return this.generateData({
             onboardingPageIndex: 1,
@@ -69,7 +70,7 @@ export class OnboardingScene extends Scene<ISceneData> {
                     })
                 )
             } else {
-                return this.completion.complete(SceneName.mainMenu)
+                return this.completion.complete('mainMenu')
             }
         }
 

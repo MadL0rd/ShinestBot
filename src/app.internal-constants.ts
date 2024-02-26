@@ -108,11 +108,6 @@ class InternalConstants {
         return this.getEnvString(EnvKeys.gptProxyUrl)
     }
 
-    // Payment
-    get paymentProviderToken(): string {
-        return this.getEnvString(EnvKeys.paymentProviderToken)
-    }
-
     // Other
     get npmPackageVersion(): string {
         return process.env.npm_package_version ?? this.getEnvString(EnvKeys.projectVersion) ?? null
@@ -161,7 +156,8 @@ class InternalConstants {
 
     dropProcessCache() {
         for (const key in EnvKeys) {
-            process.env[EnvKeys[key]] = undefined
+            // @ts-ignore: Unreachable code error
+            process.env[EnvKeys[key] as string] = undefined
         }
     }
 

@@ -1,4 +1,4 @@
-import { SceneName } from './enums/scene-name.enum'
+import { SceneNames } from './enums/scene-name.enum'
 import { IScene, ISceneConfigurationData } from './scene.interface'
 import { MainMenuScene } from './implementations/main-menu.scene'
 import { OnboardingScene } from './implementations/onboarding.scene'
@@ -7,29 +7,29 @@ import { AdminMenuGenerateMetrixScene } from './implementations/admin-menu/admin
 import { AdminMenuMailingScene } from './implementations/admin-menu/admin-menu-mailing.scene'
 import { AdminMenuUsersManagementScene } from './implementations/admin-menu/admin-menu-users-management.scene'
 import { LanguageSettingsScene } from './implementations/language-settings.scene'
-import { PaymentScene } from './implementations/payment.scene'
 /** New scene import placeholder */
 
 export class SceneFactory {
-    static createSceneWith(name: SceneName, configuration: ISceneConfigurationData): IScene | null {
+    static createSceneWith(
+        name: SceneNames.union,
+        configuration: ISceneConfigurationData
+    ): IScene | null {
         switch (name) {
-            case SceneName.mainMenu:
+            case 'mainMenu':
                 return new MainMenuScene(configuration)
-            case SceneName.onboarding:
+            case 'onboarding':
                 return new OnboardingScene(configuration)
-            case SceneName.adminMenu:
+            case 'adminMenu':
                 return new AdminMenuScene(configuration)
-            case SceneName.adminMenuGenerateMetrix:
+            case 'adminMenuGenerateMetrix':
                 return new AdminMenuGenerateMetrixScene(configuration)
-            case SceneName.adminMenuMailing:
+            case 'adminMenuMailing':
                 return new AdminMenuMailingScene(configuration)
-            case SceneName.adminMenuUsersManagement:
+            case 'adminMenuUsersManagement':
                 return new AdminMenuUsersManagementScene(configuration)
-            case SceneName.languageSettings:
+            case 'languageSettings':
                 return new LanguageSettingsScene(configuration)
-            case SceneName.payment:
-				return new PaymentScene(configuration)
-			/** New scene generation placeholder */
+            /** New scene generation placeholder */
         }
         return null
     }

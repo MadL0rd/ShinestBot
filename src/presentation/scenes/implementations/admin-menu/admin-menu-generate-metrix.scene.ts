@@ -1,7 +1,6 @@
 import { Context } from 'telegraf'
-import { Message, Update } from 'telegraf/typings/core/types/typegram'
 import 'moment-timezone'
-import { SceneName } from '../../enums/scene-name.enum'
+import { SceneNames } from '../../enums/scene-name.enum'
 import {
     SceneHandlerCompletion,
     Scene,
@@ -9,9 +8,9 @@ import {
     SceneCallbackData,
 } from '../../scene.interface'
 import { logger } from 'src/app.logger'
-import { UserPermissionNamesStable } from '../../../../core/user/enums/user-permission.enum'
 import { StatisticService } from '../../../../core/user/statistic.service'
 import { FileName } from '../../enums/file-name.enum'
+import { Update, Message } from 'node_modules/telegraf/typings/core/types/typegram'
 
 // =====================
 // Scene data class
@@ -23,7 +22,7 @@ export class AdminMenuGenerateMetrixScene extends Scene<ISceneData> {
     // Properties
     // =====================
 
-    readonly name: SceneName = SceneName.adminMenuGenerateMetrix
+    readonly name: SceneNames.union = 'adminMenuGenerateMetrix'
 
     // =====================
     // Public methods
@@ -31,8 +30,8 @@ export class AdminMenuGenerateMetrixScene extends Scene<ISceneData> {
 
     validateUseScenePermissions(): PermissionsValidationResult {
         const ownerOrAdmin =
-            this.userActivePermissions.includes(UserPermissionNamesStable.admin) ||
-            this.userActivePermissions.includes(UserPermissionNamesStable.owner)
+            this.userActivePermissions.includes('admin') ||
+            this.userActivePermissions.includes('owner')
         if (ownerOrAdmin) {
             return { canUseScene: true }
         }
@@ -115,10 +114,10 @@ export class AdminMenuGenerateMetrixScene extends Scene<ISceneData> {
                 break
 
             case this.text.adminMenu.returnBack:
-                return this.completion.complete(SceneName.adminMenu)
+                return this.completion.complete('adminMenu')
         }
         if (beginningDate) {
-            const statisticService = new StatisticService(this.userService, this.botContentService)
+            const statisticService = new StatisticService(this.userService)
             const dateFormat = 'DD.MM.yyyy'
             const beginningDateString = beginningDate.formattedWithAppTimeZone(dateFormat)
             const currentDateString = currentDate.formattedWithAppTimeZone(dateFormat)
@@ -131,7 +130,7 @@ export class AdminMenuGenerateMetrixScene extends Scene<ISceneData> {
                 source: resultMetricsTable,
                 filename: resultFileName,
             })
-            return this.completion.complete(SceneName.adminMenu)
+            return this.completion.complete('adminMenu')
         }
 
         return this.completion.canNotHandle()

@@ -3,7 +3,7 @@ import { InjectModel } from '@nestjs/mongoose'
 import { Model } from 'mongoose'
 import { BotContent, BotContentDocument, BotContentStable } from './schemas/bot-content.schema'
 import { GoogleTablesService } from '../google-tables/google-tables.service'
-import { PageNameEnum } from '../google-tables/enums/page-name.enum'
+import { SpreadsheetPageTitles } from '../google-tables/enums/spreadsheet-page-titles'
 import { CreateBotContentDto } from './dto/create-bot-content.dto'
 import { UpdateBotContentDto } from './dto/update-bot-content.dto'
 import { logger } from 'src/app.logger'
@@ -34,10 +34,10 @@ export class BotContentService implements OnModuleInit {
 
         // eslint-disable-next-line @typescript-eslint/no-this-alias
         const self = this
-        const loadingPromises = Object.keys(PageNameEnum).map((pageName) => {
+        const loadingPromises = SpreadsheetPageTitles.allKeys.map((pageName) => {
             const cacheSpreadsheetFunc = async function (): Promise<void> {
                 try {
-                    await self.cacheSpreadsheetPage(PageNameEnum[pageName])
+                    await self.cacheSpreadsheetPage(pageName)
                 } catch (error) {
                     logger.error(`Fail to cache spreadsheet page ${pageName}`, error)
                 }
@@ -57,7 +57,7 @@ export class BotContentService implements OnModuleInit {
     }
 
     async getContent(language: string): Promise<BotContentStable> {
-        const contentCache = this.botContentCache[language]
+        const contentCache = this.botContentCache.get(language)
         if (contentCache) {
             return contentCache
         }
@@ -67,17 +67,17 @@ export class BotContentService implements OnModuleInit {
             return await this.getContent(internalConstants.defaultLanguage)
         }
 
-        this.botContentCache[language] = contentPage
-        return this.botContentCache[language]
+        this.botContentCache.set(language, contentPage)
+        return contentPage
     }
 
-    async cacheSpreadsheetPage(pageName: PageNameEnum) {
+    async cacheSpreadsheetPage(pageName: SpreadsheetPageTitles.keysUnion) {
         switch (pageName) {
-            case PageNameEnum.uniqueMessages:
+            case 'uniqueMessages':
                 await this.cacheUniqueMessage()
                 break
 
-            case PageNameEnum.onboarding:
+            case 'onboarding':
                 await this.cacheOnboarding()
                 break
         }
@@ -102,23 +102,6 @@ export class BotContentService implements OnModuleInit {
             .exec()
     }
 
-    /**
-     * Update bot content with partial props
-     * @param language: Empty value will be replaces by default language
-     */
-    private async updateForLanguage(
-        updateBotContentDto: UpdateBotContentDto,
-        language?: string
-    ): Promise<BotContent | unknown> {
-        return this.model
-            .updateOne(
-                { language: language ?? internalConstants.defaultLanguage },
-                updateBotContentDto,
-                { new: true }
-            )
-            .exec()
-    }
-
     private async findOneBy(lang: string): Promise<BotContent | null> {
         return this.model.findOne({ language: lang }).exec()
     }
@@ -132,17 +115,24 @@ export class BotContentService implements OnModuleInit {
         await this.localizationService.cacheLocalization()
 
         const uniqueMessageObj = new UniqueMessage()
-        const uniqueMessageKeys = Object.keys(uniqueMessageObj)
+        type UniqueMessageGroupKeys = keyof typeof uniqueMessageObj
+        const uniqueMessageGroupStringKeys = Object.keys(
+            uniqueMessageObj
+        ) as unknown as UniqueMessageGroupKeys[]
 
         const languages = await this.localizationService.getRemoteLanguages()
         for (const language of languages) {
-            for (const groupName of uniqueMessageKeys) {
+            for (const groupNameString of uniqueMessageGroupStringKeys) {
+                const groupName = groupNameString as UniqueMessageGroupKeys
                 const localizedGroup = await this.localizationService.findOneByGroupName(groupName)
                 if (!localizedGroup) {
                     throw Error(`There is no localized strings group with name ${groupName}`)
                 }
 
-                const uniqueMessageGroup = uniqueMessageObj[groupName]
+                const uniqueMessageGroup = uniqueMessageObj[groupName] as unknown as Record<
+                    string,
+                    string
+                >
                 const uniqueMessageStringKeys = Object.keys(uniqueMessageGroup)
 
                 for (const uniqueMessageStringKey of uniqueMessageStringKeys) {
@@ -155,10 +145,11 @@ export class BotContentService implements OnModuleInit {
                     }
                     uniqueMessageGroup[uniqueMessageStringKey] = localizedUniqueMessage
                 }
+                // @ts-ignore: Unreachable code error
                 uniqueMessageObj[groupName] = uniqueMessageGroup
             }
 
-            const createBotContentDto: CreateBotContentDto = {
+            const createBotContentDto = {
                 language: language,
                 uniqueMessage: uniqueMessageObj,
             }
@@ -173,10 +164,7 @@ export class BotContentService implements OnModuleInit {
     }
 
     private async cacheOnboarding() {
-        const content = await this.googleTablesService.getContentByListName(
-            PageNameEnum.onboarding,
-            'A2:F50'
-        )
+        const content = await this.googleTablesService.getContentByListName('onboarding', 'A2:F50')
         if (!content) {
             throw Error('No content')
         }

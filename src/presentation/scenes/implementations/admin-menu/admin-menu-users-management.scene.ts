@@ -1,6 +1,5 @@
 import { Context } from 'telegraf'
-import { Message, Update } from 'telegraf/typings/core/types/typegram'
-import { SceneName } from '../../enums/scene-name.enum'
+import { SceneNames } from '../../enums/scene-name.enum'
 import {
     SceneHandlerCompletion,
     Scene,
@@ -11,8 +10,9 @@ import { Markup } from 'telegraf'
 import { logger } from 'src/app.logger'
 import { UserDocument } from 'src/core/user/schemas/user.schema'
 import { replaceMarkdownWithHtml } from 'src/utils/replaceMarkdownWithHtml'
-import { UserPermissionNamesStable } from 'src/core/user/enums/user-permission.enum'
 import { getActiveUserPermissionNames } from 'src/utils/getActiveUserPermissions'
+import { Message, Update } from 'node_modules/telegraf/typings/core/types/typegram'
+import { UserPermissionNames } from 'src/core/user/enums/user-permission-names.enum'
 
 // =====================
 // Scene data class
@@ -27,7 +27,7 @@ export class AdminMenuUsersManagementScene extends Scene<ISceneData> {
     // Properties
     // =====================
 
-    readonly name: SceneName = SceneName.adminMenuUsersManagement
+    readonly name: SceneNames.union = 'adminMenuUsersManagement'
 
     // =====================
     // Public methods
@@ -35,8 +35,8 @@ export class AdminMenuUsersManagementScene extends Scene<ISceneData> {
 
     validateUseScenePermissions(): PermissionsValidationResult {
         const ownerOrAdmin =
-            this.userActivePermissions.includes(UserPermissionNamesStable.admin) ||
-            this.userActivePermissions.includes(UserPermissionNamesStable.owner)
+            this.userActivePermissions.includes('admin') ||
+            this.userActivePermissions.includes('owner')
         if (ownerOrAdmin) {
             return { canUseScene: true }
         }
@@ -110,8 +110,8 @@ export class AdminMenuUsersManagementScene extends Scene<ISceneData> {
 
                     const targetUserActivePermissions = getActiveUserPermissionNames(targetUser)
                     const buttons: string[] = []
-                    for (const permission in UserPermissionNamesStable) {
-                        const permissionValue = UserPermissionNamesStable[permission]
+                    for (const permission of UserPermissionNames.allCases) {
+                        const permissionValue = permission
                         const prefix = targetUserActivePermissions.includes(permissionValue)
                             ? '✅'
                             : '❌'
@@ -133,7 +133,7 @@ export class AdminMenuUsersManagementScene extends Scene<ISceneData> {
                     return this.completion.inProgress()
 
                 case this.text.adminMenu.returnBack:
-                    return this.completion.complete(SceneName.adminMenu)
+                    return this.completion.complete('adminMenu')
             }
         }
 
@@ -160,7 +160,7 @@ export class AdminMenuUsersManagementScene extends Scene<ISceneData> {
             if (messageText.split(' ').length != 2) {
                 return this.completion.canNotHandle(data)
             }
-            const targetPermission = UserPermissionNamesStable[messageText.split(' ')[1]]
+            const targetPermission = UserPermissionNames.castToInstance(messageText.split(' ')[1])
             if (targetPermission == null) {
                 return this.completion.canNotHandle(data)
             }
@@ -173,24 +173,22 @@ export class AdminMenuUsersManagementScene extends Scene<ISceneData> {
             // Include only enabled actions
             switch (targetPermission) {
                 // Any actions with owner can do only developer
-                case UserPermissionNamesStable.owner:
+                case 'owner':
                     break
 
                 // Only owner can set admin permission
-                case UserPermissionNamesStable.admin:
-                    if (this.userActivePermissions.includes(UserPermissionNamesStable.owner)) {
+                case 'admin':
+                    if (this.userActivePermissions.includes('owner')) {
                         permissionUpdateEnable = true
                     }
                     break
 
                 // Owner and admin can ban user
                 // Nobody can ban owner and admin
-                case UserPermissionNamesStable.banned:
+                case 'banned':
                     if (
-                        targetUserActivePermissions.includes(UserPermissionNamesStable.owner) ===
-                            false &&
-                        targetUserActivePermissions.includes(UserPermissionNamesStable.admin) ===
-                            false
+                        targetUserActivePermissions.includes('owner') === false &&
+                        targetUserActivePermissions.includes('admin') === false
                     ) {
                         permissionUpdateEnable = true
                     }
@@ -209,8 +207,7 @@ export class AdminMenuUsersManagementScene extends Scene<ISceneData> {
             if (targetUserActivePermissions.includes(targetPermission)) {
                 // Remove permission
                 targetUser.internalInfo.permissions = targetUser.internalInfo.permissions.filter(
-                    (permission) =>
-                        UserPermissionNamesStable[permission.permissionName] != targetPermission
+                    (permission) => permission.permissionName != targetPermission
                 )
             } else {
                 // Add permission

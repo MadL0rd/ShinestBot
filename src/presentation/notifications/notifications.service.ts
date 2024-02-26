@@ -9,13 +9,13 @@ import { GptApiService } from 'src/core/gpt-api/gpt-api.service'
 import { UserHistoryEvent } from 'src/core/user/enums/user-history-event.enum'
 import { UserService } from 'src/core/user/user.service'
 import { SceneCallbackAction } from 'src/presentation/scenes/enums/scene-callback-action.enum'
-import { SceneName } from 'src/presentation/scenes/enums/scene-name.enum'
+import { SceneNames } from 'src/presentation/scenes/enums/scene-name.enum'
 import { generateInlineButtonSegue } from 'src/presentation/scenes/scene.interface'
 import { Context, Telegraf } from 'telegraf'
-import { InlineKeyboardButton } from 'telegraf/typings/core/types/typegram'
+import { InlineKeyboardButton } from 'node_modules/telegraf/typings/core/types/typegram'
 
 @Injectable()
-export class NotificationService {
+export class NotificationsService {
     constructor(
         @InjectBot() private readonly bot: Telegraf<Context>,
         private readonly botContentService: BotContentService,
@@ -50,7 +50,8 @@ export class NotificationService {
             if (!user) continue
 
             const userTime =
-                user.internalInfo?.morningNotificationTime ?? text.notification.morningTimeDefault
+                user.internalInfo?.notificationsSchedule.morning ??
+                text.notification.morningTimeDefault
             if (userTime !== thisTime || userTime == text.notification.buttonDontSend) continue
             logger.log(`Morning notification to user ${user.telegramInfo.username}`)
             const inlineKeyboard: InlineKeyboardButton[][] = []
@@ -59,7 +60,7 @@ export class NotificationService {
                     text: text.notification.buttonMainMenu,
                     action: SceneCallbackAction.segueButton,
                     data: {
-                        segueSceneName: SceneName.mainMenu,
+                        segueSceneName: 'mainMenu',
                     },
                 }),
             ])
@@ -107,7 +108,8 @@ export class NotificationService {
             if (!user) continue
 
             const userTime =
-                user.internalInfo?.eveningNotification ?? text.notification.eveningTimeDefault
+                user.internalInfo?.notificationsSchedule.evening ??
+                text.notification.eveningTimeDefault
             if (userTime !== thisTime || userTime == text.notification.buttonDontSend) continue
             const inlineKeyboard: InlineKeyboardButton[][] = []
             inlineKeyboard.push([
@@ -115,7 +117,7 @@ export class NotificationService {
                     text: text.notification.buttonMainMenu,
                     action: SceneCallbackAction.segueButton,
                     data: {
-                        segueSceneName: SceneName.mainMenu,
+                        segueSceneName: 'mainMenu',
                     },
                 }),
             ])

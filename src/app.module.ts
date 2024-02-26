@@ -6,11 +6,11 @@ import { TelegrafModule } from 'nestjs-telegraf'
 import { UserModule } from './core/user/user.module'
 import { BotContentModule } from './core/bot-content/bot-content.module'
 import { LocalizationModule } from './core/localization/localization.module'
-import * as mediaGroup from 'telegraf-media-group'
 import { internalConstants } from './app.internal-constants'
 import { ScheduleModule } from '@nestjs/schedule'
-import { NotificationModule } from './presentation/notification/notification.module'
+import { NotificationsModule } from './presentation/notifications/notifications.module'
 import { GptApiModule } from './core/gpt-api/gpt-api.module'
+// const mediaGroup = require('telegraf-media-group')
 
 @Module({
     imports: [
@@ -33,13 +33,14 @@ import { GptApiModule } from './core/gpt-api/gpt-api.module'
                       }
                     : {},
             token: internalConstants.botToken,
-            middlewares: [mediaGroup()],
+            middlewares: [],
+            // middlewares: [mediaGroup()],
         }),
         ScheduleModule.forRoot(),
         UserModule,
         LocalizationModule,
         BotContentModule,
-        NotificationModule,
+        NotificationsModule,
         GptApiModule,
     ],
     providers: [AppUpdate],

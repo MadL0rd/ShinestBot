@@ -1,14 +1,14 @@
 import * as winston from 'winston'
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { utilities as nestWinstonModuleUtilities, WinstonModule } from 'nest-winston'
-import * as DailyRotateFile from 'winston-daily-rotate-file'
+import { WinstonModule } from 'nest-winston'
+import DailyRotateFile from 'winston-daily-rotate-file'
 import * as path from 'path'
 import { internalConstants } from './app.internal-constants'
 import { LoggerService } from '@nestjs/common'
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const https = require('https')
 
-import * as chalk from 'chalk'
+import chalk from 'chalk'
 
 const baseDir = process.cwd()
 const isWindows = process.platform === 'win32'
@@ -87,6 +87,7 @@ class DebugLineInfo {
             this.codeLayer = SourceFileLayerType.app
         }
         for (const codeLayerKey in SourceFileLayerType) {
+            // @ts-ignore: Unreachable code error
             const codeLayer = SourceFileLayerType[codeLayerKey]
             if (this.relativeFilePath.includes(codeLayer)) {
                 this.codeLayer = codeLayer
@@ -113,8 +114,7 @@ function getDebugStackTraceInfo(stackTraceLevel: number | null = 3): DebugLineIn
         const frames = stackTraceLines.filter(
             (line) => line.includes(baseDir) && line.includes('node_modules').isFalse
         )
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        return new DebugLineInfo(frames.isEmpty ? stackTraceLines.last! : frames.last!)
+        return new DebugLineInfo(frames.isEmpty ? stackTraceLines.last ?? '' : frames.last ?? '')
     }
 }
 
@@ -375,6 +375,7 @@ export class DebugInformableLogger implements LoggerService {
         }
 
         try {
+            // @ts-ignore: Unreachable code error
             const req = https.request(options, (res) => {
                 console.log('Logger: error message statusCode:', res.statusCode)
                 // console.log('headers:', res.headers)
@@ -384,6 +385,7 @@ export class DebugInformableLogger implements LoggerService {
                 // })
             })
 
+            // @ts-ignore: Unreachable code error
             req.on('error', (e) => {
                 console.error(e)
             })

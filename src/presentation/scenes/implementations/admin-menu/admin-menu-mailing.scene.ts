@@ -1,11 +1,11 @@
 import { Context } from 'telegraf'
-import { Message, Update } from 'telegraf/typings/core/types/typegram'
-import { SceneName } from '../../enums/scene-name.enum'
+import { SceneNames } from '../../enums/scene-name.enum'
 import { SceneHandlerCompletion, Scene, SceneCallbackData } from '../../scene.interface'
 import { Markup } from 'telegraf'
 import { logger } from 'src/app.logger'
 import { replaceMarkdownWithHtml } from 'src/utils/replaceMarkdownWithHtml'
 import { UserHistoryEvent } from 'src/core/user/enums/user-history-event.enum'
+import { Message, Update } from 'node_modules/telegraf/typings/core/types/typegram'
 
 // =====================
 // Scene data class
@@ -19,7 +19,7 @@ export class AdminMenuMailingScene extends Scene<ISceneData> {
     // Properties
     // =====================
 
-    readonly name: SceneName = SceneName.adminMenuMailing
+    readonly name: SceneNames.union = 'adminMenuMailing'
 
     // =====================
     // Public methods
@@ -109,16 +109,16 @@ export class AdminMenuMailingScene extends Scene<ISceneData> {
                     undefined,
                     `Отправлено сообщений: ${allUsersTelegramIdList.length - blockedUsersCount}/${
                         allUsersTelegramIdList.length
-                    }\nПользователей заблокировало бота: ${blockedUsersCount}`,
+                    }\nПользователей заблокировало бота: ${blockedUsersCount}\n\n✅ Отправка завершена `,
                     {
                         parse_mode: 'HTML',
                     }
                 )
 
-                return this.completion.complete(SceneName.adminMenu)
+                return this.completion.complete('adminMenu')
 
             case this.text.adminMenu.mailingButtonCancel:
-                return this.completion.complete(SceneName.adminMenu)
+                return this.completion.complete('adminMenu')
         }
 
         return this.completion.canNotHandle(data)

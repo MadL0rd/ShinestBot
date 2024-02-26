@@ -1,22 +1,7 @@
-import { Context, Telegraf } from 'telegraf'
-import { SceneName } from './enums/scene-name.enum'
-import {
-    InlineKeyboardButton,
-    InputMediaAudio,
-    InputMediaDocument,
-    InputMediaPhoto,
-    InputMediaVideo,
-    ReplyKeyboardMarkup,
-    ReplyKeyboardRemove,
-    Update,
-} from 'telegraf/typings/core/types/typegram'
-import { Markup } from 'telegraf'
+import { SceneNames as SceneNames } from './enums/scene-name.enum'
+import { Context, Markup, Telegraf } from 'telegraf'
 import { logger } from 'src/app.logger'
 import { UserDocument } from 'src/core/user/schemas/user.schema'
-import {
-    UserPermissionName,
-    UserPermissionNamesStable,
-} from 'src/core/user/enums/user-permission.enum'
 import { BotContent } from 'src/core/bot-content/schemas/bot-content.schema'
 import { UserService } from 'src/core/user/user.service'
 import { UserHistoryEvent } from 'src/core/user/enums/user-history-event.enum'
@@ -25,9 +10,20 @@ import { BotContentService } from 'src/core/bot-content/bot-content.service'
 import { MediaContent } from 'src/core/bot-content/schemas/models/bot-content.media-content'
 import { SceneCallbackAction, SceneCallbackDataSegue } from './enums/scene-callback-action.enum'
 import { LocalizationService } from 'src/core/localization/localization.service'
+import {
+    Update,
+    ReplyKeyboardMarkup,
+    ReplyKeyboardRemove,
+    InputMediaPhoto,
+    InputMediaVideo,
+    InputMediaAudio,
+    InputMediaDocument,
+    InlineKeyboardButton,
+} from 'node_modules/telegraf/typings/core/types/typegram'
+import { UserPermissionNames } from 'src/core/user/enums/user-permission-names.enum'
 
 export interface IScene {
-    readonly name: SceneName
+    readonly name: SceneNames.union
 
     validateUseScenePermissions(): PermissionsValidationResult
     handleEnterScene(ctx: Context<Update>): Promise<SceneHandlerCompletion>
@@ -49,7 +45,7 @@ export interface SceneHandlerCompletion {
     /** Scene data to save for next message from user */
     sceneData?: object
     /** This field can bring content only if inProgress is false */
-    nextSceneNameIfCompleted?: SceneName
+    nextSceneNameIfCompleted?: SceneNames.union
 }
 
 export interface PermissionsValidationResult {
@@ -64,11 +60,11 @@ export interface ISceneConfigurationData {
     readonly userService: UserService
     readonly botContentService: BotContentService
     readonly localizationService: LocalizationService
-    readonly userActivePermissions: UserPermissionName[]
+    readonly userActivePermissions: UserPermissionNames.union[]
 }
 
 export class Scene<SceneDataType extends object> implements IScene {
-    readonly name: SceneName
+    readonly name: SceneNames.union
     readonly completion = new SceneHandlerCompletionTemplates<SceneDataType>()
     readonly historyEvent = UserHistoryEvent
     get dataDefault(): SceneDataType {
@@ -78,7 +74,7 @@ export class Scene<SceneDataType extends object> implements IScene {
     public readonly content: BotContent
     public readonly text: UniqueMessage
     public readonly user: UserDocument
-    public readonly userActivePermissions: UserPermissionName[]
+    public readonly userActivePermissions: UserPermissionNames.union[]
     public readonly userService: UserService
     public readonly bot: Telegraf<Context>
     public readonly botContentService: BotContentService
@@ -100,7 +96,7 @@ export class Scene<SceneDataType extends object> implements IScene {
         if (this.userActivePermissions === null || this.userActivePermissions.length === 0) {
             return { canUseScene: true }
         }
-        if (this.userActivePermissions.includes(UserPermissionNamesStable.banned)) {
+        if (this.userActivePermissions.includes('banned')) {
             return {
                 canUseScene: false,
                 validationErrorMessage: this.text.common.bannedUserMessage,
@@ -285,10 +281,10 @@ interface InlineSegueButtonDto {
  */
 export function generateInlineButton(
     button: InlineButtonDto,
-    sceneName: SceneName
+    sceneName: SceneNames.union
 ): InlineKeyboardButton {
     const callbackData = new SceneCallbackData(
-        SceneName.getId(sceneName),
+        SceneNames.getId(sceneName),
         button.action,
         button.data ?? {}
     )
@@ -312,7 +308,7 @@ export function generateInlineButton(
  * Segue will be handled in MainMenu
  */
 export function generateInlineButtonSegue(button: InlineSegueButtonDto): InlineKeyboardButton {
-    return generateInlineButton(button, SceneName.mainMenu)
+    return generateInlineButton(button, 'mainMenu')
 }
 
 class SceneHandlerCompletionTemplates<SceneDataType extends object> {
@@ -332,7 +328,7 @@ class SceneHandlerCompletionTemplates<SceneDataType extends object> {
         }
     }
 
-    complete(nextScene?: SceneName): SceneHandlerCompletion {
+    complete(nextScene?: SceneNames.union): SceneHandlerCompletion {
         return {
             inProgress: false,
             didHandledUserInteraction: true,
@@ -355,8 +351,8 @@ export class SceneCallbackData {
         private readonly d: object
     ) {}
 
-    public get sceneName(): SceneName | null {
-        return SceneName.getById(this.s)
+    public get sceneName(): SceneNames.union | null {
+        return SceneNames.getById(this.s)
     }
     public get action(): SceneCallbackAction {
         return this.a

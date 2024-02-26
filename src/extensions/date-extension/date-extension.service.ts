@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import * as moment from 'moment'
+// import * as moment from 'moment'
 import { internalConstants } from 'src/app.internal-constants'
 
 declare global {
@@ -16,7 +16,8 @@ declare global {
 export class DateExtensionService {
     initExtensions() {
         Date.prototype.formattedWithAppTimeZone = function (dateFormat: string): string {
-            return moment(this).utcOffset(internalConstants.appTimeZoneUtcOffset).format(dateFormat)
+            // return moment(this).utcOffset(internalConstants.appTimeZoneUtcOffset).format(dateFormat)
+            return ''
         }
 
         Date.new = function (): Date {

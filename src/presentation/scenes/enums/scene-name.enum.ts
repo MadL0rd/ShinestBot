@@ -1,38 +1,30 @@
-/* eslint-disable @typescript-eslint/no-namespace */
-export enum SceneName {
-    mainMenu = 'mainMenu',
-    onboarding = 'onboarding',
-    adminMenu = 'adminMenu',
-    adminMenuGenerateMetrix = 'adminMenuGenerateMetrix',
-    adminMenuMailing = 'adminMenuMailing',
-    adminMenuUsersManagement = 'adminMenuUsersManagement',
-    languageSettings = 'languageSettings',
-    payment = 'payment',
-	/** New scene name placeholder */
-}
+export namespace SceneNames {
+    export type union = (typeof allCases)[number]
+    export const allCases = [
+        'mainMenu',
+        'onboarding',
+        'adminMenu',
+        'adminMenuGenerateMetrix',
+        'adminMenuMailing',
+        'adminMenuUsersManagement',
+        'languageSettings',
+        /** New scene name placeholder */
+    ] as const
 
-export namespace SceneName {
-    export function getId(sceneName: SceneName): number {
-        let count = 0
-        for (const name in SceneName) {
-            if (sceneName == SceneName[name]) return count
-            count++
-        }
-
-        return count
+    export function includes(value: string | union): boolean {
+        return allCases.includes(value)
     }
 
-    export function getById(id: number): SceneName | null {
-        let count = 0
-        for (const name in SceneName) {
-            if (count == id) return SceneName[name]
-            count++
-        }
-
-        return null
+    export function castToInstance(value?: string | union | null): union | null {
+        if (!value) return null
+        return includes(value) ? (value as union) : null
     }
 
-    export function getBySceneName(name: string | any): SceneName | null {
-        return SceneName[name] ?? null
+    export function getId(sceneName: SceneNames.union): number {
+        return allCases.indexOf(sceneName)
+    }
+
+    export function getById(id: number): SceneNames.union | null {
+        return allCases[id] ?? null
     }
 }

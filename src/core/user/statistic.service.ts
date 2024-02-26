@@ -4,14 +4,10 @@ import { AgregationType } from './enums/agregation-type.enum'
 import { UserHistoryEvent } from './enums/user-history-event.enum'
 import { CreateStatisticTableDto } from './dto/create-statistic-table.dto'
 import * as XLSX from 'xlsx'
-import { BotContentService } from '../bot-content/bot-content.service'
 
 @Injectable()
 export class StatisticService {
-    constructor(
-        private readonly userService: UserService,
-        private readonly botContentService: BotContentService
-    ) {}
+    constructor(private readonly userService: UserService) {}
 
     async createTable(beginningDate: Date, endingDate: Date): Promise<Buffer> {
         const wb = { Sheets: {}, SheetNames: [] }
@@ -216,10 +212,10 @@ export class StatisticService {
         return paramsWs
     }
 
-    private fitToColumn(arrayOfArray): object[] {
+    private fitToColumn(tableContent: string[][]): object[] {
         // get maximum character of each column
-        return arrayOfArray[0].map((a, i) => ({
-            wch: Math.max(...arrayOfArray.map((a2) => (a2[i] ? a2[i].toString().length + 2 : 10))),
+        return tableContent[0].map((a, i) => ({
+            wch: Math.max(...tableContent.map((a2) => (a2[i] ? a2[i].toString().length + 2 : 10))),
         }))
     }
 }
