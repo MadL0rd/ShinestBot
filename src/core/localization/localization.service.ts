@@ -4,7 +4,7 @@ import { LocalizedGroup } from './schemas/localization.schema'
 import { Model } from 'mongoose'
 import { GoogleTablesService } from '../google-tables/google-tables.service'
 import { LocalizedGroupDto } from './dto/localized-group.dto'
-import { PageNameEnum } from '../google-tables/enums/page-name.enum'
+import { SpreadsheetPageTitles } from '../google-tables/enums/spreadsheet-page-titles'
 import { LocalizedString } from './schemas/models/localization.localized-string'
 import { logger } from 'src/app.logger'
 
@@ -17,7 +17,7 @@ export class LocalizationService {
     private readonly firstLetter = 'A'
     private readonly firstLetterIndex = this.firstLetter.charCodeAt(0)
     private readonly lastLetter = 'Z'
-    private readonly configurationRowIndex = 5 //  Starts from 1
+    private readonly configurationRowIndex = 2 //  Starts from 1
     private readonly startSheetLocalizationRowsIndex = 6
     private readonly endSheetLocalizationRowsIndex = 1000
 
@@ -36,7 +36,7 @@ export class LocalizationService {
 
     async getRemoteLanguages(): Promise<string[]> {
         const contentLanguages = await this.googleTablesService.getContentByListName(
-            PageNameEnum.uniqueMessages,
+            'uniqueMessages',
             `${this.languagesStartSheetLetter}${this.configurationRowIndex}:${this.lastLetter}${this.configurationRowIndex}`
         )
         if (!contentLanguages || contentLanguages.isEmpty) {
@@ -61,7 +61,7 @@ export class LocalizationService {
             this.languagesStartSheetLetterIndex + languages.length
         )
         const content = await this.googleTablesService.getContentByListName(
-            PageNameEnum.uniqueMessages,
+            'uniqueMessages',
             `${this.firstLetter}${this.startSheetLocalizationRowsIndex}:${languagesLastLetter}${this.endSheetLocalizationRowsIndex}`
         )
         if (!content) {

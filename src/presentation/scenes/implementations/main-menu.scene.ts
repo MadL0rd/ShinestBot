@@ -1,11 +1,10 @@
 import { Context } from 'telegraf'
-import { Message, Update } from 'telegraf/typings/core/types/typegram'
-import { SceneName } from '../enums/scene-name.enum'
+import { SceneNames } from '../enums/scene-name.enum'
 import { SceneHandlerCompletion, Scene, SceneCallbackData } from '../scene.interface'
 import { logger } from 'src/app.logger'
 import { Markup } from 'telegraf'
-import { UserPermissionNamesStable } from 'src/core/user/enums/user-permission.enum'
 import { SceneCallbackAction, SceneCallbackDataSegue } from '../enums/scene-callback-action.enum'
+import { Message, Update } from 'node_modules/telegraf/typings/core/types/typegram'
 
 // =====================
 // Scene data class
@@ -17,7 +16,7 @@ export class MainMenuScene extends Scene<ISceneData> {
     // Properties
     // =====================
 
-    readonly name: SceneName = SceneName.mainMenu
+    readonly name: SceneNames.union = 'mainMenu'
 
     // =====================
     // Public methods
@@ -45,14 +44,11 @@ export class MainMenuScene extends Scene<ISceneData> {
                 await ctx.replyWithHTML(this.text.mainMenu.textRepoLink)
                 return this.completion.inProgress()
 
-            case this.text.mainMenu.buttonPayment:
-                return this.completion.complete(SceneName.payment)
-
             case this.text.mainMenu.buttonLanguageSettings:
-                return this.completion.complete(SceneName.languageSettings)
+                return this.completion.complete('languageSettings')
 
             case this.text.mainMenu.buttonAdminMenu:
-                return this.completion.complete(SceneName.adminMenu)
+                return this.completion.complete('adminMenu')
         }
 
         return this.completion.canNotHandle()
@@ -66,7 +62,7 @@ export class MainMenuScene extends Scene<ISceneData> {
             case SceneCallbackAction.segueButton:
                 const callbackData = data.data as SceneCallbackDataSegue
 
-                const nextScene = SceneName[callbackData.segueSceneName]
+                const nextScene = SceneNames.castToInstance(callbackData.segueSceneName)
                 if (!nextScene) return this.completion.canNotHandle()
 
                 return this.completion.complete(nextScene)
@@ -80,13 +76,12 @@ export class MainMenuScene extends Scene<ISceneData> {
 
     private menuMarkup(): object {
         const ownerOrAdmin =
-            this.userActivePermissions.includes(UserPermissionNamesStable.admin) ||
-            this.userActivePermissions.includes(UserPermissionNamesStable.owner)
+            this.userActivePermissions.includes('admin') ||
+            this.userActivePermissions.includes('owner')
         return this.keyboardMarkupWithAutoLayoutFor(
             [
                 this.text.mainMenu.buttonRepoLink,
                 this.text.mainMenu.buttonLanguageSettings,
-                this.text.mainMenu.buttonPayment,
                 ownerOrAdmin ? this.text.mainMenu.buttonAdminMenu : null,
             ].compact
         )

@@ -4,7 +4,7 @@ import { UserService } from './core/user/user.service'
 import { BotContentService } from './core/bot-content/bot-content.service'
 import { IDispatcher } from './presentation/dispatcher/dispatcher.interface'
 import { PrivateDialogDispatcher } from './presentation/dispatcher/implementations/private-dialog-dispatcher.service'
-import { Message, Update } from 'telegraf/typings/core/types/typegram'
+import { Update, Message } from 'node_modules/telegraf/typings/core/types/typegram'
 import { logger } from './app.logger'
 import { internalConstants } from './app.internal-constants'
 import { LocalizationService } from './core/localization/localization.service'
@@ -75,8 +75,9 @@ export class AppUpdate {
             // Message in file storage chat
 
             const textMessage = ctx.message as Message.TextMessage
-            if (textMessage?.text && textMessage?.text.includes(':')) {
-                const commandComponents = textMessage.text
+            const messageText = textMessage.text as string
+            if (messageText && messageText.includes(':')) {
+                const commandComponents = messageText
                     .split(':')
                     .map((component) => component.trimmed)
                 if (commandComponents.length != 2) return
@@ -133,42 +134,6 @@ export class AppUpdate {
         } else {
             logger.log(`ChatId ${ctx.chat?.id}`)
         }
-    }
-    @On(['pre_checkout_query'])
-    async answerPreChekoutQuerry(ctx: Context<Update.PreCheckoutQueryUpdate>) {
-        const preCheckoutResult = true
-
-        // Checking for endless subscription
-        // const payload = ctx.preCheckoutQuery.invoice_payload
-        const user = await this.userService.findOneByTelegramId(ctx.from.id)
-        if (!user) {
-            logger.error(`PRE_CHECKOUT_QUERY: Failed to find user: ${JSON.stringify(ctx.from.id)}`)
-            return
-        }
-
-        await ctx.answerPreCheckoutQuery(preCheckoutResult)
-        const querry = ctx.preCheckoutQuery
-        if (preCheckoutResult) {
-            logger.log(
-                `PRE_CHECKOUT_QUERY: Answered pre checkout querry from ${querry.from.username}. Id ${querry.id}`
-            )
-        } else {
-            logger.error(
-                `PRE_CHECKOUT_QUERY: Cant answer pre checkout querry from ${querry.from.username}. Id ${querry.id}`
-            )
-        }
-    }
-
-    @On(['successful_payment'])
-    async paymentHandler(ctx: Context<Update.MessageUpdate>) {
-        logger.log(`PAYMENT: Successful payment detected`)
-
-        const user = await this.userService.findOneByTelegramId(ctx.from.id)
-        if (!user) {
-            logger.error(`PAYMENT: Failed to find user: ${JSON.stringify(ctx.from.id)}`)
-            return
-        }
-        logger.log(`PAYMENT: Successful payment for user ${user.telegramInfo.username}`)
     }
 
     @On(['callback_query'])

@@ -1,5 +1,4 @@
 import { Context, Telegraf } from 'telegraf'
-import { CallbackQuery, Update, User } from 'telegraf/typings/core/types/typegram'
 import { IDispatcher } from '../dispatcher.interface'
 import { BotContentService } from 'src/core/bot-content/bot-content.service'
 import { UserService } from 'src/core/user/user.service'
@@ -8,26 +7,31 @@ import {
     SceneCallbackData,
     SceneHandlerCompletion,
 } from 'src/presentation/scenes/scene.interface'
-import { SceneName } from 'src/presentation/scenes/enums/scene-name.enum'
+import { SceneNames } from 'src/presentation/scenes/enums/scene-name.enum'
 import { logger } from 'src/app.logger'
-import { UserPermissionNamesStable } from 'src/core/user/enums/user-permission.enum'
+import { UserPermissionNames } from 'src/core/user/enums/user-permission-names.enum'
 import { BotContentStable } from 'src/core/bot-content/schemas/bot-content.schema'
 import { UserDocument } from 'src/core/user/schemas/user.schema'
 import { UserHistoryEvent } from 'src/core/user/enums/user-history-event.enum'
-import { Message } from 'telegraf/typings/core/types/typegram'
 import { SceneFactory } from 'src/presentation/scenes/scene-factory'
 import { getActiveUserPermissionNames } from 'src/utils/getActiveUserPermissions'
 import { getLanguageFor } from 'src/utils/getLanguageForUser'
 import { plainToClass } from 'class-transformer'
 import { LocalizationService } from 'src/core/localization/localization.service'
+import {
+    Update,
+    Message,
+    CallbackQuery,
+    User as UserTelegram,
+} from 'node_modules/telegraf/typings/core/types/typegram'
 
 export class PrivateDialogDispatcher implements IDispatcher {
     // =====================
     // Properties
     // =====================
 
-    private readonly startSceneName: SceneName = SceneName.onboarding
-    private readonly defaultSceneName: SceneName = SceneName.mainMenu
+    private readonly startSceneName: SceneNames.union = 'onboarding'
+    private readonly defaultSceneName: SceneNames.union = 'mainMenu'
 
     constructor(
         private readonly botContentService: BotContentService,
@@ -55,6 +59,7 @@ export class PrivateDialogDispatcher implements IDispatcher {
                 startParam: startParam,
                 registrationDate: new Date(),
                 permissions: [],
+                notificationsSchedule: {},
             },
         })
 
@@ -107,7 +112,7 @@ export class PrivateDialogDispatcher implements IDispatcher {
         // Try to find current scene
         // if there is no segue from command
         // =====================
-        const sceneName = SceneName.getBySceneName(data.user.sceneData?.sceneName)
+        const sceneName = SceneNames.castToInstance(data.user.sceneData?.sceneName)
         const currentScene = this.createSceneWith(sceneName, data)
         let sceneCompletion: SceneHandlerCompletion | null = null
 
@@ -132,7 +137,7 @@ export class PrivateDialogDispatcher implements IDispatcher {
         // =====================
         // Start next scene if needed
         // =====================
-        let nextSceneName: SceneName | null =
+        let nextSceneName: SceneNames.union | null =
             sceneNameFromCommandSegue ?? this.getSceneNameFromCompletion(sceneCompletion)
         let nextScene: IScene | null = null
         while (nextSceneName) {
@@ -192,10 +197,7 @@ export class PrivateDialogDispatcher implements IDispatcher {
         let callbackData: SceneCallbackData | null = null
 
         try {
-            callbackData = plainToClass(
-                SceneCallbackData,
-                JSON.parse(ctx.callbackQuery['data'] ?? '{}')
-            )
+            callbackData = plainToClass(SceneCallbackData, JSON.parse(dataQuery?.data ?? '{}'))
         } catch {}
 
         if (!callbackData) {
@@ -204,7 +206,7 @@ export class PrivateDialogDispatcher implements IDispatcher {
         }
         logger.log(`Received callback data: ${callbackData.toPrettyString()}`)
 
-        const sceneName = SceneName.getBySceneName(callbackData.sceneName)
+        const sceneName = SceneNames.castToInstance(callbackData.sceneName)
         const currentScene = this.createSceneWith(sceneName, data)
 
         if (!currentScene) {
@@ -234,7 +236,9 @@ export class PrivateDialogDispatcher implements IDispatcher {
             }
         }
 
-        let nextSceneName: SceneName | null = sceneCompletion?.nextSceneNameIfCompleted ?? null
+        let nextSceneName: SceneNames.union | null = SceneNames.castToInstance(
+            sceneCompletion?.nextSceneNameIfCompleted
+        )
         let nextScene: IScene | null = null
         let didStartedAnyScene = false
         while (nextSceneName) {
@@ -279,7 +283,7 @@ export class PrivateDialogDispatcher implements IDispatcher {
     // Private methods
     // =====================
 
-    private getSceneNameFromTextCommandSegue(command?: string): SceneName | null {
+    private getSceneNameFromTextCommandSegue(command?: string): SceneNames.union | null {
         switch (command) {
             case '/back_to_menu':
                 return this.defaultSceneName
@@ -289,7 +293,7 @@ export class PrivateDialogDispatcher implements IDispatcher {
 
     private getSceneNameFromCompletion(
         sceneCompletion: SceneHandlerCompletion | null
-    ): SceneName | null {
+    ): SceneNames.union | null {
         if (sceneCompletion) {
             if (sceneCompletion.inProgress === false) {
                 // Exit from current scene
@@ -309,7 +313,10 @@ export class PrivateDialogDispatcher implements IDispatcher {
         }
     }
 
-    private createSceneWith(name: SceneName | null, data: TransactionUserData): IScene | null {
+    private createSceneWith(
+        name: SceneNames.union | null,
+        data: TransactionUserData
+    ): IScene | null {
         if (!name) return null
 
         return SceneFactory.createSceneWith(name, {
@@ -348,7 +355,9 @@ export class PrivateDialogDispatcher implements IDispatcher {
         }
     }
 
-    private async getHandlingTransactionUserData(telegramUser: User): Promise<TransactionUserData> {
+    private async getHandlingTransactionUserData(
+        telegramUser: UserTelegram
+    ): Promise<TransactionUserData> {
         const user = await this.userService.createIfNeededAndGet({
             telegramId: telegramUser.id,
             telegramInfo: telegramUser,
@@ -356,6 +365,7 @@ export class PrivateDialogDispatcher implements IDispatcher {
                 startParam: null,
                 registrationDate: new Date(),
                 permissions: [],
+                notificationsSchedule: {},
             },
         })
         const userActivePermissions = getActiveUserPermissionNames(user)
@@ -374,7 +384,7 @@ export class PrivateDialogDispatcher implements IDispatcher {
 
 interface TransactionUserData {
     user: UserDocument
-    userActivePermissions: UserPermissionNamesStable[]
+    userActivePermissions: UserPermissionNames.union[]
     userLanguage: string
     botContent: BotContentStable
 }

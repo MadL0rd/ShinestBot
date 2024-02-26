@@ -1,5 +1,5 @@
 import { Context } from 'telegraf'
-import { Update } from 'telegraf/typings/core/types/typegram'
+import { Update } from 'node_modules/telegraf/typings/core/types/typegram'
 
 export interface IDispatcher {
     handleUserStart(ctx: Context<Update>): Promise<void>

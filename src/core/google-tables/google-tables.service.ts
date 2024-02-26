@@ -1,23 +1,19 @@
 import { Injectable } from '@nestjs/common'
 import { google } from 'googleapis'
 import { GoogleCredentialsService } from './google-credentials.service'
-import { PageNameEnum } from './enums/page-name.enum'
-import { ConfigService } from '@nestjs/config'
+import { SpreadsheetPageTitles } from './enums/spreadsheet-page-titles'
 import { logger } from '../../app.logger'
 import { replaceMarkdownWithHtml } from 'src/utils/replaceMarkdownWithHtml'
 import { internalConstants } from 'src/app.internal-constants'
 
 @Injectable()
 export class GoogleTablesService {
-    constructor(
-        private readonly configService: ConfigService,
-        private readonly googleCredentialsService: GoogleCredentialsService
-    ) {}
+    constructor(private readonly googleCredentialsService: GoogleCredentialsService) {}
 
     private readonly spreadsheetId = internalConstants.googleSpreadsheetId
 
     async getContentByListName(
-        pageName: PageNameEnum | string,
+        pageName: SpreadsheetPageTitles.keysUnion,
         range: string
     ): Promise<string[][]> {
         logger.log(`Start cache ${pageName}`)

@@ -1,6 +1,5 @@
 import { Context } from 'telegraf'
-import { Message, Update } from 'telegraf/typings/core/types/typegram'
-import { SceneName } from '../../enums/scene-name.enum'
+import { SceneNames } from '../../enums/scene-name.enum'
 import {
     PermissionsValidationResult,
     Scene,
@@ -8,9 +7,10 @@ import {
     SceneHandlerCompletion,
 } from '../../scene.interface'
 import { logger } from 'src/app.logger'
-import { UserPermissionNamesStable } from 'src/core/user/enums/user-permission.enum'
-import { PageNameEnum } from 'src/core/google-tables/enums/page-name.enum'
+import { UserPermissionNames } from 'src/core/user/enums/user-permission-names.enum'
+import { SpreadsheetPageTitles } from 'src/core/google-tables/enums/spreadsheet-page-titles'
 import { internalConstants } from 'src/app.internal-constants'
+import { Message, Update } from 'node_modules/telegraf/typings/core/types/typegram'
 
 // =====================
 // Scene data class
@@ -29,7 +29,7 @@ export class AdminMenuScene extends Scene<ISceneData> {
     // Properties
     // =====================
 
-    readonly name: SceneName = SceneName.adminMenu
+    readonly name: SceneNames.union = 'adminMenu'
 
     // =====================
     // Public methods
@@ -37,8 +37,8 @@ export class AdminMenuScene extends Scene<ISceneData> {
 
     validateUseScenePermissions(): PermissionsValidationResult {
         const ownerOrAdmin =
-            this.userActivePermissions.includes(UserPermissionNamesStable.admin) ||
-            this.userActivePermissions.includes(UserPermissionNamesStable.owner)
+            this.userActivePermissions.includes('admin') ||
+            this.userActivePermissions.includes('owner')
         if (ownerOrAdmin) {
             return { canUseScene: true }
         }
@@ -73,16 +73,16 @@ export class AdminMenuScene extends Scene<ISceneData> {
                 return this.completion.inProgress()
 
             case this.text.adminMenu.buttonDownloadTables:
-                return this.completion.complete(SceneName.adminMenuGenerateMetrix)
+                return this.completion.complete('adminMenuGenerateMetrix')
 
             case this.text.adminMenu.buttonUsersManagement:
-                return this.completion.complete(SceneName.adminMenuUsersManagement)
+                return this.completion.complete('adminMenuUsersManagement')
 
             case this.text.adminMenu.buttonMailing:
-                return this.completion.complete(SceneName.adminMenuMailing)
+                return this.completion.complete('adminMenuMailing')
 
             case this.text.common.buttonReturnToMainMenu:
-                return this.completion.complete(SceneName.mainMenu)
+                return this.completion.complete('mainMenu')
         }
 
         return this.completion.canNotHandle()
@@ -106,22 +106,25 @@ export class AdminMenuScene extends Scene<ISceneData> {
         messagePrefix += languages.join('; ')
         messagePrefix += '\n'
 
-        const statuses = new Map<PageNameEnum, SpreadsheetPageCacheStatus | Error>()
-        Object.keys(PageNameEnum).forEach(
-            (pageName) => (statuses[pageName] = SpreadsheetPageCacheStatus.loading)
+        const statuses = new Map<
+            SpreadsheetPageTitles.keysUnion,
+            SpreadsheetPageCacheStatus | Error
+        >()
+        SpreadsheetPageTitles.allKeys.forEach((pageName) =>
+            statuses.set(pageName, SpreadsheetPageCacheStatus.loading)
         )
 
         const messageInfo = await ctx.replyWithHTML(
             messagePrefix + this.generageTextForCacheStatuses(statuses)
         )
         const botContentService = this.botContentService
-        const loadingPromises = Object.keys(PageNameEnum).map((pageName) => {
+        const loadingPromises = SpreadsheetPageTitles.allKeys.map((pageName) => {
             const cacheSpreadsheetFunc = async function (): Promise<void> {
                 try {
-                    await botContentService.cacheSpreadsheetPage(PageNameEnum[pageName])
-                    statuses[pageName] = SpreadsheetPageCacheStatus.success
+                    await botContentService.cacheSpreadsheetPage(pageName)
+                    statuses.set(pageName, SpreadsheetPageCacheStatus.success)
                 } catch (error) {
-                    statuses[pageName] = error
+                    statuses.set(pageName, error as Error)
                     logger.error(`Fail to cache spreadsheep page ${pageName}`, error)
                 }
             }
@@ -143,15 +146,24 @@ export class AdminMenuScene extends Scene<ISceneData> {
         )
     }
     private generageTextForCacheStatuses(
-        statuses: Map<PageNameEnum, SpreadsheetPageCacheStatus | Error>
+        statuses: Map<SpreadsheetPageTitles.keysUnion, SpreadsheetPageCacheStatus | Error>
     ): string {
         let result = ''
-        for (const pageName in PageNameEnum) {
+        for (const pageNameString in SpreadsheetPageTitles.allKeys) {
+            const pageName = pageNameString as SpreadsheetPageTitles.keysUnion
             result += `\n`
-            if (statuses[pageName] instanceof Error) {
-                result += `❌ ${PageNameEnum[pageName]}:\n\`\`\`\n${statuses[pageName]}\n\`\`\``
+
+            const status = statuses.get(pageName)
+            if (status === undefined) {
+                continue
+            } else if (status instanceof Error) {
+                result += `❌ ${SpreadsheetPageTitles.items[pageName]}:\n\`\`\`\n${statuses.get(
+                    pageName
+                )}\n\`\`\``
             } else {
-                const status: SpreadsheetPageCacheStatus = statuses[pageName]
+                const status: SpreadsheetPageCacheStatus = statuses.get(
+                    pageName
+                ) as SpreadsheetPageCacheStatus
                 switch (status) {
                     case SpreadsheetPageCacheStatus.loading:
                         result += '🔍'
@@ -163,7 +175,7 @@ export class AdminMenuScene extends Scene<ISceneData> {
                         result += '❌'
                         break
                 }
-                result += PageNameEnum[pageName]
+                result += SpreadsheetPageTitles.items[pageName]
             }
         }
         return result

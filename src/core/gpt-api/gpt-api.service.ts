@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common'
 import { OpenAI } from 'openai'
 import { internalConstants } from 'src/app.internal-constants'
 import { GptContextElement } from './entities/gpt-context-element'
-import { ChatCompletionMessageParam } from 'openai/resources'
+import { ChatCompletionMessageParam } from 'node_modules/openai/resources'
 import { logger } from 'src/app.logger'
 
 @Injectable()

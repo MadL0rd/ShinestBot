@@ -1,10 +1,10 @@
 import { Context } from 'telegraf'
-import { Message, Update } from 'telegraf/typings/core/types/typegram'
-import { SceneName } from '../enums/scene-name.enum'
+import { SceneNames } from '../enums/scene-name.enum'
 import { SceneHandlerCompletion, Scene, SceneCallbackData } from '../scene.interface'
 import { Markup } from 'telegraf'
 import { logger } from 'src/app.logger'
-import { getFlagEmoji } from 'src/utils/getFlagEmoji'
+import { getLanguageName } from 'src/utils/languages-info/getFlagEmoji'
+import { Update, Message } from 'node_modules/telegraf/typings/core/types/typegram'
 
 // =====================
 // Scene data class
@@ -16,7 +16,7 @@ export class LanguageSettingsScene extends Scene<ISceneData> {
     // Properties
     // =====================
 
-    readonly name: SceneName = SceneName.languageSettings
+    readonly name: SceneNames.union = 'languageSettings'
     get dataDefault(): ISceneData {
         return this.generateData({})
     }
@@ -32,7 +32,7 @@ export class LanguageSettingsScene extends Scene<ISceneData> {
         await this.logToUserHistory(this.historyEvent.startSceneLanguageSettings)
 
         const languages = await this.botContentService.getLocalLanguages()
-        const languagesButtons = languages.map((code) => `${getFlagEmoji(code)} ${code}`)
+        const languagesButtons = languages.map((code) => getLanguageName(code))
 
         await ctx.replyWithHTML(
             this.text.common.selectLanguageText,
@@ -52,13 +52,13 @@ export class LanguageSettingsScene extends Scene<ISceneData> {
         if (!messageText) this.completion.canNotHandle()
 
         const languages = await this.botContentService.getLocalLanguages()
-        const languagesButtons = languages.map((code) => `${getFlagEmoji(code)} ${code}`)
+        const languagesButtons = languages.map((code) => getLanguageName(code))
         const languageIndex = languagesButtons.indexOf(messageText)
         if (languageIndex && languageIndex >= 0) this.completion.canNotHandle()
 
         this.user.internalInfo.language = languages[languageIndex]
         await this.userService.update(this.user)
-        return this.completion.complete(SceneName.onboarding)
+        return this.completion.complete('onboarding')
     }
 
     async handleCallback(
