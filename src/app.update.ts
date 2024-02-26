@@ -5,9 +5,10 @@ import { BotContentService } from './core/bot-content/bot-content.service'
 import { IDispatcher } from './presentation/dispatcher/dispatcher.interface'
 import { PrivateDialogDispatcher } from './presentation/dispatcher/implementations/private-dialog-dispatcher.service'
 import { Update, Message } from 'node_modules/telegraf/typings/core/types/typegram'
-import { logger } from './app.logger'
+import { logger } from 'src/app.logger'
 import { internalConstants } from './app.internal-constants'
 import { LocalizationService } from './core/localization/localization.service'
+import { RuntimeExeptionGuard } from './exeptions-and-logging/runtime-exeption-guard.decorator'
 
 @UpdateNest()
 export class AppUpdate {
@@ -36,6 +37,7 @@ export class AppUpdate {
     // =====================
 
     @Start()
+    @RuntimeExeptionGuard
     async startCommand(ctx: Context<Update>) {
         if (ctx.chat?.type !== 'private') return
         logger.log(`User ${ctx.from?.id} ${ctx.from?.first_name} has started the bot`)
@@ -56,6 +58,7 @@ export class AppUpdate {
         'venue',
         'invoice',
     ])
+    @RuntimeExeptionGuard
     async on(ctx: Context<Update>) {
         const message = ctx.message as Message.TextMessage
         const messageText = message?.text
@@ -137,6 +140,7 @@ export class AppUpdate {
     }
 
     @On(['callback_query'])
+    @RuntimeExeptionGuard
     async onInlineButton(ctx: Context<Update.CallbackQueryUpdate>) {
         logger.log(
             `User ${ctx.from?.id} ${ctx.from?.first_name} pressed the inline button ${ctx.callbackQuery}"`

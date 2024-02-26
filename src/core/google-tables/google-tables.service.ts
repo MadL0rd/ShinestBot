@@ -2,9 +2,9 @@ import { Injectable } from '@nestjs/common'
 import { google } from 'googleapis'
 import { GoogleCredentialsService } from './google-credentials.service'
 import { SpreadsheetPageTitles } from './enums/spreadsheet-page-titles'
-import { logger } from '../../app.logger'
 import { replaceMarkdownWithHtml } from 'src/utils/replaceMarkdownWithHtml'
 import { internalConstants } from 'src/app.internal-constants'
+import { logger } from 'src/app.logger'
 
 @Injectable()
 export class GoogleTablesService {

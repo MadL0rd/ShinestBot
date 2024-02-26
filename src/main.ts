@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 import { NestFactory } from '@nestjs/core'
 import { AppModule } from './app.module'
-import { logger } from './app.logger'
+import { logger } from 'src/app.logger'
 import { internalConstants } from './app.internal-constants'
 import { ExtensionsModule } from './extensions/extensions.module'
 

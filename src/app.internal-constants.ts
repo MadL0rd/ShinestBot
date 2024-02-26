@@ -1,4 +1,4 @@
-import { logger } from './app.logger'
+import { logger } from 'src/app.logger'
 
 enum EnvKeys {
     // Mongo
