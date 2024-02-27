@@ -3,7 +3,6 @@ import { MongooseModule } from '@nestjs/mongoose'
 import { User, UserSchema } from './schemas/user.schema'
 import { UserService } from './user.service'
 import { StatisticService } from './statistic.service'
-import { BotContentModule } from '../bot-content/bot-content.module'
 
 @Module({
     imports: [
@@ -13,7 +12,6 @@ import { BotContentModule } from '../bot-content/bot-content.module'
                 schema: UserSchema,
             },
         ]),
-        BotContentModule,
     ],
     providers: [UserService, StatisticService],
     exports: [UserService],

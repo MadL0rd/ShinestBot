@@ -3,15 +3,15 @@ import { InjectModel } from '@nestjs/mongoose'
 import { Model } from 'mongoose'
 import { BotContent, BotContentDocument, BotContentStable } from './schemas/bot-content.schema'
 import { GoogleTablesService } from '../google-tables/google-tables.service'
-import { PageNameEnum } from '../google-tables/enums/page-name.enum'
+import { SpreadsheetPageTitles } from '../google-tables/enums/spreadsheet-page-titles'
 import { CreateBotContentDto } from './dto/create-bot-content.dto'
 import { UpdateBotContentDto } from './dto/update-bot-content.dto'
 import { logger } from 'src/app.logger'
-import { OnboardingPage } from './schemas/models/bot-content.onboarding-page'
 import { UniqueMessage } from './schemas/models/bot-content.unique-message'
-import { MediaContent } from './schemas/models/bot-content.media-content'
 import { internalConstants } from 'src/app.internal-constants'
 import { LocalizationService } from '../localization/localization.service'
+import { OnboardingPage } from './schemas/models/bot-content.onboarding-page'
+import { MediaContent } from './schemas/models/bot-content.media-content'
 
 @Injectable()
 export class BotContentService implements OnModuleInit {
@@ -30,11 +30,21 @@ export class BotContentService implements OnModuleInit {
     }
 
     async onModuleInit(): Promise<void> {
-        if (internalConstants.cacheBotContentOnStart === false) return
+        if (internalConstants.cacheBotContentOnStart == false) return
 
-        for (const pageName in PageNameEnum) {
-            await this.cacheSpreadsheetPage(PageNameEnum[pageName])
-        }
+        // eslint-disable-next-line @typescript-eslint/no-this-alias
+        const self = this
+        const loadingPromises = SpreadsheetPageTitles.allKeys.map((pageName) => {
+            const cacheSpreadsheetFunc = async function (): Promise<void> {
+                try {
+                    await self.cacheSpreadsheetPage(pageName)
+                } catch (error) {
+                    logger.error(`Fail to cache spreadsheet page ${pageName}`, error)
+                }
+            }
+            return cacheSpreadsheetFunc()
+        })
+        await Promise.all(loadingPromises)
     }
 
     // =====================
@@ -47,7 +57,7 @@ export class BotContentService implements OnModuleInit {
     }
 
     async getContent(language: string): Promise<BotContentStable> {
-        const contentCache = this.botContentCache[language]
+        const contentCache = this.botContentCache.get(language)
         if (contentCache) {
             return contentCache
         }
@@ -57,17 +67,17 @@ export class BotContentService implements OnModuleInit {
             return await this.getContent(internalConstants.defaultLanguage)
         }
 
-        this.botContentCache[language] = contentPage
-        return this.botContentCache[language]
+        this.botContentCache.set(language, contentPage)
+        return contentPage
     }
 
-    async cacheSpreadsheetPage(pageName: PageNameEnum) {
+    async cacheSpreadsheetPage(pageName: SpreadsheetPageTitles.keysUnion) {
         switch (pageName) {
-            case PageNameEnum.uniqueMessages:
+            case 'uniqueMessages':
                 await this.cacheUniqueMessage()
                 break
 
-            case PageNameEnum.onboarding:
+            case 'onboarding':
                 await this.cacheOnboarding()
                 break
         }
@@ -92,7 +102,7 @@ export class BotContentService implements OnModuleInit {
             .exec()
     }
 
-    private async findOneBy(lang: string): Promise<BotContent> {
+    private async findOneBy(lang: string): Promise<BotContent | null> {
         return this.model.findOne({ language: lang }).exec()
     }
 
@@ -102,21 +112,48 @@ export class BotContentService implements OnModuleInit {
     // =====================
 
     private async cacheUniqueMessage() {
-        const uniqueMessageKeys = Object.keys(new UniqueMessage())
-        const uniqueMessageObj = UniqueMessage.prototype
+        await this.localizationService.cacheLocalization()
+
+        const uniqueMessageObj = new UniqueMessage()
+        type UniqueMessageGroupKeys = keyof typeof uniqueMessageObj
+        const uniqueMessageGroupStringKeys = Object.keys(
+            uniqueMessageObj
+        ) as unknown as UniqueMessageGroupKeys[]
 
         const languages = await this.localizationService.getRemoteLanguages()
         for (const language of languages) {
-            for (const groupName of uniqueMessageKeys) {
+            for (const groupNameString of uniqueMessageGroupStringKeys) {
+                const groupName = groupNameString as UniqueMessageGroupKeys
                 const localizedGroup = await this.localizationService.findOneByGroupName(groupName)
-                const groupObject = new Object()
-                for (const localizedString of localizedGroup.content) {
-                    groupObject[localizedString.key] = localizedString.localizedValues[language]
+                if (!localizedGroup) {
+                    throw Error(`There is no localized strings group with name ${groupName}`)
                 }
-                uniqueMessageObj[groupName] = groupObject
+
+                const uniqueMessageGroup = uniqueMessageObj[groupName] as unknown as Record<
+                    string,
+                    string
+                >
+                const uniqueMessageStringKeys = Object.keys(uniqueMessageGroup)
+
+                for (const uniqueMessageStringKey of uniqueMessageStringKeys) {
+                    const localizedString = localizedGroup.content[uniqueMessageStringKey]
+                    if (!localizedString)
+                        throw Error(
+                            `There is no value for\ngroup: ${groupName};\nkey: ${uniqueMessageStringKey};\nlang: ${language}`
+                        )
+                    const localizedUniqueMessage = localizedString?.localizedValues[language]
+                    if (!localizedUniqueMessage) {
+                        throw Error(
+                            `Remote table does not contains text for\nLanguage: ${language}\nGroup: ${groupName}\nKey: ${uniqueMessageStringKey}`
+                        )
+                    }
+                    uniqueMessageGroup[uniqueMessageStringKey] = localizedUniqueMessage
+                }
+                // @ts-ignore: Unreachable code error
+                uniqueMessageObj[groupName] = uniqueMessageGroup
             }
 
-            const createBotContentDto: CreateBotContentDto = {
+            const createBotContentDto = {
                 language: language,
                 uniqueMessage: uniqueMessageObj,
             }
@@ -131,21 +168,16 @@ export class BotContentService implements OnModuleInit {
     }
 
     private async cacheOnboarding() {
-        const content = await this.googleTablesService.getContentByListName(
-            PageNameEnum.onboarding,
-            'A2:F50'
-        )
-        if (!content) {
-            throw Error('No content')
-        }
-        const conboardingContent = this.createOnboardingArray(content)
+        const content = await this.googleTablesService.getContentByListName('onboarding', 'A2:F50')
+        if (!content) throw Error('No content')
+        const onboardingContent = this.createOnboardingArray(content)
 
         // TODO: add localized content for collections
         const languages = await this.localizationService.getRemoteLanguages()
         for (const language of languages) {
             const createBotContentDto: CreateBotContentDto = {
                 language: language,
-                onboarding: conboardingContent,
+                onboarding: onboardingContent,
             }
 
             const existingContent = await this.model.findOne({ language: language }).exec()
@@ -158,8 +190,8 @@ export class BotContentService implements OnModuleInit {
     }
 
     /** Map spreadsheet content to OnboardingPage array */
-    private createOnboardingArray(googleRows: string[][]): [OnboardingPage] {
-        let onbordingArray: [OnboardingPage]
+    private createOnboardingArray(googleRows: string[][]): OnboardingPage[] {
+        let onbordingArray: OnboardingPage[] = []
         for (const element of googleRows) {
             if (element.length < 1) {
                 continue

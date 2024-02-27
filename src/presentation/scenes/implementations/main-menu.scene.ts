@@ -1,10 +1,10 @@
 import { Context } from 'telegraf'
-import { Message, Update } from 'telegraf/typings/core/types/typegram'
-import { SceneName } from '../enums/scene-name.enum'
+import { SceneNames } from '../enums/scene-name.enum'
 import { SceneHandlerCompletion, Scene, SceneCallbackData } from '../scene.interface'
 import { logger } from 'src/app.logger'
 import { Markup } from 'telegraf'
-import { UserPermissionNames } from 'src/core/user/enums/user-permission-names.enum'
+import { SceneCallbackAction, SceneCallbackDataSegue } from '../enums/scene-callback-action.enum'
+import { Message, Update } from 'node_modules/telegraf/typings/core/types/typegram'
 
 // =====================
 // Scene data class
@@ -16,14 +16,16 @@ export class MainMenuScene extends Scene<ISceneData> {
     // Properties
     // =====================
 
-    readonly name: SceneName = SceneName.mainMenu
+    readonly name: SceneNames.union = 'mainMenu'
 
     // =====================
     // Public methods
     // =====================
 
     async handleEnterScene(ctx: Context<Update>): Promise<SceneHandlerCompletion> {
-        logger.log(`${this.name} scene handleEnterScene. User: ${ctx.from.id} ${ctx.from.username}`)
+        logger.log(
+            `${this.name} scene handleEnterScene. User: ${this.user.telegramInfo.id} ${this.user.telegramInfo.username}`
+        )
         await this.logToUserHistory(this.historyEvent.startSceneMainMenu)
 
         await ctx.replyWithHTML(this.text.mainMenu.text, this.menuMarkup())
@@ -32,39 +34,40 @@ export class MainMenuScene extends Scene<ISceneData> {
     }
 
     async handleMessage(ctx: Context<Update>, dataRaw: object): Promise<SceneHandlerCompletion> {
-        logger.log(`${this.name} scene handleMessage. User: ${ctx.from.id} ${ctx.from.username}`)
+        logger.log(
+            `${this.name} scene handleMessage. User: ${this.user.telegramInfo.id} ${this.user.telegramInfo.username}`
+        )
         const message = ctx.message as Message.TextMessage
 
         switch (message?.text) {
             case this.text.mainMenu.buttonRepoLink:
-                await ctx.replyWithHTML(
-                    this.text.mainMenu.textRepoLink,
-                    Markup.inlineKeyboard([
-                        [
-                            Markup.button.webApp(
-                                'KekWait',
-                                'https://dnd-tokenizer-41471e.netlify.app/'
-                            ),
-                        ],
-                    ])
-                )
+                await ctx.replyWithHTML(this.text.mainMenu.textRepoLink)
                 return this.completion.inProgress()
 
             case this.text.mainMenu.buttonLanguageSettings:
-                return this.completion.complete(SceneName.languageSettings)
+                return this.completion.complete('languageSettings')
 
             case this.text.mainMenu.buttonAdminMenu:
-                return this.completion.complete(SceneName.adminMenu)
+                return this.completion.complete('adminMenu')
         }
 
         return this.completion.canNotHandle()
     }
 
     async handleCallback(
-        ctx: Context<Update>,
+        ctx: Context<Update.CallbackQueryUpdate>,
         data: SceneCallbackData
     ): Promise<SceneHandlerCompletion> {
-        throw new Error('Method not implemented.')
+        switch (data.action) {
+            case SceneCallbackAction.segueButton:
+                const callbackData = data.data as SceneCallbackDataSegue
+
+                const nextScene = SceneNames.castToInstance(callbackData.segueSceneName)
+                if (!nextScene) return this.completion.canNotHandle()
+
+                return this.completion.complete(nextScene)
+        }
+        return this.completion.canNotHandle()
     }
 
     // =====================
@@ -73,13 +76,14 @@ export class MainMenuScene extends Scene<ISceneData> {
 
     private menuMarkup(): object {
         const ownerOrAdmin =
-            this.userActivePermissions.includes(UserPermissionNames.admin) ||
-            this.userActivePermissions.includes(UserPermissionNames.owner)
-
-        return this.keyboardMarkupFor([
-            [this.text.mainMenu.buttonRepoLink],
-            [this.text.mainMenu.buttonLanguageSettings],
-            ownerOrAdmin ? [this.text.mainMenu.buttonAdminMenu] : [],
-        ])
+            this.userActivePermissions.includes('admin') ||
+            this.userActivePermissions.includes('owner')
+        return this.keyboardMarkupWithAutoLayoutFor(
+            [
+                this.text.mainMenu.buttonRepoLink,
+                this.text.mainMenu.buttonLanguageSettings,
+                ownerOrAdmin ? this.text.mainMenu.buttonAdminMenu : null,
+            ].compact
+        )
     }
 }

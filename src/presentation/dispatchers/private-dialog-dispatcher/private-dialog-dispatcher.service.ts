@@ -1,6 +1,5 @@
+import { Injectable } from '@nestjs/common'
 import { Context, Telegraf } from 'telegraf'
-import { Update } from 'telegraf/typings/core/types/typegram'
-import { IDispatcher } from '../dispatcher.interface'
 import { BotContentService } from 'src/core/bot-content/bot-content.service'
 import { UserService } from 'src/core/user/user.service'
 import {
@@ -8,59 +7,75 @@ import {
     SceneCallbackData,
     SceneHandlerCompletion,
 } from 'src/presentation/scenes/scene.interface'
-import { SceneName } from 'src/presentation/scenes/enums/scene-name.enum'
+import { SceneNames } from 'src/presentation/scenes/enums/scene-name.enum'
 import { logger } from 'src/app.logger'
-import { UserPermissionNames } from 'src/core/user/enums/user-permission-names.enum'
-import { BotContentStable } from 'src/core/bot-content/schemas/bot-content.schema'
-import { UserDocument } from 'src/core/user/schemas/user.schema'
 import { UserHistoryEvent } from 'src/core/user/enums/user-history-event.enum'
-import { Message } from 'telegraf/typings/core/types/typegram'
 import { SceneFactory } from 'src/presentation/scenes/scene-factory'
-import { getActiveUserPermissions } from 'src/utils/getActiveUserPermissions'
+import { getActiveUserPermissionNames } from 'src/utils/getActiveUserPermissions'
 import { getLanguageFor } from 'src/utils/getLanguageForUser'
 import { plainToClass } from 'class-transformer'
 import { LocalizationService } from 'src/core/localization/localization.service'
+import {
+    Update,
+    Message,
+    CallbackQuery,
+    User as UserTelegram,
+} from 'node_modules/telegraf/typings/core/types/typegram'
+import { TransactionUserData } from './models/transaction-user-data.model'
+import { InjectBot } from 'nestjs-telegraf'
 
-export class PrivateDialogDispatcher implements IDispatcher {
+@Injectable()
+export class PrivateDialogDispatcherService {
     // =====================
     // Properties
     // =====================
 
-    private readonly startSceneName: SceneName = SceneName.languageSettings
-    private readonly defaultSceneName: SceneName = SceneName.mainMenu
+    private readonly startSceneName: SceneNames.union = 'onboarding'
+    private readonly defaultSceneName: SceneNames.union = 'mainMenu'
 
     constructor(
         private readonly botContentService: BotContentService,
         private readonly localizationService: LocalizationService,
         private readonly userService: UserService,
-        private readonly bot: Telegraf<Context>
+        @InjectBot() private readonly bot: Telegraf<Context>
     ) {}
 
     // =====================
     // Public methods
     // =====================
     async handleUserStart(ctx: Context<Update>): Promise<void> {
+        if (!ctx.from) {
+            logger.error(`Founded ctx without sender (prop ctx.from)\nCtx: ${JSON.stringify(ctx)}`)
+            return
+        }
+
         const message = ctx.message as Message.TextMessage
         const startParam =
-            message?.entities[0].type === 'bot_command' ? message.text.split(' ')[1] : null
+            message?.entities?.first?.type === 'bot_command' ? message.text.split(' ')[1] : null
         const user = await this.userService.createIfNeededAndGet({
             telegramId: ctx.from.id,
             telegramInfo: ctx.from,
             internalInfo: {
                 startParam: startParam,
+                registrationDate: new Date(),
                 permissions: [],
+                notificationsSchedule: {},
             },
         })
 
-        await this.userService.logToUserHistory(user, UserHistoryEvent.start, startParam)
+        await this.userService.logToUserHistory(user, UserHistoryEvent.start, `${startParam}`)
 
-        const data = await this.getHandlingTransactionUserData(ctx)
+        const data = await this.getHandlingTransactionUserData(ctx.from)
 
         const startScene = this.createSceneWith(this.startSceneName, data)
+        if (!startScene) {
+            logger.error(`Start scene creation failed!\nUser: ${JSON.stringify(ctx.from)}`)
+            return
+        }
         const sceneCompletion = await startScene.handleEnterScene(ctx)
 
         // Save scene state
-        this.userService.update({
+        await this.userService.update({
             telegramId: ctx.from.id,
             telegramInfo: ctx.from,
             internalInfo: user.internalInfo,
@@ -72,11 +87,16 @@ export class PrivateDialogDispatcher implements IDispatcher {
     }
 
     async handleUserMessage(ctx: Context<Update>): Promise<void> {
+        if (!ctx.from) {
+            logger.error(`Founded ctx without sender (prop ctx.from)\nCtx: ${JSON.stringify(ctx)}`)
+            return
+        }
+
         // =====================
         // Prepare data
         // =====================
 
-        let data = await this.getHandlingTransactionUserData(ctx)
+        let data = await this.getHandlingTransactionUserData(ctx.from)
         const message = ctx.message as Message.TextMessage
 
         await this.userService.logToUserHistory(
@@ -92,32 +112,45 @@ export class PrivateDialogDispatcher implements IDispatcher {
         // Try to find current scene
         // if there is no segue from command
         // =====================
-        const sceneName = SceneName[data.user.sceneData?.sceneName]
+        const sceneName = SceneNames.castToInstance(data.user.sceneData?.sceneName)
         const currentScene = this.createSceneWith(sceneName, data)
-        let sceneCompletion: SceneHandlerCompletion = null
-        const userCanUseStoredScene = await this.validateUserCanUseScene(ctx, data, currentScene)
-        if (!sceneNameFromCommandSegue && userCanUseStoredScene === true) {
-            logger.log(
-                `${currentScene.name} handleMessage. User: ${ctx.from.id} ${ctx.from.username}`
+        let sceneCompletion: SceneHandlerCompletion | null = null
+
+        if (currentScene) {
+            const userCanUseStoredScene = await this.validateUserCanUseScene(
+                ctx,
+                data,
+                currentScene
             )
-            sceneCompletion = await currentScene.handleMessage(ctx, data.user.sceneData.data)
-            data = await this.getHandlingTransactionUserData(ctx)
+            if (!sceneNameFromCommandSegue && userCanUseStoredScene === true) {
+                logger.log(
+                    `${currentScene.name} handleMessage. User: ${ctx.from.id} ${ctx.from.username}`
+                )
+                sceneCompletion = await currentScene.handleMessage(
+                    ctx,
+                    data.user.sceneData.data ?? {}
+                )
+                data = await this.getHandlingTransactionUserData(ctx.from)
+            }
         }
 
         // =====================
         // Start next scene if needed
         // =====================
-        let nextSceneName: SceneName =
+        let nextSceneName: SceneNames.union | null =
             sceneNameFromCommandSegue ?? this.getSceneNameFromCompletion(sceneCompletion)
-        let nextScene: IScene = null
+        let nextScene: IScene | null = null
         while (nextSceneName) {
             nextScene = this.createSceneWith(nextSceneName, data)
+            if (!nextScene) break
 
-            if (await this.validateUserCanUseScene(ctx, data, nextScene, false)) {
+            const userCanUseScene = await this.validateUserCanUseScene(ctx, data, nextScene)
+            if (userCanUseScene) {
                 sceneCompletion = await nextScene.handleEnterScene(ctx)
-                data = await this.getHandlingTransactionUserData(ctx)
+                data = await this.getHandlingTransactionUserData(ctx.from)
             } else {
                 nextScene = null
+                sceneCompletion = null
             }
 
             // Return for bunned users
@@ -129,39 +162,42 @@ export class PrivateDialogDispatcher implements IDispatcher {
         }
 
         // Send canNonHandle message
-        if (sceneCompletion.didHandledUserInteraction !== true) {
+        if (sceneCompletion && sceneCompletion.didHandledUserInteraction === false) {
             ctx.replyWithHTML(data.botContent.uniqueMessage.common.unknownState)
         }
 
         // =====================
         // Save scene state
         // =====================
-        this.userService.update({
+        await this.userService.update({
             telegramId: ctx.from.id,
             telegramInfo: ctx.from,
             internalInfo: data.user.internalInfo,
             sceneData: {
                 sceneName: nextScene?.name ?? currentScene?.name ?? this.defaultSceneName,
-                data: sceneCompletion.sceneData,
+                data: sceneCompletion?.sceneData ?? {},
             },
         })
     }
 
-    async handleUserCallback(ctx: Context<Update>): Promise<void> {
-        let data = await this.getHandlingTransactionUserData(ctx)
+    async handleUserCallback(ctx: Context<Update.CallbackQueryUpdate>): Promise<void> {
+        if (!ctx.from) {
+            logger.error(`Founded ctx without sender (prop ctx.from)\nCtx: ${JSON.stringify(ctx)}`)
+            return
+        }
+        const dataQuery = ctx.callbackQuery as CallbackQuery.DataQuery | undefined
+
+        let data = await this.getHandlingTransactionUserData(ctx.from)
         await this.userService.logToUserHistory(
             data.user,
             UserHistoryEvent.callbackButtonDidTapped,
-            ctx.callbackQuery['data'] ?? '*empty*'
+            dataQuery?.data ?? '*empty*'
         )
 
-        let callbackData: SceneCallbackData = null
+        let callbackData: SceneCallbackData | null = null
 
         try {
-            callbackData = plainToClass(
-                SceneCallbackData,
-                JSON.parse(ctx.callbackQuery['data'] ?? '{}')
-            )
+            callbackData = plainToClass(SceneCallbackData, JSON.parse(dataQuery?.data ?? '{}'))
         } catch {}
 
         if (!callbackData) {
@@ -170,15 +206,21 @@ export class PrivateDialogDispatcher implements IDispatcher {
         }
         logger.log(`Received callback data: ${callbackData.toPrettyString()}`)
 
-        const sceneName = SceneName[callbackData.sceneName]
+        const sceneName = SceneNames.castToInstance(callbackData.sceneName)
         const currentScene = this.createSceneWith(sceneName, data)
-        let sceneCompletion: SceneHandlerCompletion = null
+
+        if (!currentScene) {
+            logger.error(`Scene calback creation failed!\nUser: ${JSON.stringify(ctx.from)}`)
+            return
+        }
+
+        let sceneCompletion: SceneHandlerCompletion | null = null
         if (await this.validateUserCanUseScene(ctx, data, currentScene)) {
             logger.log(
                 `${currentScene.name} handleMessage. User: ${ctx.from.id} ${ctx.from.username}`
             )
             sceneCompletion = await currentScene.handleCallback(ctx, callbackData)
-            data = await this.getHandlingTransactionUserData(ctx)
+            data = await this.getHandlingTransactionUserData(ctx.from)
 
             if (sceneCompletion.inProgress == true) {
                 await this.userService.update({
@@ -194,15 +236,18 @@ export class PrivateDialogDispatcher implements IDispatcher {
             }
         }
 
-        let nextSceneName: SceneName = sceneCompletion?.nextSceneNameIfCompleted
-        let nextScene: IScene = null
+        let nextSceneName: SceneNames.union | null = SceneNames.castToInstance(
+            sceneCompletion?.nextSceneNameIfCompleted
+        )
+        let nextScene: IScene | null = null
         let didStartedAnyScene = false
         while (nextSceneName) {
             nextScene = this.createSceneWith(nextSceneName, data)
+            if (!nextScene) break
 
             if (await this.validateUserCanUseScene(ctx, data, nextScene, false)) {
-                sceneCompletion = await nextScene.handleEnterScene(ctx)
-                data = await this.getHandlingTransactionUserData(ctx)
+                sceneCompletion = await nextScene.handleEnterScene(ctx as Context<Update>)
+                data = await this.getHandlingTransactionUserData(ctx.from)
                 didStartedAnyScene = true
             } else {
                 nextScene = null
@@ -228,7 +273,7 @@ export class PrivateDialogDispatcher implements IDispatcher {
                 internalInfo: data.user.internalInfo,
                 sceneData: {
                     sceneName: nextScene?.name ?? this.defaultSceneName,
-                    data: sceneCompletion.sceneData,
+                    data: sceneCompletion?.sceneData ?? {},
                 },
             })
         }
@@ -238,7 +283,7 @@ export class PrivateDialogDispatcher implements IDispatcher {
     // Private methods
     // =====================
 
-    private getSceneNameFromTextCommandSegue(command?: string): SceneName | null {
+    private getSceneNameFromTextCommandSegue(command?: string): SceneNames.union | null {
         switch (command) {
             case '/back_to_menu':
                 return this.defaultSceneName
@@ -246,7 +291,9 @@ export class PrivateDialogDispatcher implements IDispatcher {
         return null
     }
 
-    private getSceneNameFromCompletion(sceneCompletion?: SceneHandlerCompletion): SceneName | null {
+    private getSceneNameFromCompletion(
+        sceneCompletion: SceneHandlerCompletion | null
+    ): SceneNames.union | null {
         if (sceneCompletion) {
             if (sceneCompletion.inProgress === false) {
                 // Exit from current scene
@@ -266,7 +313,12 @@ export class PrivateDialogDispatcher implements IDispatcher {
         }
     }
 
-    private createSceneWith(name: SceneName, data: TransactionUserData): IScene {
+    private createSceneWith(
+        name: SceneNames.union | null,
+        data: TransactionUserData
+    ): IScene | null {
+        if (!name) return null
+
         return SceneFactory.createSceneWith(name, {
             bot: this.bot,
             user: data.user,
@@ -279,12 +331,14 @@ export class PrivateDialogDispatcher implements IDispatcher {
     }
 
     private async validateUserCanUseScene(
-        ctx: Context,
+        ctx: Context<Update> | Context<Update.CallbackQueryUpdate>,
         data: TransactionUserData,
         scene?: IScene,
         needToSendMessage: boolean = true
     ): Promise<boolean> {
-        if (!scene) return false
+        if (!scene) {
+            return false
+        }
         const validationResult = scene.validateUseScenePermissions()
 
         if (validationResult.canUseScene) {
@@ -302,13 +356,19 @@ export class PrivateDialogDispatcher implements IDispatcher {
     }
 
     private async getHandlingTransactionUserData(
-        ctx: Context<Update>
+        telegramUser: UserTelegram
     ): Promise<TransactionUserData> {
         const user = await this.userService.createIfNeededAndGet({
-            telegramId: ctx.from.id,
-            telegramInfo: ctx.from,
+            telegramId: telegramUser.id,
+            telegramInfo: telegramUser,
+            internalInfo: {
+                startParam: null,
+                registrationDate: new Date(),
+                permissions: [],
+                notificationsSchedule: {},
+            },
         })
-        const userActivePermissions = getActiveUserPermissions(user)
+        const userActivePermissions = getActiveUserPermissionNames(user)
 
         const userLanguage = getLanguageFor(user)
         const botContent = await this.botContentService.getContent(userLanguage)
@@ -320,11 +380,4 @@ export class PrivateDialogDispatcher implements IDispatcher {
             botContent,
         }
     }
-}
-
-interface TransactionUserData {
-    user: UserDocument
-    userActivePermissions: UserPermissionNames[]
-    userLanguage: string
-    botContent: BotContentStable
 }

@@ -1,31 +1,37 @@
-import { Context, Telegraf } from 'telegraf'
-import { SceneName } from './enums/scene-name.enum'
-import {
-    InlineKeyboardButton,
-    ReplyKeyboardMarkup,
-    ReplyKeyboardRemove,
-    Update,
-} from 'telegraf/typings/core/types/typegram'
-import { Markup } from 'telegraf'
+import { SceneNames as SceneNames } from './enums/scene-name.enum'
+import { Context, Markup, Telegraf } from 'telegraf'
 import { logger } from 'src/app.logger'
 import { UserDocument } from 'src/core/user/schemas/user.schema'
-import { UserPermissionNames } from 'src/core/user/enums/user-permission-names.enum'
 import { BotContent } from 'src/core/bot-content/schemas/bot-content.schema'
 import { UserService } from 'src/core/user/user.service'
 import { UserHistoryEvent } from 'src/core/user/enums/user-history-event.enum'
 import { UniqueMessage } from 'src/core/bot-content/schemas/models/bot-content.unique-message'
 import { BotContentService } from 'src/core/bot-content/bot-content.service'
 import { MediaContent } from 'src/core/bot-content/schemas/models/bot-content.media-content'
-import { SceneCallbackAction } from './enums/scene-callback-action.enum'
+import { SceneCallbackAction, SceneCallbackDataSegue } from './enums/scene-callback-action.enum'
 import { LocalizationService } from 'src/core/localization/localization.service'
+import {
+    Update,
+    ReplyKeyboardMarkup,
+    ReplyKeyboardRemove,
+    InputMediaPhoto,
+    InputMediaVideo,
+    InputMediaAudio,
+    InputMediaDocument,
+    InlineKeyboardButton,
+} from 'node_modules/telegraf/typings/core/types/typegram'
+import { UserPermissionNames } from 'src/core/user/enums/user-permission-names.enum'
 
 export interface IScene {
-    readonly name: SceneName
+    readonly name: SceneNames.union
 
     validateUseScenePermissions(): PermissionsValidationResult
-    handleEnterScene(ctx: Context): Promise<SceneHandlerCompletion>
-    handleMessage(ctx: Context, dataRaw: object): Promise<SceneHandlerCompletion>
-    handleCallback(ctx: Context, dataRaw: SceneCallbackData): Promise<SceneHandlerCompletion>
+    handleEnterScene(ctx: Context<Update>): Promise<SceneHandlerCompletion>
+    handleMessage(ctx: Context<Update>, dataRaw: object): Promise<SceneHandlerCompletion>
+    handleCallback(
+        ctx: Context<Update.CallbackQueryUpdate>,
+        dataRaw: SceneCallbackData
+    ): Promise<SceneHandlerCompletion>
 
     // Notes:
     // 1. completion.nextSceneNameIfCompleted must be null after call handleEnterScene
@@ -39,7 +45,7 @@ export interface SceneHandlerCompletion {
     /** Scene data to save for next message from user */
     sceneData?: object
     /** This field can bring content only if inProgress is false */
-    nextSceneNameIfCompleted?: SceneName
+    nextSceneNameIfCompleted?: SceneNames.union
 }
 
 export interface PermissionsValidationResult {
@@ -54,11 +60,11 @@ export interface ISceneConfigurationData {
     readonly userService: UserService
     readonly botContentService: BotContentService
     readonly localizationService: LocalizationService
-    readonly userActivePermissions: UserPermissionNames[]
+    readonly userActivePermissions: UserPermissionNames.union[]
 }
 
 export class Scene<SceneDataType extends object> implements IScene {
-    readonly name: SceneName
+    readonly name: SceneNames.union
     readonly completion = new SceneHandlerCompletionTemplates<SceneDataType>()
     readonly historyEvent = UserHistoryEvent
     get dataDefault(): SceneDataType {
@@ -68,7 +74,7 @@ export class Scene<SceneDataType extends object> implements IScene {
     public readonly content: BotContent
     public readonly text: UniqueMessage
     public readonly user: UserDocument
-    public readonly userActivePermissions: UserPermissionNames[]
+    public readonly userActivePermissions: UserPermissionNames.union[]
     public readonly userService: UserService
     public readonly bot: Telegraf<Context>
     public readonly botContentService: BotContentService
@@ -90,7 +96,7 @@ export class Scene<SceneDataType extends object> implements IScene {
         if (this.userActivePermissions === null || this.userActivePermissions.length === 0) {
             return { canUseScene: true }
         }
-        if (this.userActivePermissions.includes(UserPermissionNames.banned)) {
+        if (this.userActivePermissions.includes('banned')) {
             return {
                 canUseScene: false,
                 validationErrorMessage: this.text.common.bannedUserMessage,
@@ -100,16 +106,16 @@ export class Scene<SceneDataType extends object> implements IScene {
     }
 
     handleEnterScene(ctx: Context<Update>): Promise<SceneHandlerCompletion> {
-        throw new Error('Method not implemented.')
+        throw Error('Method not implemented.')
     }
     handleMessage(ctx: Context<Update>, dataRaw: object): Promise<SceneHandlerCompletion> {
-        throw new Error('Method not implemented.')
+        throw Error('Method not implemented.')
     }
     handleCallback(
-        ctx: Context<Update>,
+        ctx: Context<Update.CallbackQueryUpdate>,
         dataRaw: SceneCallbackData
     ): Promise<SceneHandlerCompletion> {
-        throw new Error('Method not implemented.')
+        throw Error('Method not implemented.')
     }
 
     generateData(data: SceneDataType | null): SceneDataType {
@@ -135,6 +141,8 @@ export class Scene<SceneDataType extends object> implements IScene {
         twoColumnsForce: boolean = false
     ): Markup.Markup<ReplyKeyboardMarkup | ReplyKeyboardRemove> {
         keyboard = keyboard.compact
+        if (keyboard.length == 0) return Markup.removeKeyboard()
+
         let keyboardWithAutoLayout: string[][]
 
         if (keyboard.length < 5 && !twoColumnsForce) {
@@ -165,7 +173,7 @@ export class Scene<SceneDataType extends object> implements IScene {
         separatedContentType: null | 'images' | 'videos' | 'audio' | 'docks' = null
     ): Promise<void> {
         // Media group
-        const mediaGroupArgs = []
+        const mediaGroupArgs: (InputMediaPhoto | InputMediaVideo)[] = []
         if (!separatedContentType || separatedContentType == 'videos') {
             media.videos.forEach((url) =>
                 mediaGroupArgs.push({
@@ -187,13 +195,18 @@ export class Scene<SceneDataType extends object> implements IScene {
         if (mediaGroupArgs.length > 0) {
             try {
                 await ctx.replyWithMediaGroup(mediaGroupArgs)
-            } catch (e) {
-                logger.error(e, this.name)
+            } catch (error) {
+                logger.error(
+                    `Fail to reply with media group (photo, video) ${JSON.stringify(
+                        mediaGroupArgs
+                    )}`,
+                    error
+                )
             }
         }
 
         if (!separatedContentType || separatedContentType == 'audio') {
-            const audioGroupArgs = []
+            const audioGroupArgs: InputMediaAudio[] = []
             media.audio.forEach((url) =>
                 audioGroupArgs.push({
                     type: 'audio',
@@ -204,14 +217,17 @@ export class Scene<SceneDataType extends object> implements IScene {
             if (audioGroupArgs.length > 0) {
                 try {
                     await ctx.replyWithMediaGroup(audioGroupArgs)
-                } catch (e) {
-                    logger.error(e, this.name)
+                } catch (error) {
+                    logger.error(
+                        `Fail to reply with media group (audio) ${JSON.stringify(audioGroupArgs)}`,
+                        error
+                    )
                 }
             }
         }
 
         if (!separatedContentType || separatedContentType == 'docks') {
-            const docsGroupArgs = []
+            const docsGroupArgs: InputMediaDocument[] = []
             media.documents.forEach((url) =>
                 docsGroupArgs.push({
                     type: 'document',
@@ -222,8 +238,13 @@ export class Scene<SceneDataType extends object> implements IScene {
             if (docsGroupArgs.length > 0) {
                 try {
                     await ctx.replyWithMediaGroup(docsGroupArgs)
-                } catch (e) {
-                    logger.error(e, this.name)
+                } catch (error) {
+                    logger.error(
+                        `Fail to reply with media group (document) ${JSON.stringify(
+                            docsGroupArgs
+                        )}`,
+                        error
+                    )
                 }
             }
         }
@@ -234,23 +255,12 @@ export class Scene<SceneDataType extends object> implements IScene {
      * MongoDB id length: 24
      */
     inlineButton(button: InlineButtonDto): InlineKeyboardButton {
-        const callbackData = new SceneCallbackData(
-            SceneName.getId(this.name),
-            button.action,
-            button.data ?? {}
-        )
-        const callbackDataCompressed = callbackData.toString()
-        const inlineButton: InlineKeyboardButton = {
-            text: button.text,
-            callback_data: callbackDataCompressed,
-        }
-        if (callbackDataCompressed.length > 64) {
-            logger.error(
-                `inlineButton callback data length is ${callbackDataCompressed.length} max length is 64`,
-                callbackDataCompressed
-            )
-        }
-        return inlineButton
+        return generateInlineButton(button, this.name)
+    }
+
+    async completeWithErrorMessage(ctx: Context<Update>, errorMessage?: string) {
+        await ctx.replyWithHTML(errorMessage ?? this.text.common.errorMessage)
+        return this.completion.complete()
     }
 }
 
@@ -258,6 +268,47 @@ interface InlineButtonDto {
     text: string
     action: SceneCallbackAction
     data?: object
+}
+
+interface InlineSegueButtonDto {
+    text: string
+    action: SceneCallbackAction
+    data: SceneCallbackDataSegue
+}
+/**
+ * Max callback data size is 64 chars in UTF-8
+ * MongoDB id length: 24
+ */
+export function generateInlineButton(
+    button: InlineButtonDto,
+    sceneName: SceneNames.union
+): InlineKeyboardButton {
+    const callbackData = new SceneCallbackData(
+        SceneNames.getId(sceneName),
+        button.action,
+        button.data ?? {}
+    )
+    const callbackDataCompressed = callbackData.toString()
+    const inlineButton: InlineKeyboardButton = {
+        text: button.text,
+        callback_data: callbackDataCompressed,
+    }
+    if (callbackDataCompressed.length > 64) {
+        logger.error(
+            `inlineButton callback data length is ${callbackDataCompressed.length} max length is 64`,
+            callbackDataCompressed
+        )
+    }
+    return inlineButton
+}
+
+/**
+ * Max callback data size is 64 chars in UTF-8
+ * MongoDB id length: 24
+ * Segue will be handled in MainMenu
+ */
+export function generateInlineButtonSegue(button: InlineSegueButtonDto): InlineKeyboardButton {
+    return generateInlineButton(button, 'mainMenu')
 }
 
 class SceneHandlerCompletionTemplates<SceneDataType extends object> {
@@ -277,7 +328,7 @@ class SceneHandlerCompletionTemplates<SceneDataType extends object> {
         }
     }
 
-    complete(nextScene?: SceneName): SceneHandlerCompletion {
+    complete(nextScene?: SceneNames.union): SceneHandlerCompletion {
         return {
             inProgress: false,
             didHandledUserInteraction: true,
@@ -300,8 +351,8 @@ export class SceneCallbackData {
         private readonly d: object
     ) {}
 
-    public get sceneName(): SceneName {
-        return SceneName.getById(this.s)
+    public get sceneName(): SceneNames.union | null {
+        return SceneNames.getById(this.s)
     }
     public get action(): SceneCallbackAction {
         return this.a

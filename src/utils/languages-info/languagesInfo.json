@@ -1,0 +1,1276 @@
+{
+    "AB": {
+        "name": "Abkhaz",
+        "nativeName": "Аҧсуа",
+        "country": null,
+        "emoji": null
+    },
+    "AA": {
+        "name": "Afar",
+        "nativeName": "Afaraf",
+        "country": null,
+        "emoji": null
+    },
+    "AR": {
+        "name": "Arabic",
+        "nativeName": "العربية",
+        "country": null,
+        "emoji": "🇦🇪"
+    },
+    "AN": {
+        "name": "Aragonese",
+        "nativeName": "Aragonés",
+        "country": null,
+        "emoji": null
+    },
+    "HY": {
+        "name": "Armenian",
+        "nativeName": "Հայերեն",
+        "country": null,
+        "emoji": "🇦🇲"
+    },
+    "AS": {
+        "name": "Assamese",
+        "nativeName": "অসমীয়া",
+        "country": null,
+        "emoji": "🇦🇸"
+    },
+    "AV": {
+        "name": "Avaric",
+        "nativeName": "Авар мацӏ, магӏарул мацӏ",
+        "country": null,
+        "emoji": null
+    },
+    "AY": {
+        "name": "Aymara",
+        "nativeName": "Aymar aru",
+        "country": null,
+        "emoji": null
+    },
+    "AZ": {
+        "name": "Azerbaijani",
+        "nativeName": "Azərbaycan dili",
+        "country": {
+            "code": "AZ",
+            "emoji": "🇦🇿",
+            "unicode": "U+1F1E6 U+1F1FF",
+            "name": "Azerbaijan",
+            "title": "flag for Azerbaijan",
+            "dialCode": "+994"
+        },
+        "emoji": "🇦🇿"
+    },
+    "BM": {
+        "name": "Bambara",
+        "nativeName": "Bamanankan",
+        "country": null,
+        "emoji": null
+    },
+    "BA": {
+        "name": "Bashkir",
+        "nativeName": "Башҡорт теле",
+        "country": null,
+        "emoji": null
+    },
+    "EU": {
+        "name": "Basque",
+        "nativeName": "Euskara, euskera",
+        "country": null,
+        "emoji": null
+    },
+    "BE": {
+        "name": "Belarusian",
+        "nativeName": "Беларуская",
+        "country": null,
+        "emoji": "🇧🇾"
+    },
+    "BN": {
+        "name": "Bengali",
+        "nativeName": "বাংলা",
+        "country": null,
+        "emoji": null
+    },
+    "BH": {
+        "name": "Bihari",
+        "nativeName": "भोजपुरी",
+        "country": null,
+        "emoji": null
+    },
+    "BI": {
+        "name": "Bislama",
+        "nativeName": "Bislama",
+        "country": {
+            "code": "BI",
+            "emoji": "🇧🇮",
+            "unicode": "U+1F1E7 U+1F1EE",
+            "name": "Burundi",
+            "title": "flag for Burundi",
+            "dialCode": "+257"
+        },
+        "emoji": "🇧🇮"
+    },
+    "BS": {
+        "name": "Bosnian",
+        "nativeName": "Bosanski jezik",
+        "country": null,
+        "emoji": null
+    },
+    "BR": {
+        "name": "Breton",
+        "nativeName": "Brezhoneg",
+        "country": null,
+        "emoji": null
+    },
+    "BG": {
+        "name": "Bulgarian",
+        "nativeName": "Български език",
+        "country": {
+            "code": "BG",
+            "emoji": "🇧🇬",
+            "unicode": "U+1F1E7 U+1F1EC",
+            "name": "Bulgaria",
+            "title": "flag for Bulgaria",
+            "dialCode": "+359"
+        },
+        "emoji": "🇧🇬"
+    },
+    "MY": {
+        "name": "Burmese",
+        "nativeName": "ဗမာစာ",
+        "country": null,
+        "emoji": null
+    },
+    "CA": {
+        "name": "Catalan; Valencian",
+        "nativeName": "Català",
+        "country": null,
+        "emoji": null
+    },
+    "CH": {
+        "name": "Chamorro",
+        "nativeName": "Chamoru",
+        "country": null,
+        "emoji": null
+    },
+    "CE": {
+        "name": "Chechen",
+        "nativeName": "Нохчийн мотт",
+        "country": null,
+        "emoji": null
+    },
+    "NY": {
+        "name": "Chichewa; Chewa; Nyanja",
+        "nativeName": "Chicheŵa, chinyanja",
+        "country": null,
+        "emoji": null
+    },
+    "ZH": {
+        "name": "Chinese",
+        "nativeName": "中文 (zhōngwén), 汉语, 漢語",
+        "country": null,
+        "emoji": null
+    },
+    "CV": {
+        "name": "Chuvash",
+        "nativeName": "Чӑваш чӗлхи",
+        "country": null,
+        "emoji": null
+    },
+    "KW": {
+        "name": "Cornish",
+        "nativeName": "Kernewek",
+        "country": null,
+        "emoji": null
+    },
+    "CO": {
+        "name": "Corsican",
+        "nativeName": "Corsu, lingua corsa",
+        "country": null,
+        "emoji": null
+    },
+    "CR": {
+        "name": "Cree",
+        "nativeName": "ᓀᐦᐃᔭᐍᐏᐣ",
+        "country": null,
+        "emoji": null
+    },
+    "HR": {
+        "name": "Croatian",
+        "nativeName": "Hrvatski",
+        "country": {
+            "code": "HR",
+            "emoji": "🇭🇷",
+            "unicode": "U+1F1ED U+1F1F7",
+            "name": "Croatia",
+            "title": "flag for Croatia",
+            "dialCode": "+385"
+        },
+        "emoji": "🇭🇷"
+    },
+    "CS": {
+        "name": "Czech",
+        "nativeName": "Česky, čeština",
+        "country": null,
+        "emoji": null
+    },
+    "DA": {
+        "name": "Danish",
+        "nativeName": "Dansk",
+        "country": null,
+        "emoji": null
+    },
+    "DV": {
+        "name": "Divehi; Dhivehi; Maldivian;",
+        "nativeName": "ދިވެހި",
+        "country": null,
+        "emoji": null
+    },
+    "NL": {
+        "name": "Dutch",
+        "nativeName": "Nederlands, vlaams",
+        "country": {
+            "code": "NL",
+            "emoji": "🇳🇱",
+            "unicode": "U+1F1F3 U+1F1F1",
+            "name": "Netherlands",
+            "title": "flag for Netherlands",
+            "dialCode": "+31"
+        },
+        "emoji": "🇳🇱"
+    },
+    "EN": {
+        "name": "English",
+        "nativeName": "English",
+        "country": null,
+        "emoji": "🇺🇸"
+    },
+    "EO": {
+        "name": "Esperanto",
+        "nativeName": "Esperanto",
+        "country": null,
+        "emoji": null
+    },
+    "ET": {
+        "name": "Estonian",
+        "nativeName": "Eesti, eesti keel",
+        "country": null,
+        "emoji": null
+    },
+    "EE": {
+        "name": "Ewe",
+        "nativeName": "Eʋegbe",
+        "country": null,
+        "emoji": null
+    },
+    "FO": {
+        "name": "Faroese",
+        "nativeName": "Føroyskt",
+        "country": {
+            "code": "FO",
+            "emoji": "🇫🇴",
+            "unicode": "U+1F1EB U+1F1F4",
+            "name": "Faroe Islands",
+            "title": "flag for Faroe Islands",
+            "dialCode": "+298"
+        },
+        "emoji": "🇫🇴"
+    },
+    "FJ": {
+        "name": "Fijian",
+        "nativeName": "Vosa vakaviti",
+        "country": {
+            "code": "FJ",
+            "emoji": "🇫🇯",
+            "unicode": "U+1F1EB U+1F1EF",
+            "name": "Fiji",
+            "title": "flag for Fiji",
+            "dialCode": "+679"
+        },
+        "emoji": "🇫🇯"
+    },
+    "FI": {
+        "name": "Finnish",
+        "nativeName": "Suomi, suomen kieli",
+        "country": {
+            "code": "FI",
+            "emoji": "🇫🇮",
+            "unicode": "U+1F1EB U+1F1EE",
+            "name": "Finland",
+            "title": "flag for Finland",
+            "dialCode": "+358"
+        },
+        "emoji": "🇫🇮"
+    },
+    "FR": {
+        "name": "French",
+        "nativeName": "Français, langue française",
+        "country": {
+            "code": "FR",
+            "emoji": "🇫🇷",
+            "unicode": "U+1F1EB U+1F1F7",
+            "name": "France",
+            "title": "flag for France",
+            "dialCode": "+33"
+        },
+        "emoji": "🇫🇷"
+    },
+    "FF": {
+        "name": "Fula; Fulah; Pulaar; Pular",
+        "nativeName": "Fulfulde, pulaar, pular",
+        "country": null,
+        "emoji": null
+    },
+    "GL": {
+        "name": "Galician",
+        "nativeName": "Galego",
+        "country": null,
+        "emoji": null
+    },
+    "KA": {
+        "name": "Georgian",
+        "nativeName": "ქართული",
+        "country": null,
+        "emoji": null
+    },
+    "DE": {
+        "name": "German",
+        "nativeName": "Deutsch",
+        "country": {
+            "code": "DE",
+            "emoji": "🇩🇪",
+            "unicode": "U+1F1E9 U+1F1EA",
+            "name": "Germany",
+            "title": "flag for Germany",
+            "dialCode": "+49"
+        },
+        "emoji": "🇩🇪"
+    },
+    "EL": {
+        "name": "Greek, Modern",
+        "nativeName": "Ελληνικά",
+        "country": null,
+        "emoji": null
+    },
+    "GN": {
+        "name": "Guaraní",
+        "nativeName": "Avañeẽ",
+        "country": null,
+        "emoji": null
+    },
+    "GU": {
+        "name": "Gujarati",
+        "nativeName": "ગુજરાતી",
+        "country": null,
+        "emoji": null
+    },
+    "HT": {
+        "name": "Haitian; Haitian Creole",
+        "nativeName": "Kreyòl ayisyen",
+        "country": null,
+        "emoji": null
+    },
+    "HA": {
+        "name": "Hausa",
+        "nativeName": "Hausa, هَوُسَ",
+        "country": null,
+        "emoji": null
+    },
+    "HE": {
+        "name": "Hebrew (modern)",
+        "nativeName": "עברית",
+        "country": null,
+        "emoji": null
+    },
+    "HZ": {
+        "name": "Herero",
+        "nativeName": "Otjiherero",
+        "country": null,
+        "emoji": null
+    },
+    "HI": {
+        "name": "Hindi",
+        "nativeName": "हिन्दी, हिंदी",
+        "country": null,
+        "emoji": null
+    },
+    "HO": {
+        "name": "Hiri Motu",
+        "nativeName": "Hiri motu",
+        "country": null,
+        "emoji": null
+    },
+    "HU": {
+        "name": "Hungarian",
+        "nativeName": "Magyar",
+        "country": {
+            "code": "HU",
+            "emoji": "🇭🇺",
+            "unicode": "U+1F1ED U+1F1FA",
+            "name": "Hungary",
+            "title": "flag for Hungary",
+            "dialCode": "+36"
+        },
+        "emoji": "🇭🇺"
+    },
+    "IA": {
+        "name": "Interlingua",
+        "nativeName": "Interlingua",
+        "country": null,
+        "emoji": null
+    },
+    "ID": {
+        "name": "Indonesian",
+        "nativeName": "Bahasa indonesia",
+        "country": {
+            "code": "ID",
+            "emoji": "🇮🇩",
+            "unicode": "U+1F1EE U+1F1E9",
+            "name": "Indonesia",
+            "title": "flag for Indonesia",
+            "dialCode": "+62"
+        },
+        "emoji": "🇮🇩"
+    },
+    "IE": {
+        "name": "Interlingue",
+        "nativeName": "Originally called occidental; then interlingue after wwii",
+        "country": null,
+        "emoji": null
+    },
+    "GA": {
+        "name": "Irish",
+        "nativeName": "Gaeilge",
+        "country": null,
+        "emoji": null
+    },
+    "IG": {
+        "name": "Igbo",
+        "nativeName": "Asụsụ igbo",
+        "country": null,
+        "emoji": null
+    },
+    "IK": {
+        "name": "Inupiaq",
+        "nativeName": "Iñupiaq, iñupiatun",
+        "country": null,
+        "emoji": null
+    },
+    "IO": {
+        "name": "Ido",
+        "nativeName": "Ido",
+        "country": {
+            "code": "IO",
+            "emoji": "🇮🇴",
+            "unicode": "U+1F1EE U+1F1F4",
+            "name": "British Indian Ocean Territory",
+            "title": "flag for British Indian Ocean Territory",
+            "dialCode": "+246"
+        },
+        "emoji": "🇮🇴"
+    },
+    "IS": {
+        "name": "Icelandic",
+        "nativeName": "Íslenska",
+        "country": {
+            "code": "IS",
+            "emoji": "🇮🇸",
+            "unicode": "U+1F1EE U+1F1F8",
+            "name": "Iceland",
+            "title": "flag for Iceland",
+            "dialCode": "+354"
+        },
+        "emoji": "🇮🇸"
+    },
+    "IT": {
+        "name": "Italian",
+        "nativeName": "Italiano",
+        "country": {
+            "code": "IT",
+            "emoji": "🇮🇹",
+            "unicode": "U+1F1EE U+1F1F9",
+            "name": "Italy",
+            "title": "flag for Italy",
+            "dialCode": "+39"
+        },
+        "emoji": "🇮🇹"
+    },
+    "IU": {
+        "name": "Inuktitut",
+        "nativeName": "ᐃᓄᒃᑎᑐᑦ",
+        "country": null,
+        "emoji": null
+    },
+    "JA": {
+        "name": "Japanese",
+        "nativeName": "日本語 (にほんご／にっぽんご)",
+        "country": null,
+        "emoji": null
+    },
+    "JV": {
+        "name": "Javanese",
+        "nativeName": "Basa jawa",
+        "country": null,
+        "emoji": null
+    },
+    "KL": {
+        "name": "Kalaallisut, Greenlandic",
+        "nativeName": "Kalaallisut, kalaallit oqaasii",
+        "country": null,
+        "emoji": null
+    },
+    "KN": {
+        "name": "Kannada",
+        "nativeName": "ಕನ್ನಡ",
+        "country": null,
+        "emoji": null
+    },
+    "KR": {
+        "name": "Kanuri",
+        "nativeName": "Kanuri",
+        "country": null,
+        "emoji": null
+    },
+    "KS": {
+        "name": "Kashmiri",
+        "nativeName": "कश्मीरी, كشميري‎",
+        "country": null,
+        "emoji": null
+    },
+    "KK": {
+        "name": "Kazakh",
+        "nativeName": "Қазақ тілі",
+        "country": null,
+        "emoji": "🇰🇿"
+    },
+    "KM": {
+        "name": "Khmer",
+        "nativeName": "ភាសាខ្មែរ",
+        "country": null,
+        "emoji": null
+    },
+    "KI": {
+        "name": "Kikuyu, Gikuyu",
+        "nativeName": "Gĩkũyũ",
+        "country": null,
+        "emoji": null
+    },
+    "RW": {
+        "name": "Kinyarwanda",
+        "nativeName": "Ikinyarwanda",
+        "country": null,
+        "emoji": null
+    },
+    "KY": {
+        "name": "Kirghiz, Kyrgyz",
+        "nativeName": "Кыргыз тили",
+        "country": null,
+        "emoji": null
+    },
+    "KV": {
+        "name": "Komi",
+        "nativeName": "Коми кыв",
+        "country": null,
+        "emoji": null
+    },
+    "KG": {
+        "name": "Kongo",
+        "nativeName": "Kikongo",
+        "country": null,
+        "emoji": null
+    },
+    "KO": {
+        "name": "Korean",
+        "nativeName": "한국어 (韓國語), 조선말 (朝鮮語)",
+        "country": null,
+        "emoji": null
+    },
+    "KU": {
+        "name": "Kurdish",
+        "nativeName": "Kurdî, كوردی‎",
+        "country": null,
+        "emoji": null
+    },
+    "KJ": {
+        "name": "Kwanyama, Kuanyama",
+        "nativeName": "Kuanyama",
+        "country": null,
+        "emoji": null
+    },
+    "LA": {
+        "name": "Latin",
+        "nativeName": "Latine, lingua latina",
+        "country": null,
+        "emoji": null
+    },
+    "LB": {
+        "name": "Luxembourgish, Letzeburgesch",
+        "nativeName": "Lëtzebuergesch",
+        "country": null,
+        "emoji": null
+    },
+    "LG": {
+        "name": "Luganda",
+        "nativeName": "Luganda",
+        "country": null,
+        "emoji": null
+    },
+    "LI": {
+        "name": "Limburgish, Limburgan, Limburger",
+        "nativeName": "Limburgs",
+        "country": null,
+        "emoji": null
+    },
+    "LN": {
+        "name": "Lingala",
+        "nativeName": "Lingála",
+        "country": null,
+        "emoji": null
+    },
+    "LO": {
+        "name": "Lao",
+        "nativeName": "ພາສາລາວ",
+        "country": null,
+        "emoji": null
+    },
+    "LT": {
+        "name": "Lithuanian",
+        "nativeName": "Lietuvių kalba",
+        "country": {
+            "code": "LT",
+            "emoji": "🇱🇹",
+            "unicode": "U+1F1F1 U+1F1F9",
+            "name": "Lithuania",
+            "title": "flag for Lithuania",
+            "dialCode": "+370"
+        },
+        "emoji": "🇱🇹"
+    },
+    "LU": {
+        "name": "Luba-Katanga",
+        "nativeName": "",
+        "country": null,
+        "emoji": null
+    },
+    "LV": {
+        "name": "Latvian",
+        "nativeName": "Latviešu valoda",
+        "country": {
+            "code": "LV",
+            "emoji": "🇱🇻",
+            "unicode": "U+1F1F1 U+1F1FB",
+            "name": "Latvia",
+            "title": "flag for Latvia",
+            "dialCode": "+371"
+        },
+        "emoji": "🇱🇻"
+    },
+    "GV": {
+        "name": "Manx",
+        "nativeName": "Gaelg, gailck",
+        "country": null,
+        "emoji": null
+    },
+    "MK": {
+        "name": "Macedonian",
+        "nativeName": "Македонски јазик",
+        "country": {
+            "code": "MK",
+            "emoji": "🇲🇰",
+            "unicode": "U+1F1F2 U+1F1F0",
+            "name": "Macedonia",
+            "title": "flag for Macedonia",
+            "dialCode": "+389"
+        },
+        "emoji": "🇲🇰"
+    },
+    "MG": {
+        "name": "Malagasy",
+        "nativeName": "Malagasy fiteny",
+        "country": {
+            "code": "MG",
+            "emoji": "🇲🇬",
+            "unicode": "U+1F1F2 U+1F1EC",
+            "name": "Madagascar",
+            "title": "flag for Madagascar",
+            "dialCode": "+261"
+        },
+        "emoji": "🇲🇬"
+    },
+    "MS": {
+        "name": "Malay",
+        "nativeName": "Bahasa melayu, بهاس ملايو‎",
+        "country": {
+            "code": "MS",
+            "emoji": "🇲🇸",
+            "unicode": "U+1F1F2 U+1F1F8",
+            "name": "Montserrat",
+            "title": "flag for Montserrat",
+            "dialCode": "+1664"
+        },
+        "emoji": "🇲🇸"
+    },
+    "ML": {
+        "name": "Malayalam",
+        "nativeName": "മലയാളം",
+        "country": {
+            "code": "ML",
+            "emoji": "🇲🇱",
+            "unicode": "U+1F1F2 U+1F1F1",
+            "name": "Mali",
+            "title": "flag for Mali",
+            "dialCode": "+223"
+        },
+        "emoji": "🇲🇱"
+    },
+    "MT": {
+        "name": "Maltese",
+        "nativeName": "Malti",
+        "country": {
+            "code": "MT",
+            "emoji": "🇲🇹",
+            "unicode": "U+1F1F2 U+1F1F9",
+            "name": "Malta",
+            "title": "flag for Malta",
+            "dialCode": "+356"
+        },
+        "emoji": "🇲🇹"
+    },
+    "MI": {
+        "name": "Māori",
+        "nativeName": "Te reo māori",
+        "country": null,
+        "emoji": null
+    },
+    "MR": {
+        "name": "Marathi (Marāṭhī)",
+        "nativeName": "मराठी",
+        "country": {
+            "code": "MR",
+            "emoji": "🇲🇷",
+            "unicode": "U+1F1F2 U+1F1F7",
+            "name": "Mauritania",
+            "title": "flag for Mauritania",
+            "dialCode": "+222"
+        },
+        "emoji": "🇲🇷"
+    },
+    "MH": {
+        "name": "Marshallese",
+        "nativeName": "Kajin m̧ajeļ",
+        "country": {
+            "code": "MH",
+            "emoji": "🇲🇭",
+            "unicode": "U+1F1F2 U+1F1ED",
+            "name": "Marshall Islands",
+            "title": "flag for Marshall Islands",
+            "dialCode": "+692"
+        },
+        "emoji": "🇲🇭"
+    },
+    "MN": {
+        "name": "Mongolian",
+        "nativeName": "Монгол",
+        "country": {
+            "code": "MN",
+            "emoji": "🇲🇳",
+            "unicode": "U+1F1F2 U+1F1F3",
+            "name": "Mongolia",
+            "title": "flag for Mongolia",
+            "dialCode": "+976"
+        },
+        "emoji": "🇲🇳"
+    },
+    "NA": {
+        "name": "Nauru",
+        "nativeName": "Ekakairũ naoero",
+        "country": {
+            "code": "NA",
+            "emoji": "🇳🇦",
+            "unicode": "U+1F1F3 U+1F1E6",
+            "name": "Namibia",
+            "title": "flag for Namibia",
+            "dialCode": "+264"
+        },
+        "emoji": "🇳🇦"
+    },
+    "NV": {
+        "name": "Navajo, Navaho",
+        "nativeName": "Diné bizaad, dinékʼehǰí",
+        "country": null,
+        "emoji": null
+    },
+    "NB": {
+        "name": "Norwegian Bokmål",
+        "nativeName": "Norsk bokmål",
+        "country": null,
+        "emoji": null
+    },
+    "ND": {
+        "name": "North Ndebele",
+        "nativeName": "Isindebele",
+        "country": null,
+        "emoji": null
+    },
+    "NE": {
+        "name": "Nepali",
+        "nativeName": "नेपाली",
+        "country": {
+            "code": "NE",
+            "emoji": "🇳🇪",
+            "unicode": "U+1F1F3 U+1F1EA",
+            "name": "Niger",
+            "title": "flag for Niger",
+            "dialCode": "+227"
+        },
+        "emoji": "🇳🇪"
+    },
+    "NG": {
+        "name": "Ndonga",
+        "nativeName": "Owambo",
+        "country": {
+            "code": "NG",
+            "emoji": "🇳🇬",
+            "unicode": "U+1F1F3 U+1F1EC",
+            "name": "Nigeria",
+            "title": "flag for Nigeria",
+            "dialCode": "+234"
+        },
+        "emoji": "🇳🇬"
+    },
+    "NN": {
+        "name": "Norwegian Nynorsk",
+        "nativeName": "Norsk nynorsk",
+        "country": null,
+        "emoji": null
+    },
+    "NO": {
+        "name": "Norwegian",
+        "nativeName": "Norsk",
+        "country": null,
+        "emoji": null
+    },
+    "II": {
+        "name": "Nuosu",
+        "nativeName": "ꆈꌠ꒿ nuosuhxop",
+        "country": null,
+        "emoji": null
+    },
+    "NR": {
+        "name": "South Ndebele",
+        "nativeName": "Isindebele",
+        "country": null,
+        "emoji": null
+    },
+    "OC": {
+        "name": "Occitan",
+        "nativeName": "Occitan",
+        "country": null,
+        "emoji": null
+    },
+    "OJ": {
+        "name": "Ojibwe, Ojibwa",
+        "nativeName": "ᐊᓂᔑᓈᐯᒧᐎᓐ",
+        "country": null,
+        "emoji": null
+    },
+    "CU": {
+        "name": "Old Church Slavonic",
+        "nativeName": "Ѩзыкъ словѣньскъ",
+        "country": null,
+        "emoji": null
+    },
+    "OM": {
+        "name": "Oromo",
+        "nativeName": "Afaan oromoo",
+        "country": null,
+        "emoji": null
+    },
+    "OR": {
+        "name": "Oriya",
+        "nativeName": "ଓଡ଼ିଆ",
+        "country": null,
+        "emoji": null
+    },
+    "OS": {
+        "name": "Ossetian, Ossetic",
+        "nativeName": "Ирон æвзаг",
+        "country": null,
+        "emoji": null
+    },
+    "PA": {
+        "name": "Panjabi, Punjabi",
+        "nativeName": "ਪੰਜਾਬੀ, پنجابی‎",
+        "country": null,
+        "emoji": null
+    },
+    "PI": {
+        "name": "Pāli",
+        "nativeName": "पाऴि",
+        "country": null,
+        "emoji": null
+    },
+    "FA": {
+        "name": "Persian",
+        "nativeName": "فارسی",
+        "country": null,
+        "emoji": null
+    },
+    "PL": {
+        "name": "Polish",
+        "nativeName": "Polski",
+        "country": {
+            "code": "PL",
+            "emoji": "🇵🇱",
+            "unicode": "U+1F1F5 U+1F1F1",
+            "name": "Poland",
+            "title": "flag for Poland",
+            "dialCode": "+48"
+        },
+        "emoji": "🇵🇱"
+    },
+    "PS": {
+        "name": "Pashto, Pushto",
+        "nativeName": "پښتو",
+        "country": null,
+        "emoji": null
+    },
+    "PT": {
+        "name": "Portuguese",
+        "nativeName": "Português",
+        "country": {
+            "code": "PT",
+            "emoji": "🇵🇹",
+            "unicode": "U+1F1F5 U+1F1F9",
+            "name": "Portugal",
+            "title": "flag for Portugal",
+            "dialCode": "+351"
+        },
+        "emoji": "🇵🇹"
+    },
+    "QU": {
+        "name": "Quechua",
+        "nativeName": "Runa simi, kichwa",
+        "country": null,
+        "emoji": null
+    },
+    "RM": {
+        "name": "Romansh",
+        "nativeName": "Rumantsch grischun",
+        "country": null,
+        "emoji": null
+    },
+    "RN": {
+        "name": "Kirundi",
+        "nativeName": "Kirundi",
+        "country": null,
+        "emoji": null
+    },
+    "RO": {
+        "name": "Romanian, Moldavian, Moldovan",
+        "nativeName": "Română",
+        "country": {
+            "code": "RO",
+            "emoji": "🇷🇴",
+            "unicode": "U+1F1F7 U+1F1F4",
+            "name": "Romania",
+            "title": "flag for Romania",
+            "dialCode": "+40"
+        },
+        "emoji": "🇷🇴"
+    },
+    "RU": {
+        "name": "Russian",
+        "nativeName": "Русский язык",
+        "country": {
+            "code": "RU",
+            "emoji": "🇷🇺",
+            "unicode": "U+1F1F7 U+1F1FA",
+            "name": "Russia",
+            "title": "flag for Russia",
+            "dialCode": "+7"
+        },
+        "emoji": "🇷🇺"
+    },
+    "SA": {
+        "name": "Sanskrit (Saṁskṛta)",
+        "nativeName": "संस्कृतम्",
+        "country": null,
+        "emoji": null
+    },
+    "SC": {
+        "name": "Sardinian",
+        "nativeName": "Sardu",
+        "country": null,
+        "emoji": null
+    },
+    "SD": {
+        "name": "Sindhi",
+        "nativeName": "सिन्धी, سنڌي، سندھی‎",
+        "country": null,
+        "emoji": null
+    },
+    "SE": {
+        "name": "Northern Sami",
+        "nativeName": "Davvisámegiella",
+        "country": null,
+        "emoji": null
+    },
+    "SM": {
+        "name": "Samoan",
+        "nativeName": "Gagana faa samoa",
+        "country": null,
+        "emoji": null
+    },
+    "SG": {
+        "name": "Sango",
+        "nativeName": "Yângâ tî sängö",
+        "country": {
+            "code": "SG",
+            "emoji": "🇸🇬",
+            "unicode": "U+1F1F8 U+1F1EC",
+            "name": "Singapore",
+            "title": "flag for Singapore",
+            "dialCode": "+65"
+        },
+        "emoji": "🇸🇬"
+    },
+    "SR": {
+        "name": "Serbian",
+        "nativeName": "Српски језик",
+        "country": null,
+        "emoji": "🇷🇸"
+    },
+    "GD": {
+        "name": "Scottish Gaelic; Gaelic",
+        "nativeName": "Gàidhlig"
+    },
+    "SN": {
+        "name": "Shona",
+        "nativeName": "Chishona",
+        "country": null,
+        "emoji": null
+    },
+    "SI": {
+        "name": "Sinhala, Sinhalese",
+        "nativeName": "සිංහල",
+        "country": null,
+        "emoji": null
+    },
+    "SL": {
+        "name": "Slovene",
+        "nativeName": "Slovenščina",
+        "country": {
+            "code": "SL",
+            "emoji": "🇸🇱",
+            "unicode": "U+1F1F8 U+1F1F1",
+            "name": "Sierra Leone",
+            "title": "flag for Sierra Leone",
+            "dialCode": "+232"
+        },
+        "emoji": "🇸🇱"
+    },
+    "SO": {
+        "name": "Somali",
+        "nativeName": "Soomaaliga, af soomaali",
+        "country": {
+            "code": "SO",
+            "emoji": "🇸🇴",
+            "unicode": "U+1F1F8 U+1F1F4",
+            "name": "Somalia",
+            "title": "flag for Somalia",
+            "dialCode": "+252"
+        },
+        "emoji": "🇸🇴"
+    },
+    "ES": {
+        "name": "Spanish; Castilian",
+        "nativeName": "Español, castellano",
+        "country": {
+            "code": "ES",
+            "emoji": "🇪🇸",
+            "unicode": "U+1F1EA U+1F1F8",
+            "name": "Spain",
+            "title": "flag for Spain",
+            "dialCode": "+34"
+        },
+        "emoji": "🇪🇸"
+    },
+    "SU": {
+        "name": "Sundanese",
+        "nativeName": "Basa sunda",
+        "country": null,
+        "emoji": null
+    },
+    "SW": {
+        "name": "Swahili",
+        "nativeName": "Kiswahili",
+        "country": null,
+        "emoji": null
+    },
+    "SV": {
+        "name": "Swedish",
+        "nativeName": "Svenska",
+        "country": null,
+        "emoji": null
+    },
+    "TA": {
+        "name": "Tamil",
+        "nativeName": "தமிழ்",
+        "country": null,
+        "emoji": null
+    },
+    "TE": {
+        "name": "Telugu",
+        "nativeName": "తెలుగు",
+        "country": null,
+        "emoji": null
+    },
+    "TG": {
+        "name": "Tajik",
+        "nativeName": "Тоҷикӣ, toğikī",
+        "country": null,
+        "emoji": null
+    },
+    "TH": {
+        "name": "Thai",
+        "nativeName": "ไทย",
+        "country": {
+            "code": "TH",
+            "emoji": "🇹🇭",
+            "unicode": "U+1F1F9 U+1F1ED",
+            "name": "Thailand",
+            "title": "flag for Thailand",
+            "dialCode": "+66"
+        },
+        "emoji": "🇹🇭"
+    },
+    "TI": {
+        "name": "Tigrinya",
+        "nativeName": "ትግርኛ",
+        "country": null,
+        "emoji": null
+    },
+    "BO": {
+        "name": "Tibetan Standard, Tibetan, Central",
+        "nativeName": "བོད་ཡིག",
+        "country": null,
+        "emoji": null
+    },
+    "TK": {
+        "name": "Turkmen",
+        "nativeName": "Türkmen, түркмен",
+        "country": null,
+        "emoji": null
+    },
+    "TN": {
+        "name": "Tswana",
+        "nativeName": "Setswana",
+        "country": null,
+        "emoji": null
+    },
+    "TO": {
+        "name": "Tonga (Tonga Islands)",
+        "nativeName": "Faka tonga",
+        "country": {
+            "code": "TO",
+            "emoji": "🇹🇴",
+            "unicode": "U+1F1F9 U+1F1F4",
+            "name": "Tonga",
+            "title": "flag for Tonga",
+            "dialCode": "+676"
+        },
+        "emoji": "🇹🇴"
+    },
+    "TR": {
+        "name": "Turkish",
+        "nativeName": "Türkçe",
+        "country": {
+            "code": "TR",
+            "emoji": "🇹🇷",
+            "unicode": "U+1F1F9 U+1F1F7",
+            "name": "Turkey",
+            "title": "flag for Turkey",
+            "dialCode": "+90"
+        },
+        "emoji": "🇹🇷"
+    },
+    "TS": {
+        "name": "Tsonga",
+        "nativeName": "Xitsonga",
+        "country": null,
+        "emoji": null
+    },
+    "TT": {
+        "name": "Tatar",
+        "nativeName": "Татарча, tatarça, تاتارچا‎",
+        "country": null,
+        "emoji": null
+    },
+    "TW": {
+        "name": "Twi",
+        "nativeName": "Twi",
+        "country": null,
+        "emoji": null
+    },
+    "TY": {
+        "name": "Tahitian",
+        "nativeName": "Reo tahiti",
+        "country": null,
+        "emoji": null
+    },
+    "UG": {
+        "name": "Uighur, Uyghur",
+        "nativeName": "Uyƣurqə, ئۇيغۇرچە‎",
+        "country": null,
+        "emoji": null
+    },
+    "UK": {
+        "name": "Ukrainian",
+        "nativeName": "Українська",
+        "country": null,
+        "emoji": "🇺🇦"
+    },
+    "UR": {
+        "name": "Urdu",
+        "nativeName": "اردو",
+        "country": null,
+        "emoji": null
+    },
+    "UZ": {
+        "name": "Uzbek",
+        "nativeName": "Zbek, ўзбек, أۇزبېك‎",
+        "country": {
+            "code": "UZ",
+            "emoji": "🇺🇿",
+            "unicode": "U+1F1FA U+1F1FF",
+            "name": "Uzbekistan",
+            "title": "flag for Uzbekistan",
+            "dialCode": "+998"
+        },
+        "emoji": "🇺🇿"
+    },
+    "VE": {
+        "name": "Venda",
+        "nativeName": "Tshivenḓa",
+        "country": null,
+        "emoji": null
+    },
+    "VI": {
+        "name": "Vietnamese",
+        "nativeName": "Tiếng việt",
+        "country": null,
+        "emoji": null
+    },
+    "VO": {
+        "name": "Volapük",
+        "nativeName": "Volapük",
+        "country": null,
+        "emoji": null
+    },
+    "WA": {
+        "name": "Walloon",
+        "nativeName": "Walon",
+        "country": null,
+        "emoji": null
+    }
+}
