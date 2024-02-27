@@ -1,14 +1,10 @@
 import { InjectBot, On, Start, Update as UpdateNest } from 'nestjs-telegraf'
-import { Telegraf, Context, Markup } from 'telegraf'
-import { UserService } from './core/user/user.service'
-import { BotContentService } from './core/bot-content/bot-content.service'
-import { IDispatcher } from './presentation/dispatcher/dispatcher.interface'
-import { PrivateDialogDispatcher } from './presentation/dispatcher/implementations/private-dialog-dispatcher.service'
+import { Telegraf, Context } from 'telegraf'
 import { Update, Message } from 'node_modules/telegraf/typings/core/types/typegram'
 import { logger } from 'src/app.logger'
 import { internalConstants } from './app.internal-constants'
-import { LocalizationService } from './core/localization/localization.service'
 import { RuntimeExeptionGuard } from './exeptions-and-logging/runtime-exeption-guard.decorator'
+import { PrivateDialogDispatcherService } from './presentation/dispatchers/private-dialog-dispatcher/private-dialog-dispatcher.service'
 
 @UpdateNest()
 export class AppUpdate {
@@ -16,21 +12,10 @@ export class AppUpdate {
     // Properties
     // =====================
 
-    private readonly privateDialogDispatcher: IDispatcher
-
     constructor(
         @InjectBot() private readonly bot: Telegraf<Context>,
-        private readonly botContentService: BotContentService,
-        private readonly userService: UserService,
-        private readonly localizationService: LocalizationService
-    ) {
-        this.privateDialogDispatcher = new PrivateDialogDispatcher(
-            this.botContentService,
-            this.localizationService,
-            this.userService,
-            this.bot
-        )
-    }
+        private readonly privateDialogDispatcher: PrivateDialogDispatcherService
+    ) {}
 
     // =====================
     // Methods

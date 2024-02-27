@@ -137,6 +137,10 @@ export class BotContentService implements OnModuleInit {
 
                 for (const uniqueMessageStringKey of uniqueMessageStringKeys) {
                     const localizedString = localizedGroup.content[uniqueMessageStringKey]
+                    if (!localizedString)
+                        throw Error(
+                            `There is no value for\ngroup: ${groupName};\nkey: ${uniqueMessageStringKey};\nlang: ${language}`
+                        )
                     const localizedUniqueMessage = localizedString?.localizedValues[language]
                     if (!localizedUniqueMessage) {
                         throw Error(
@@ -165,9 +169,7 @@ export class BotContentService implements OnModuleInit {
 
     private async cacheOnboarding() {
         const content = await this.googleTablesService.getContentByListName('onboarding', 'A2:F50')
-        if (!content) {
-            throw Error('No content')
-        }
+        if (!content) throw Error('No content')
         const onboardingContent = this.createOnboardingArray(content)
 
         // TODO: add localized content for collections

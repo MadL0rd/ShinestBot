@@ -2,7 +2,10 @@ import { Injectable } from '@nestjs/common'
 import { google } from 'googleapis'
 import { GoogleCredentialsService } from './google-credentials.service'
 import { SpreadsheetPageTitles } from './enums/spreadsheet-page-titles'
-import { replaceMarkdownWithHtml } from 'src/utils/replaceMarkdownWithHtml'
+import {
+    replaceMarkdownWithHtml,
+    validateStringHtmlTagsAll,
+} from 'src/utils/replaceMarkdownWithHtml'
 import { internalConstants } from 'src/app.internal-constants'
 import { logger } from 'src/app.logger'
 
@@ -34,9 +37,11 @@ export class GoogleTablesService {
         // Markdown telegram spec symbols fix
         for (let i = 0; i < rows.length; i++) {
             for (let j = 0; j < rows[i].length; j++) {
-                const row = rows[i][j] as string
-                if (row) {
-                    rows[i][j] = replaceMarkdownWithHtml(row).trimmed
+                let cellValue = rows[i][j] as string
+                if (cellValue) {
+                    cellValue = replaceMarkdownWithHtml(cellValue).trimmed
+                    validateStringHtmlTagsAll(cellValue)
+                    rows[i][j] = cellValue
                 }
             }
         }

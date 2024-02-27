@@ -156,8 +156,7 @@ class InternalConstants {
 
     dropProcessCache() {
         for (const key in EnvKeys) {
-            // @ts-ignore: Unreachable code error
-            process.env[EnvKeys[key] as string] = undefined
+            process.env[EnvKeys[key as keyof typeof EnvKeys] as string] = undefined
         }
     }
 
@@ -167,21 +166,21 @@ class InternalConstants {
 
     private getEnvString(key: EnvKeys): string {
         const envValue = process.env[key]
-        if (!envValue) throw new Error(`Fail to get env string value for key: ${key}`)
+        if (!envValue) throw Error(`Fail to get env string value for key: ${key}`)
         return envValue
     }
 
     private getEnvNumber(key: EnvKeys): number {
         const envValue = Number(process.env[key])
-        if (!envValue) throw new Error(`Fail to get env number value for key: ${key}`)
+        if (!envValue) throw Error(`Fail to get env number value for key: ${key}`)
         return envValue
     }
 
     private getEnvBoolean(key: EnvKeys): boolean {
         const envValue = process.env[key]
-        if (!envValue) throw new Error(`Fail to get env boolean value for key: ${key}`)
+        if (!envValue) throw Error(`Fail to get env boolean value for key: ${key}`)
         if (envValue !== 'true' && envValue !== 'false') {
-            throw new Error(`Fail to get env boolean value for key: ${key}`)
+            throw Error(`Fail to get env boolean value for key: ${key}`)
         }
         return envValue === 'true'
     }

@@ -81,7 +81,7 @@ export class OnboardingScene extends Scene<ISceneData> {
         ctx: Context<Update.CallbackQueryUpdate>,
         data: SceneCallbackData
     ): Promise<SceneHandlerCompletion> {
-        throw new Error('Method not implemented.')
+        throw Error('Method not implemented.')
     }
 
     // =====================
