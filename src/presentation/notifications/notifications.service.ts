@@ -8,11 +8,10 @@ import { BotContent } from 'src/core/bot-content/schemas/bot-content.schema'
 import { GptApiService } from 'src/core/gpt-api/gpt-api.service'
 import { UserHistoryEvent } from 'src/core/user/enums/user-history-event.enum'
 import { UserService } from 'src/core/user/user.service'
-import { SceneCallbackAction } from 'src/presentation/scenes/enums/scene-callback-action.enum'
-import { SceneNames } from 'src/presentation/scenes/enums/scene-name.enum'
-import { generateInlineButtonSegue } from 'src/presentation/scenes/scene.interface'
+import { SceneCallbackAction } from 'src/presentation/scenes/models/scene-callback'
 import { Context, Telegraf } from 'telegraf'
 import { InlineKeyboardButton } from 'node_modules/telegraf/typings/core/types/typegram'
+import { generateInlineButtonSegue } from '../utils/inline-button.utils'
 
 @Injectable()
 export class NotificationsService {

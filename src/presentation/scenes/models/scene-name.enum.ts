@@ -1,13 +1,8 @@
-export namespace SceneNames {
+export namespace SceneName {
     export type union = (typeof allCases)[number]
     export const allCases = [
         'mainMenu',
         'onboarding',
-        'adminMenu',
-        'adminMenuGenerateMetrix',
-        'adminMenuMailing',
-        'adminMenuUsersManagement',
-        'languageSettings',
         /** New scene name placeholder */
     ] as const
 
@@ -20,11 +15,11 @@ export namespace SceneNames {
         return includes(value) ? (value as union) : null
     }
 
-    export function getId(sceneName: SceneNames.union): number {
+    export function getId(sceneName: SceneName.union): number {
         return allCases.indexOf(sceneName)
     }
 
-    export function getById(id: number): SceneNames.union | null {
+    export function getById(id: number): SceneName.union | null {
         return allCases[id] ?? null
     }
 }
