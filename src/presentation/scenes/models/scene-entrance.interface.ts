@@ -1,6 +1,7 @@
 import { SceneName } from './scene-name.enum'
 import { MainMenuSceneEntranceDto } from 'src/presentation/scenes/implementations/main-menu.scene'
 import { OnboardingSceneEntranceDto } from 'src/presentation/scenes/implementations/onboarding.scene'
+/** New scene entrance dto import placeholder */
 
 export namespace SceneEntrance {
     // =====================
@@ -16,6 +17,8 @@ export namespace SceneEntrance {
 
     export type AnySceneDto = Dto & SomeSceneDto
 
-    export type SomeSceneDto = MainMenuSceneEntranceDto | OnboardingSceneEntranceDto
+    export type SomeSceneDto =
+        | MainMenuSceneEntranceDto
+        | OnboardingSceneEntranceDto
     /** New scene entrance dto placeholder */
 }
