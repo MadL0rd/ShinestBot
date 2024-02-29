@@ -4,7 +4,6 @@ import { LocalizedGroup } from './schemas/localization.schema'
 import { Model } from 'mongoose'
 import { GoogleTablesService } from '../google-tables/google-tables.service'
 import { LocalizedGroupDto } from './dto/localized-group.dto'
-import { SpreadsheetPageTitles } from '../google-tables/enums/spreadsheet-page-titles'
 import { LocalizedString } from './schemas/models/localization.localized-string'
 import { logger } from 'src/app.logger'
 
@@ -90,7 +89,7 @@ export class LocalizationService {
         await this.model.deleteMany({})
 
         // Create and save localized groups
-        const groupNames: string[] = localizedStrings.map((value) => value.groupName).uniqueOnly
+        const groupNames = localizedStrings.map((value) => value.groupName).uniqueOnly
 
         for (const groupName of groupNames) {
             await this.createOrUpdate({

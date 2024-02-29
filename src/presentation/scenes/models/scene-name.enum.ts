@@ -3,6 +3,7 @@ export namespace SceneName {
     export const allCases = [
         'mainMenu',
         'onboarding',
+        'adminMenu',
         /** New scene name placeholder */
     ] as const
 

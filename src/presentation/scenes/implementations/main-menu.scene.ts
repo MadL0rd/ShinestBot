@@ -75,7 +75,7 @@ export class MainMenuScene extends Scene<ISceneData, SceneEnterDataType> {
                 return this.completion.inProgress({})
 
             case this.text.mainMenu.buttonLanguageSettings:
-                return this.completion.complete({ sceneName: 'onboarding' })
+                return this.completion.complete({ sceneName: 'adminMenu' })
 
             case this.text.mainMenu.buttonAdminMenu:
                 return this.completion.complete({
