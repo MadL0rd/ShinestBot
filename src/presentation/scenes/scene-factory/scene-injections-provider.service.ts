@@ -5,6 +5,7 @@ import { BotContentService } from 'src/core/bot-content/bot-content.service'
 import { LocalizationService } from 'src/core/localization/localization.service'
 import { Telegraf } from 'telegraf'
 import { logger } from 'src/app.logger'
+import { StatisticService } from 'src/core/user/statistic.service'
 
 interface Type<T> {
     new (...args: any[]): T
@@ -31,6 +32,7 @@ export class SceneInjectionsProviderService {
         protected readonly userService: UserService,
         protected readonly botContentService: BotContentService,
         protected readonly localizationService: LocalizationService,
+        protected readonly statisticService: StatisticService,
         @InjectBot() private readonly bot: Telegraf
     ) {
         const propertyNames = Object.keys(this).filter((prop) => prop != 'registry')
@@ -38,7 +40,7 @@ export class SceneInjectionsProviderService {
             Reflect.getMetadata('design:paramtypes', SceneInjectionsProviderService) ?? []
 
         if (propertyNames.length != tokens.length) {
-            throw Error('SceneInjectionsProvider geristry creation error')
+            throw Error('SceneInjectionsProvider registry creation error')
         }
         propertyNames.forEach((propName, index) => {
             this.register(tokens[index].name, (this as any)[propName])
@@ -57,7 +59,10 @@ export class SceneInjectionsProviderService {
         const injections = []
         for (const token of tokens) {
             const dependencyInstance = this.registry.get(token.name)
-            if (!dependencyInstance) throw Error(`Fail to inject class ${token.name}`)
+            if (!dependencyInstance)
+                throw Error(
+                    `Fail to inject class ${token.name}\nYou can check imports in ./src/scenes/scene.module.ts and constructor args of SceneInjectionsProviderService`
+                )
             injections.push(dependencyInstance)
         }
         const instance = new target(...injections)

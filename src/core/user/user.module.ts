@@ -14,6 +14,6 @@ import { StatisticService } from './statistic.service'
         ]),
     ],
     providers: [UserService, StatisticService],
-    exports: [UserService],
+    exports: [UserService, StatisticService],
 })
 export class UserModule {}

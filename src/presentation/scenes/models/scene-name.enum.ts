@@ -4,6 +4,7 @@ export namespace SceneName {
         'mainMenu',
         'onboarding',
         'adminMenu',
+        'adminMenuGenerateMetrix',
         /** New scene name placeholder */
     ] as const
 
