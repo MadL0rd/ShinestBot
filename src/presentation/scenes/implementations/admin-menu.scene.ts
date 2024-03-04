@@ -89,7 +89,7 @@ export class AdminMenuScene extends Scene<ISceneData, SceneEnterDataType> {
                 return this.completion.complete({ sceneName: 'adminMenuUsersManagementScene' })
 
             case this.text.adminMenu.buttonMailing:
-                return this.completion.complete({ sceneName: 'mainMenu' })
+                return this.completion.complete({ sceneName: 'adminMenuMailingScene' })
 
             case this.text.common.buttonReturnToMainMenu:
                 return this.completion.complete({ sceneName: 'mainMenu' })

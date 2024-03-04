@@ -75,12 +75,10 @@ export class MainMenuScene extends Scene<ISceneData, SceneEnterDataType> {
                 return this.completion.inProgress({})
 
             case this.text.mainMenu.buttonLanguageSettings:
-                return this.completion.complete({ sceneName: 'adminMenu' })
+                return this.completion.complete({ sceneName: 'mainMenu' })
 
             case this.text.mainMenu.buttonAdminMenu:
-                return this.completion.complete({
-                    sceneName: 'mainMenu',
-                })
+                return this.completion.complete({ sceneName: 'adminMenu' })
         }
 
         return this.completion.canNotHandle({})

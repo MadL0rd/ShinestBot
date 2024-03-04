@@ -4,6 +4,7 @@ import { OnboardingSceneEntranceDto } from 'src/presentation/scenes/implementati
 import { AdminMenuSceneEntranceDto } from 'src/presentation/scenes/implementations/admin-menu.scene'
 import { AdminMenuGenerateMetrixSceneEntranceDto } from 'src/presentation/scenes/implementations/admin-menu-generate-metrix.scene'
 import { AdminMenuUsersManagementSceneSceneEntranceDto } from 'src/presentation/scenes/implementations/admin-menu-users-management-scene.scene'
+import { AdminMenuMailingSceneSceneEntranceDto } from 'src/presentation/scenes/implementations/admin-menu-mailing-scene.scene'
 /** New scene entrance dto import placeholder */
 
 export namespace SceneEntrance {
@@ -26,5 +27,6 @@ export namespace SceneEntrance {
         | AdminMenuSceneEntranceDto
         | AdminMenuGenerateMetrixSceneEntranceDto
         | AdminMenuUsersManagementSceneSceneEntranceDto
+        | AdminMenuMailingSceneSceneEntranceDto
     /** New scene entrance dto placeholder */
 }
