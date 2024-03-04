@@ -6,6 +6,7 @@ import { SceneInjectionsProviderService } from './scene-injections-provider.serv
 import { OnboardingScene } from 'src/presentation/scenes/implementations/onboarding.scene'
 import { AdminMenuScene } from 'src/presentation/scenes/implementations/admin-menu.scene'
 import { AdminMenuGenerateMetrixScene } from 'src/presentation/scenes/implementations/admin-menu-generate-metrix.scene'
+import { AdminMenuUsersManagementSceneScene } from 'src/presentation/scenes/implementations/admin-menu-users-management-scene.scene'
 /** New scene import placeholder */
 
 @Injectable()
@@ -22,6 +23,8 @@ export class SceneFactoryService {
                 return this.injectionsProvider.resolve(AdminMenuScene)
             case 'adminMenuGenerateMetrix':
                 return this.injectionsProvider.resolve(AdminMenuGenerateMetrixScene)
+            case 'adminMenuUsersManagementScene':
+                return this.injectionsProvider.resolve(AdminMenuUsersManagementSceneScene)
             /** New scene generation placeholder */
         }
         return null

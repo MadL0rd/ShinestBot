@@ -11,5 +11,6 @@ export enum UserHistoryEvent {
     startSceneMainMenu = 'Перешел в главное меню',
     startSceneAdminMenu = 'Перешел к сцене AdminMenu',
     startSceneAdminMenuGenerateMetrix = 'Перешел к сцене adminMenuGenerateMetrix',
+    startSceneAdminMenuUsersManagementScene = 'Перешел к сцене AdminMenuUsersManagementScene',
     /** New scene event placeholder */
 }

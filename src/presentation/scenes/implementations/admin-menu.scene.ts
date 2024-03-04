@@ -86,7 +86,7 @@ export class AdminMenuScene extends Scene<ISceneData, SceneEnterDataType> {
                 return this.completion.complete({ sceneName: 'adminMenuGenerateMetrix' })
 
             case this.text.adminMenu.buttonUsersManagement:
-                return this.completion.complete({ sceneName: 'mainMenu' })
+                return this.completion.complete({ sceneName: 'adminMenuUsersManagementScene' })
 
             case this.text.adminMenu.buttonMailing:
                 return this.completion.complete({ sceneName: 'mainMenu' })
