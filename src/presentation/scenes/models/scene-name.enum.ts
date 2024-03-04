@@ -7,6 +7,7 @@ export namespace SceneName {
         'adminMenuGenerateMetrix',
         'adminMenuUsersManagementScene',
         'adminMenuMailingScene',
+        'languageSettingsScene',
         /** New scene name placeholder */
     ] as const
 
