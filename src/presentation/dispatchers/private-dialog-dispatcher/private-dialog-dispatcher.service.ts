@@ -2,27 +2,27 @@ import { Injectable } from '@nestjs/common'
 import { Context, Telegraf } from 'telegraf'
 import { BotContentService } from 'src/core/bot-content/bot-content.service'
 import { UserService } from 'src/core/user/user.service'
-import {
-    IScene,
-    SceneCallbackData,
-    SceneHandlerCompletion,
-} from 'src/presentation/scenes/scene.interface'
-import { SceneNames } from 'src/presentation/scenes/enums/scene-name.enum'
+import { SceneName } from 'src/presentation/scenes/models/scene-name.enum'
 import { logger } from 'src/app.logger'
 import { UserHistoryEvent } from 'src/core/user/enums/user-history-event.enum'
-import { SceneFactory } from 'src/presentation/scenes/scene-factory'
 import { getActiveUserPermissionNames } from 'src/utils/getActiveUserPermissions'
 import { getLanguageFor } from 'src/utils/getLanguageForUser'
 import { plainToClass } from 'class-transformer'
-import { LocalizationService } from 'src/core/localization/localization.service'
 import {
     Update,
     Message,
     CallbackQuery,
     User as UserTelegram,
 } from 'node_modules/telegraf/typings/core/types/typegram'
-import { TransactionUserData } from './models/transaction-user-data.model'
 import { InjectBot } from 'nestjs-telegraf'
+import { SceneCallbackData } from 'src/presentation/scenes/models/scene-callback'
+import {
+    SceneHandlerCompletion,
+    IScene,
+    SceneUserContext,
+} from 'src/presentation/scenes/models/scene.interface'
+import { SceneFactoryService } from 'src/presentation/scenes/scene-factory/scene-factory.service'
+import { BotContent } from 'src/core/bot-content/schemas/bot-content.schema'
 
 @Injectable()
 export class PrivateDialogDispatcherService {
@@ -30,13 +30,13 @@ export class PrivateDialogDispatcherService {
     // Properties
     // =====================
 
-    private readonly startSceneName: SceneNames.union = 'onboarding'
-    private readonly defaultSceneName: SceneNames.union = 'mainMenu'
+    private readonly startSceneName: SceneName.union = 'onboarding'
+    private readonly defaultSceneName: SceneName.union = 'mainMenu'
 
     constructor(
         private readonly botContentService: BotContentService,
-        private readonly localizationService: LocalizationService,
         private readonly userService: UserService,
+        private readonly sceneFactory: SceneFactoryService,
         @InjectBot() private readonly bot: Telegraf<Context>
     ) {}
 
@@ -65,9 +65,9 @@ export class PrivateDialogDispatcherService {
 
         await this.userService.logToUserHistory(user, UserHistoryEvent.start, `${startParam}`)
 
-        const data = await this.getHandlingTransactionUserData(ctx.from)
+        const userContext = await this.generateSceneUserContext(ctx.from)
 
-        const startScene = this.createSceneWith(this.startSceneName, data)
+        const startScene = this.createSceneWith(this.startSceneName, userContext)
         if (!startScene) {
             logger.error(`Start scene creation failed!\nUser: ${JSON.stringify(ctx.from)}`)
             return
@@ -93,14 +93,15 @@ export class PrivateDialogDispatcherService {
         }
 
         // =====================
-        // Prepare data
+        // Prepare user context
+        // Localized bot content, permissions etc.
         // =====================
 
-        let data = await this.getHandlingTransactionUserData(ctx.from)
+        let userContext = await this.generateSceneUserContext(ctx.from)
         const message = ctx.message as Message.TextMessage
 
         await this.userService.logToUserHistory(
-            data.user,
+            userContext.user,
             UserHistoryEvent.sendMessage,
             message?.text
         )
@@ -109,17 +110,20 @@ export class PrivateDialogDispatcherService {
         const sceneNameFromCommandSegue = this.getSceneNameFromTextCommandSegue(message?.text)
 
         // =====================
-        // Try to find current scene
+        // Try to find previous storred user scene
+        // and continue
         // if there is no segue from command
         // =====================
-        const sceneName = SceneNames.castToInstance(data.user.sceneData?.sceneName)
-        const currentScene = this.createSceneWith(sceneName, data)
+        const sceneNamePreviouslyUsed = SceneName.castToInstance(
+            userContext.user.sceneData?.sceneName
+        )
+        const currentScene = this.createSceneWith(sceneNamePreviouslyUsed, userContext)
         let sceneCompletion: SceneHandlerCompletion | null = null
 
         if (currentScene) {
             const userCanUseStoredScene = await this.validateUserCanUseScene(
                 ctx,
-                data,
+                userContext.botContent,
                 currentScene
             )
             if (!sceneNameFromCommandSegue && userCanUseStoredScene === true) {
@@ -128,26 +132,33 @@ export class PrivateDialogDispatcherService {
                 )
                 sceneCompletion = await currentScene.handleMessage(
                     ctx,
-                    data.user.sceneData.data ?? {}
+                    userContext.user.sceneData.data ?? {}
                 )
-                data = await this.getHandlingTransactionUserData(ctx.from)
+                userContext = await this.generateSceneUserContext(ctx.from)
             }
         }
 
         // =====================
         // Start next scene if needed
         // =====================
-        let nextSceneName: SceneNames.union | null =
-            sceneNameFromCommandSegue ?? this.getSceneNameFromCompletion(sceneCompletion)
+        let nextSceneName: SceneName.union | null =
+            sceneNameFromCommandSegue ?? this.getNextSceneNameFromCompletion(sceneCompletion)
+        let sceneEnterData = sceneNameFromCommandSegue
+            ? undefined
+            : sceneCompletion?.nextSceneIfCompleted
         let nextScene: IScene | null = null
         while (nextSceneName) {
-            nextScene = this.createSceneWith(nextSceneName, data)
+            nextScene = this.createSceneWith(nextSceneName, userContext)
             if (!nextScene) break
 
-            const userCanUseScene = await this.validateUserCanUseScene(ctx, data, nextScene)
+            const userCanUseScene = await this.validateUserCanUseScene(
+                ctx,
+                userContext.botContent,
+                nextScene
+            )
             if (userCanUseScene) {
-                sceneCompletion = await nextScene.handleEnterScene(ctx)
-                data = await this.getHandlingTransactionUserData(ctx.from)
+                sceneCompletion = await nextScene.handleEnterScene(ctx, sceneEnterData)
+                userContext = await this.generateSceneUserContext(ctx.from)
             } else {
                 nextScene = null
                 sceneCompletion = null
@@ -158,12 +169,13 @@ export class PrivateDialogDispatcherService {
                 return
             }
 
-            nextSceneName = this.getSceneNameFromCompletion(sceneCompletion)
+            nextSceneName = this.getNextSceneNameFromCompletion(sceneCompletion)
+            sceneEnterData = sceneCompletion.nextSceneIfCompleted
         }
 
         // Send canNonHandle message
         if (sceneCompletion && sceneCompletion.didHandledUserInteraction === false) {
-            ctx.replyWithHTML(data.botContent.uniqueMessage.common.unknownState)
+            ctx.replyWithHTML(userContext.botContent.uniqueMessage.common.unknownState)
         }
 
         // =====================
@@ -172,7 +184,7 @@ export class PrivateDialogDispatcherService {
         await this.userService.update({
             telegramId: ctx.from.id,
             telegramInfo: ctx.from,
-            internalInfo: data.user.internalInfo,
+            internalInfo: userContext.user.internalInfo,
             sceneData: {
                 sceneName: nextScene?.name ?? currentScene?.name ?? this.defaultSceneName,
                 data: sceneCompletion?.sceneData ?? {},
@@ -187,9 +199,9 @@ export class PrivateDialogDispatcherService {
         }
         const dataQuery = ctx.callbackQuery as CallbackQuery.DataQuery | undefined
 
-        let data = await this.getHandlingTransactionUserData(ctx.from)
+        let userContext = await this.generateSceneUserContext(ctx.from)
         await this.userService.logToUserHistory(
-            data.user,
+            userContext.user,
             UserHistoryEvent.callbackButtonDidTapped,
             dataQuery?.data ?? '*empty*'
         )
@@ -206,8 +218,8 @@ export class PrivateDialogDispatcherService {
         }
         logger.log(`Received callback data: ${callbackData.toPrettyString()}`)
 
-        const sceneName = SceneNames.castToInstance(callbackData.sceneName)
-        const currentScene = this.createSceneWith(sceneName, data)
+        const sceneName = SceneName.castToInstance(callbackData.sceneName)
+        const currentScene = this.createSceneWith(sceneName, userContext)
 
         if (!currentScene) {
             logger.error(`Scene calback creation failed!\nUser: ${JSON.stringify(ctx.from)}`)
@@ -215,18 +227,18 @@ export class PrivateDialogDispatcherService {
         }
 
         let sceneCompletion: SceneHandlerCompletion | null = null
-        if (await this.validateUserCanUseScene(ctx, data, currentScene)) {
+        if (await this.validateUserCanUseScene(ctx, userContext.botContent, currentScene)) {
             logger.log(
                 `${currentScene.name} handleMessage. User: ${ctx.from.id} ${ctx.from.username}`
             )
             sceneCompletion = await currentScene.handleCallback(ctx, callbackData)
-            data = await this.getHandlingTransactionUserData(ctx.from)
+            userContext = await this.generateSceneUserContext(ctx.from)
 
             if (sceneCompletion.inProgress == true) {
                 await this.userService.update({
                     telegramId: ctx.from.id,
                     telegramInfo: ctx.from,
-                    internalInfo: data.user.internalInfo,
+                    internalInfo: userContext.user.internalInfo,
                     sceneData: {
                         sceneName: currentScene?.name ?? this.defaultSceneName,
                         data: sceneCompletion.sceneData,
@@ -236,18 +248,19 @@ export class PrivateDialogDispatcherService {
             }
         }
 
-        let nextSceneName: SceneNames.union | null = SceneNames.castToInstance(
-            sceneCompletion?.nextSceneNameIfCompleted
+        let nextSceneName: SceneName.union | null = SceneName.castToInstance(
+            sceneCompletion?.nextSceneIfCompleted?.sceneName
         )
         let nextScene: IScene | null = null
+        let sceneEnterData = sceneCompletion?.nextSceneIfCompleted
         let didStartedAnyScene = false
         while (nextSceneName) {
-            nextScene = this.createSceneWith(nextSceneName, data)
+            nextScene = this.createSceneWith(nextSceneName, userContext)
             if (!nextScene) break
 
-            if (await this.validateUserCanUseScene(ctx, data, nextScene, false)) {
-                sceneCompletion = await nextScene.handleEnterScene(ctx as Context<Update>)
-                data = await this.getHandlingTransactionUserData(ctx.from)
+            if (await this.validateUserCanUseScene(ctx, userContext.botContent, nextScene, false)) {
+                sceneCompletion = await nextScene.handleEnterScene(ctx as any, sceneEnterData)
+                userContext = await this.generateSceneUserContext(ctx.from)
                 didStartedAnyScene = true
             } else {
                 nextScene = null
@@ -258,19 +271,20 @@ export class PrivateDialogDispatcherService {
                 return
             }
 
-            nextSceneName = this.getSceneNameFromCompletion(sceneCompletion)
+            sceneEnterData = sceneCompletion.nextSceneIfCompleted
+            nextSceneName = this.getNextSceneNameFromCompletion(sceneCompletion)
         }
 
         // Send canNonHandle message
         if (!sceneCompletion || sceneCompletion.didHandledUserInteraction !== true) {
-            ctx.replyWithHTML(data.botContent.uniqueMessage.common.callbackActionFaild)
+            ctx.replyWithHTML(userContext.botContent.uniqueMessage.common.callbackActionFaild)
         }
 
         if (didStartedAnyScene) {
             await this.userService.update({
                 telegramId: ctx.from.id,
                 telegramInfo: ctx.from,
-                internalInfo: data.user.internalInfo,
+                internalInfo: userContext.user.internalInfo,
                 sceneData: {
                     sceneName: nextScene?.name ?? this.defaultSceneName,
                     data: sceneCompletion?.sceneData ?? {},
@@ -283,7 +297,7 @@ export class PrivateDialogDispatcherService {
     // Private methods
     // =====================
 
-    private getSceneNameFromTextCommandSegue(command?: string): SceneNames.union | null {
+    private getSceneNameFromTextCommandSegue(command?: string): SceneName.union | null {
         switch (command) {
             case '/back_to_menu':
                 return this.defaultSceneName
@@ -291,18 +305,20 @@ export class PrivateDialogDispatcherService {
         return null
     }
 
-    private getSceneNameFromCompletion(
+    private getNextSceneNameFromCompletion(
         sceneCompletion: SceneHandlerCompletion | null
-    ): SceneNames.union | null {
+    ): SceneName.union | null {
         if (sceneCompletion) {
             if (sceneCompletion.inProgress === false) {
                 // Exit from current scene
-                if (sceneCompletion?.nextSceneNameIfCompleted) {
+                const nextSceneName = sceneCompletion?.nextSceneIfCompleted?.sceneName
+                if (nextSceneName) {
                     // Next scene is specified
-                    return sceneCompletion.nextSceneNameIfCompleted
+                    return nextSceneName
+                } else {
+                    // Next scene is not specified
+                    return this.defaultSceneName
                 }
-                // Next scene is not specified check
-                return this.defaultSceneName
             } else {
                 // Current scene in progress
                 return null
@@ -314,25 +330,17 @@ export class PrivateDialogDispatcherService {
     }
 
     private createSceneWith(
-        name: SceneNames.union | null,
-        data: TransactionUserData
+        name: SceneName.union | null,
+        userContext: SceneUserContext
     ): IScene | null {
         if (!name) return null
 
-        return SceneFactory.createSceneWith(name, {
-            bot: this.bot,
-            user: data.user,
-            botContent: data.botContent,
-            userService: this.userService,
-            botContentService: this.botContentService,
-            userActivePermissions: data.userActivePermissions,
-            localizationService: this.localizationService,
-        })
+        return this.sceneFactory.createSceneWith(name)?.injectUserContext(userContext) ?? null
     }
 
     private async validateUserCanUseScene(
         ctx: Context<Update> | Context<Update.CallbackQueryUpdate>,
-        data: TransactionUserData,
+        botContent: BotContent,
         scene?: IScene,
         needToSendMessage: boolean = true
     ): Promise<boolean> {
@@ -348,16 +356,14 @@ export class PrivateDialogDispatcherService {
             if (needToSendMessage) {
                 await ctx.replyWithHTML(
                     validationResult.validationErrorMessage ??
-                        data.botContent.uniqueMessage.common.permissionDenied
+                        botContent.uniqueMessage.common.permissionDenied
                 )
             }
             return false
         }
     }
 
-    private async getHandlingTransactionUserData(
-        telegramUser: UserTelegram
-    ): Promise<TransactionUserData> {
+    private async generateSceneUserContext(telegramUser: UserTelegram): Promise<SceneUserContext> {
         const user = await this.userService.createIfNeededAndGet({
             telegramId: telegramUser.id,
             telegramInfo: telegramUser,
@@ -374,10 +380,9 @@ export class PrivateDialogDispatcherService {
         const botContent = await this.botContentService.getContent(userLanguage)
 
         return {
-            user,
-            userActivePermissions,
-            userLanguage,
-            botContent,
+            user: user,
+            userActivePermissions: userActivePermissions,
+            botContent: botContent,
         }
     }
 }

@@ -10,9 +10,9 @@ export enum UserHistoryEvent {
     startSceneOnboarding = 'Начал смотреть онбординг',
     startSceneMainMenu = 'Перешел в главное меню',
     startSceneAdminMenu = 'Перешел к сцене AdminMenu',
-    startSceneAdminMenuGenerateMetrix = 'Перешел к сцене AdminMenuGenerateMetrix',
-    startSceneAdminMenuMailing = 'Перешел к сцене AdminMenuMailing',
-    startSceneAdminMenuUsersManagement = 'Перешел к сцене AdminMenuUsersManagement',
-    startSceneLanguageSettings = 'Перешел к сцене LanguageSettings',
+    startSceneAdminMenuGenerateMetrics = 'Перешел к сцене adminMenuGenerateMetrics',
+    startSceneAdminMenuUsersManagementScene = 'Перешел к сцене AdminMenuUsersManagementScene',
+    startSceneAdminMenuMailingScene = 'Перешел к сцене AdminMenuMailingScene',
+    startSceneLanguageSettingsScene = 'Перешел к сцене LanguageSettingsScene',
     /** New scene event placeholder */
 }

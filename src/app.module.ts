@@ -11,6 +11,7 @@ import { ScheduleModule } from '@nestjs/schedule'
 import { NotificationsModule } from './presentation/notifications/notifications.module'
 import { GptApiModule } from './core/gpt-api/gpt-api.module'
 import { DispatchersModule } from './presentation/dispatchers/dispatchers.module'
+import { ScenesModule } from './presentation/scenes/scenes.module'
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const mediaGroup = require('telegraf-media-group')
 
@@ -44,6 +45,7 @@ const mediaGroup = require('telegraf-media-group')
         NotificationsModule,
         GptApiModule,
         DispatchersModule,
+        ScenesModule,
     ],
     providers: [AppUpdate],
 })

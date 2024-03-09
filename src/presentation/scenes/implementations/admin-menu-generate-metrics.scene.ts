@@ -1,60 +1,78 @@
-import { Context } from 'telegraf'
-import 'moment-timezone'
-import { SceneNames } from '../../enums/scene-name.enum'
-import {
-    SceneHandlerCompletion,
-    Scene,
-    PermissionsValidationResult,
-    SceneCallbackData,
-} from '../../scene.interface'
 import { logger } from 'src/app.logger'
-import { StatisticService } from '../../../../core/user/statistic.service'
-import { FileName } from '../../enums/file-name.enum'
-import { Update, Message } from 'node_modules/telegraf/typings/core/types/typegram'
+import { UserService } from 'src/core/user/user.service'
+import { Markup, Context } from 'telegraf'
+import { Update } from 'telegraf/types'
+import moment from 'moment'
+import { SceneCallbackData } from '../models/scene-callback'
+import { SceneEntrance } from '../models/scene-entrance.interface'
+import { SceneName } from '../models/scene-name.enum'
+import { SceneHandlerCompletion } from '../models/scene.interface'
+import { Scene } from '../models/scene.abstract'
+import { SceneUsagePermissionsValidator } from '../models/scene-usage-permissions-validator'
+import { InjectableSceneConstructor } from '../scene-factory/scene-injections-provider.service'
+import { StatisticService } from 'src/core/user/statistic.service'
+import { internalConstants } from 'src/app.internal-constants'
+import { FileName } from '../models/file-name.enum'
 
 // =====================
-// Scene data class
+// Scene data classes
 // =====================
+export class AdminMenuGenerateMetricsSceneEntranceDto implements SceneEntrance.Dto {
+    readonly sceneName = 'adminMenuGenerateMetrics'
+}
+type SceneEnterDataType = AdminMenuGenerateMetricsSceneEntranceDto
 interface ISceneData {}
 
-export class AdminMenuGenerateMetrixScene extends Scene<ISceneData> {
+// =====================
+// Scene main class
+// =====================
+
+@InjectableSceneConstructor()
+export class AdminMenuGenerateMetricsScene extends Scene<ISceneData, SceneEnterDataType> {
     // =====================
     // Properties
     // =====================
 
-    readonly name: SceneNames.union = 'adminMenuGenerateMetrix'
+    readonly name: SceneName.union = 'adminMenuGenerateMetrics'
+    protected get dataDefault(): ISceneData {
+        return {} as ISceneData
+    }
+    protected get permissionsValidator(): SceneUsagePermissionsValidator.IPermissionsValidator {
+        return new SceneUsagePermissionsValidator.OwnerOrAdminOnly()
+    }
+
+    constructor(
+        protected readonly userService: UserService,
+        private readonly statisticService: StatisticService
+    ) {
+        super()
+    }
 
     // =====================
     // Public methods
     // =====================
 
-    validateUseScenePermissions(): PermissionsValidationResult {
-        const ownerOrAdmin =
-            this.userActivePermissions.includes('admin') ||
-            this.userActivePermissions.includes('owner')
-        if (ownerOrAdmin) {
-            return { canUseScene: true }
-        }
-        return { canUseScene: false }
-    }
-
-    async handleEnterScene(ctx: Context<Update>): Promise<SceneHandlerCompletion> {
+    async handleEnterScene(
+        ctx: Context,
+        data?: SceneEnterDataType
+    ): Promise<SceneHandlerCompletion> {
         logger.log(
             `${this.name} scene handleEnterScene. User: ${this.user.telegramInfo.id} ${this.user.telegramInfo.username}`
         )
-        await this.logToUserHistory(this.historyEvent.startSceneAdminMenuGenerateMetrix)
+        await this.logToUserHistory(this.historyEvent.startSceneAdminMenuGenerateMetrics)
 
         await ctx.replyWithHTML(this.text.adminMenuMetrics.selectDateText, this.menuMarkup())
 
-        return this.completion.inProgress()
+        return this.completion.inProgress({})
     }
 
-    async handleMessage(ctx: Context<Update>): Promise<SceneHandlerCompletion> {
+    async handleMessage(ctx: Context, dataRaw: object): Promise<SceneHandlerCompletion> {
         logger.log(
             `${this.name} scene handleMessage. User: ${this.user.telegramInfo.id} ${this.user.telegramInfo.username}`
         )
+        const message = ctx.message
+        if (!message || !('text' in message)) return this.completion.canNotHandle({})
 
-        const message = ctx.message as Message.TextMessage
         const currentDate = new Date()
         let beginningDate: Date | null = null
 
@@ -114,15 +132,18 @@ export class AdminMenuGenerateMetrixScene extends Scene<ISceneData> {
                 break
 
             case this.text.adminMenu.returnBack:
-                return this.completion.complete('adminMenu')
+                return this.completion.complete({ sceneName: 'adminMenu' })
         }
         if (beginningDate) {
-            const statisticService = new StatisticService(this.userService)
             const dateFormat = 'DD.MM.yyyy'
-            const beginningDateString = beginningDate.formattedWithAppTimeZone(dateFormat)
-            const currentDateString = currentDate.formattedWithAppTimeZone(dateFormat)
+            const beginningDateString = moment(beginningDate)
+                .utcOffset(internalConstants.appTimeZoneUtcOffset)
+                .format(dateFormat)
+            const currentDateString = moment(currentDate)
+                .utcOffset(internalConstants.appTimeZoneUtcOffset)
+                .format(dateFormat)
             const resultFileName = `${FileName.statisticsMain} c ${beginningDateString} по ${currentDateString}.xlsx`
-            const resultMetricsTable = await statisticService.createTable(
+            const resultMetricsTable = await this.statisticService.createTable(
                 beginningDate,
                 currentDate
             )
@@ -130,10 +151,10 @@ export class AdminMenuGenerateMetrixScene extends Scene<ISceneData> {
                 source: resultMetricsTable,
                 filename: resultFileName,
             })
-            return this.completion.complete('adminMenu')
+            return this.completion.complete({ sceneName: 'adminMenu' })
         }
 
-        return this.completion.canNotHandle()
+        return this.completion.canNotHandle({})
     }
 
     async handleCallback(
@@ -146,7 +167,6 @@ export class AdminMenuGenerateMetrixScene extends Scene<ISceneData> {
     // =====================
     // Private methods
     // =====================
-
     private menuMarkup(): object {
         return this.keyboardMarkupWithAutoLayoutFor([
             this.text.adminMenuMetrics.selectDateMonth,
