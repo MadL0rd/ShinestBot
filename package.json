@@ -49,7 +49,7 @@
     "webpack": "^5.90.3",
     "winston": "^3.11.0",
     "winston-daily-rotate-file": "^4.7.1",
-    "xlsx": "^0.18.5"
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.1/xlsx-0.20.1.tgz"
   },
   "devDependencies": {
     "@total-typescript/ts-reset": "^0.5.1",
