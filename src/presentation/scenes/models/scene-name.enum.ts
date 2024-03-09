@@ -4,7 +4,7 @@ export namespace SceneName {
         'mainMenu',
         'onboarding',
         'adminMenu',
-        'adminMenuGenerateMetrix',
+        'adminMenuGenerateMetrics',
         'adminMenuUsersManagementScene',
         'adminMenuMailingScene',
         'languageSettingsScene',

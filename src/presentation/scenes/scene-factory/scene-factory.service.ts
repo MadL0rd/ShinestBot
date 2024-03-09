@@ -5,7 +5,7 @@ import { IScene } from '../models/scene.interface'
 import { SceneInjectionsProviderService } from './scene-injections-provider.service'
 import { OnboardingScene } from 'src/presentation/scenes/implementations/onboarding.scene'
 import { AdminMenuScene } from 'src/presentation/scenes/implementations/admin-menu.scene'
-import { AdminMenuGenerateMetrixScene } from 'src/presentation/scenes/implementations/admin-menu-generate-metrix.scene'
+import { AdminMenuGenerateMetricsScene } from 'src/presentation/scenes/implementations/admin-menu-generate-metrics.scene'
 import { AdminMenuUsersManagementSceneScene } from 'src/presentation/scenes/implementations/admin-menu-users-management-scene.scene'
 import { AdminMenuMailingSceneScene } from 'src/presentation/scenes/implementations/admin-menu-mailing-scene.scene'
 import { LanguageSettingsSceneScene } from 'src/presentation/scenes/implementations/language-settings-scene.scene'
@@ -23,8 +23,8 @@ export class SceneFactoryService {
                 return this.injectionsProvider.resolve(OnboardingScene)
             case 'adminMenu':
                 return this.injectionsProvider.resolve(AdminMenuScene)
-            case 'adminMenuGenerateMetrix':
-                return this.injectionsProvider.resolve(AdminMenuGenerateMetrixScene)
+            case 'adminMenuGenerateMetrics':
+                return this.injectionsProvider.resolve(AdminMenuGenerateMetricsScene)
             case 'adminMenuUsersManagementScene':
                 return this.injectionsProvider.resolve(AdminMenuUsersManagementSceneScene)
             case 'adminMenuMailingScene':

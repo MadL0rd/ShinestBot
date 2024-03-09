@@ -17,10 +17,10 @@ import { FileName } from '../models/file-name.enum'
 // =====================
 // Scene data classes
 // =====================
-export class AdminMenuGenerateMetrixSceneEntranceDto implements SceneEntrance.Dto {
-    readonly sceneName = 'adminMenuGenerateMetrix'
+export class AdminMenuGenerateMetricsSceneEntranceDto implements SceneEntrance.Dto {
+    readonly sceneName = 'adminMenuGenerateMetrics'
 }
-type SceneEnterDataType = AdminMenuGenerateMetrixSceneEntranceDto
+type SceneEnterDataType = AdminMenuGenerateMetricsSceneEntranceDto
 interface ISceneData {}
 
 // =====================
@@ -28,12 +28,12 @@ interface ISceneData {}
 // =====================
 
 @InjectableSceneConstructor()
-export class AdminMenuGenerateMetrixScene extends Scene<ISceneData, SceneEnterDataType> {
+export class AdminMenuGenerateMetricsScene extends Scene<ISceneData, SceneEnterDataType> {
     // =====================
     // Properties
     // =====================
 
-    readonly name: SceneName.union = 'adminMenuGenerateMetrix'
+    readonly name: SceneName.union = 'adminMenuGenerateMetrics'
     protected get dataDefault(): ISceneData {
         return {} as ISceneData
     }
@@ -59,7 +59,7 @@ export class AdminMenuGenerateMetrixScene extends Scene<ISceneData, SceneEnterDa
         logger.log(
             `${this.name} scene handleEnterScene. User: ${this.user.telegramInfo.id} ${this.user.telegramInfo.username}`
         )
-        await this.logToUserHistory(this.historyEvent.startSceneAdminMenuGenerateMetrix)
+        await this.logToUserHistory(this.historyEvent.startSceneAdminMenuGenerateMetrics)
 
         await ctx.replyWithHTML(this.text.adminMenuMetrics.selectDateText, this.menuMarkup())
 
