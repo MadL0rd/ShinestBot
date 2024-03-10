@@ -70,10 +70,13 @@ const loggerWinston = WinstonModule.createLogger({
                     switch (logLineInfo.level) {
                         case 'info':
                             levelCaption = chalk.green(levelCaption)
+                            break
                         case 'warn':
                             levelCaption = chalk.bold.yellow(levelCaption)
+                            break
                         case 'error':
                             levelCaption = chalk.bold.red(levelCaption)
+                            break
                     }
                     const timestamp = chalk.blue(logLineInfo.timestamp)
                     const label = chalk.blue(`[ ${logLineInfo.label} ]`)

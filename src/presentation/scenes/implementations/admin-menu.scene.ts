@@ -11,7 +11,7 @@ import { Scene } from '../models/scene.abstract'
 import { SceneUsagePermissionsValidator } from '../models/scene-usage-permissions-validator'
 import { InjectableSceneConstructor } from '../scene-factory/scene-injections-provider.service'
 import { LocalizationService } from 'src/core/localization/localization.service'
-import { SpreadsheetPageTitles } from 'src/core/google-tables/enums/spreadsheet-page-titles'
+import { SpreadsheetPrototype } from 'src/core/google-tables/enums/spreadsheet-prototype'
 import { BotContentService } from 'src/core/bot-content/bot-content.service'
 
 // =====================
@@ -114,14 +114,14 @@ export class AdminMenuScene extends Scene<ISceneData, SceneEnterDataType> {
         messageText += languages.join('; ')
         messageText += '\n'
 
-        for (const pageKey of SpreadsheetPageTitles.allKeys) {
-            messageText += `\n🔴 ${SpreadsheetPageTitles.items[pageKey]}`
+        for (const pageKey of SpreadsheetPrototype.allPages) {
+            messageText += `\n🔴 ${SpreadsheetPrototype.getSchemaForPage(pageKey).sheetPublicName}`
         }
 
         const messageInfo = await ctx.replyWithHTML(messageText)
 
         if (ctx.chat) {
-            for (const pageKey of SpreadsheetPageTitles.allKeys) {
+            for (const pageKey of SpreadsheetPrototype.allPages) {
                 await this.botContentService.cacheSpreadsheetPage(pageKey)
                 messageText = messageText.replace('🔴', '🟢')
 

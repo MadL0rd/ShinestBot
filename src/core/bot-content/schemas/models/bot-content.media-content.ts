@@ -1,6 +1,6 @@
 export class MediaContent {
-    videos: string[] = []
     images: string[] = []
+    videos: string[] = []
     audio: string[] = []
     documents: string[] = []
 }
