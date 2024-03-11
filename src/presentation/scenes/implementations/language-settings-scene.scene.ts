@@ -80,7 +80,7 @@ export class LanguageSettingsSceneScene extends Scene<ISceneData, SceneEnterData
         const languages = await this.botContentService.getLocalLanguages()
         const languagesButtons = languages.map((code) => getLanguageName(code))
         const languageIndex = languagesButtons.indexOf(message.text)
-        if (languageIndex && languageIndex >= 0) this.completion.canNotHandle({})
+        if (languageIndex && languageIndex >= 0) return this.completion.canNotHandle({})
 
         this.user.internalInfo.language = languages[languageIndex]
         await this.userService.update(this.user)

@@ -4,10 +4,10 @@ import { MainMenuScene } from 'src/presentation/scenes/implementations/main-menu
 import { IScene } from '../models/scene.interface'
 import { SceneInjectionsProviderService } from './scene-injections-provider.service'
 import { OnboardingScene } from 'src/presentation/scenes/implementations/onboarding.scene'
-import { AdminMenuScene } from 'src/presentation/scenes/implementations/admin-menu.scene'
-import { AdminMenuGenerateMetricsScene } from 'src/presentation/scenes/implementations/admin-menu-generate-metrics.scene'
-import { AdminMenuUsersManagementSceneScene } from 'src/presentation/scenes/implementations/admin-menu-users-management-scene.scene'
-import { AdminMenuMailingSceneScene } from 'src/presentation/scenes/implementations/admin-menu-mailing-scene.scene'
+import { AdminMenuScene } from 'src/presentation/scenes/implementations/admin-menu/admin-menu.scene'
+import { AdminMenuGenerateMetricsScene } from 'src/presentation/scenes/implementations/admin-menu/admin-menu-generate-metrics.scene'
+import { AdminMenuUsersManagementSceneScene } from 'src/presentation/scenes/implementations/admin-menu/admin-menu-users-management-scene.scene'
+import { AdminMenuMailingSceneScene } from 'src/presentation/scenes/implementations/admin-menu/admin-menu-mailing-scene.scene'
 import { LanguageSettingsSceneScene } from 'src/presentation/scenes/implementations/language-settings-scene.scene'
 /** New scene import placeholder */
 
