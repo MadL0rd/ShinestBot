@@ -1,0 +1,62 @@
+{
+    "localizedStrings": {
+        "uniqueMessages": {
+            "sheetId": "uniqueMessages",
+            "sheetPublicName": "УникальныеСообщения",
+            "contentType": "localizedStrings",
+            "cacheConfiguration": {
+                "configurationRow": 2,
+                "firstContentRow": 3,
+                "lastContentRow": 100,
+                "firstLetter": "A",
+                "lastLetter": "Z",
+                "minRowLength": 6
+            },
+            "validation": {
+                "minRowLength": 6,
+                "requiredFields": {
+                    "group": "",
+                    "key": ""
+                }
+            },
+            "itemPrototype": {
+                "group": "",
+                "key": "",
+                "comment": "",
+                "params": "",
+                "isUniqueMessage": ""
+            }
+        }
+    },
+    "commonContent": {
+        "onboarding": {
+            "sheetId": "onboarding",
+            "sheetPublicName": "Онбординг",
+            "contentType": "common",
+            "cacheConfiguration": {
+                "configurationRow": 1,
+                "firstContentRow": 3,
+                "lastContentRow": 50,
+                "firstLetter": "A",
+                "lastLetter": "G"
+            },
+            "validation": {
+                "minRowLength": 3,
+                "requiredFields": {
+                    "id": "",
+                    "messageText": "",
+                    "buttonText": ""
+                }
+            },
+            "itemPrototype": {
+                "id": "",
+                "messageText": "",
+                "buttonText": "",
+                "video": "",
+                "picture": "",
+                "audio": "",
+                "docs": ""
+            }
+        }
+    }
+}

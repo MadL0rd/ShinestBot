@@ -2,8 +2,8 @@ import { Module } from '@nestjs/common'
 import { BotContentService } from './bot-content.service'
 import { MongooseModule } from '@nestjs/mongoose'
 import { BotContent, BotContentSchema } from './schemas/bot-content.schema'
-import { GoogleTablesModule } from '../google-tables/google-tables.module'
 import { LocalizationModule } from '../localization/localization.module'
+import { SheetDataProviderModule } from '../sheet-data-provider/sheet-data-provider.module'
 
 @Module({
     imports: [
@@ -13,7 +13,7 @@ import { LocalizationModule } from '../localization/localization.module'
                 schema: BotContentSchema,
             },
         ]),
-        GoogleTablesModule,
+        SheetDataProviderModule,
         LocalizationModule,
     ],
     providers: [BotContentService],

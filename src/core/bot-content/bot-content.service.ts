@@ -2,8 +2,7 @@ import { Injectable, OnModuleInit } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import { Model } from 'mongoose'
 import { BotContent, BotContentDocument, BotContentStable } from './schemas/bot-content.schema'
-import { GoogleTablesService } from '../google-tables/google-tables.service'
-import { SpreadsheetPageTitles } from '../google-tables/enums/spreadsheet-page-titles'
+import { DataSheetPrototype } from '../sheet-data-provider/schemas/sheet-prototype'
 import { CreateBotContentDto } from './dto/create-bot-content.dto'
 import { UpdateBotContentDto } from './dto/update-bot-content.dto'
 import { logger } from 'src/app.logger'
@@ -12,6 +11,7 @@ import { internalConstants } from 'src/app.internal-constants'
 import { LocalizationService } from '../localization/localization.service'
 import { OnboardingPage } from './schemas/models/bot-content.onboarding-page'
 import { MediaContent } from './schemas/models/bot-content.media-content'
+import { SheetDataProviderService } from '../sheet-data-provider/sheet-data-provider.service'
 
 @Injectable()
 export class BotContentService implements OnModuleInit {
@@ -23,7 +23,7 @@ export class BotContentService implements OnModuleInit {
 
     constructor(
         @InjectModel(BotContent.name) private model: Model<BotContent>,
-        private readonly googleTablesService: GoogleTablesService,
+        private readonly sheetDataProvider: SheetDataProviderService,
         private readonly localizationService: LocalizationService
     ) {
         this.botContentCache = new Map<string, BotContentStable>()
@@ -34,7 +34,8 @@ export class BotContentService implements OnModuleInit {
 
         // eslint-disable-next-line @typescript-eslint/no-this-alias
         const self = this
-        const loadingPromises = SpreadsheetPageTitles.allKeys.map((pageName) => {
+        await this.localizationService.cacheLocalization()
+        const loadingPromises = DataSheetPrototype.allPages.map(async (pageName) => {
             const cacheSpreadsheetFunc = async function (): Promise<void> {
                 try {
                     await self.cacheSpreadsheetPage(pageName)
@@ -42,7 +43,7 @@ export class BotContentService implements OnModuleInit {
                     logger.error(`Fail to cache spreadsheet page ${pageName}`, error)
                 }
             }
-            return cacheSpreadsheetFunc()
+            return await cacheSpreadsheetFunc()
         })
         await Promise.all(loadingPromises)
     }
@@ -71,7 +72,7 @@ export class BotContentService implements OnModuleInit {
         return contentPage
     }
 
-    async cacheSpreadsheetPage(pageName: SpreadsheetPageTitles.keysUnion) {
+    async cacheSpreadsheetPage(pageName: DataSheetPrototype.SomePage) {
         switch (pageName) {
             case 'uniqueMessages':
                 await this.cacheUniqueMessage()
@@ -168,9 +169,23 @@ export class BotContentService implements OnModuleInit {
     }
 
     private async cacheOnboarding() {
-        const content = await this.googleTablesService.getContentByListName('onboarding', 'A2:F50')
-        if (!content) throw Error('No content')
-        const onboardingContent = this.createOnboardingArray(content)
+        const content = await this.sheetDataProvider.getContentFrom('onboarding')
+        if (!content || content.isEmpty) throw Error('No content')
+
+        const onboardingContent: OnboardingPage[] = content.compactMap((rowItem) => {
+            const result: OnboardingPage = {
+                id: rowItem.id,
+                messageText: rowItem.messageText,
+                buttonText: rowItem.buttonText,
+                media: this.createMediaContentFromCells(
+                    rowItem.picture,
+                    rowItem.video,
+                    rowItem.audio,
+                    rowItem.docs
+                ),
+            }
+            return result
+        })
 
         // TODO: add localized content for collections
         const languages = await this.localizationService.getRemoteLanguages()
@@ -189,42 +204,20 @@ export class BotContentService implements OnModuleInit {
         }
     }
 
-    /** Map spreadsheet content to OnboardingPage array */
-    private createOnboardingArray(googleRows: string[][]): OnboardingPage[] {
-        let onbordingArray: OnboardingPage[] = []
-        for (const element of googleRows) {
-            if (element.length < 1) {
-                continue
-            }
-            const onboardinjObj: OnboardingPage = {
-                id: element[0],
-                messageText: element[1],
-                buttonText: element[2],
-                media: this.createMediaContentFromCells(element[3], element[4], element[5]),
-            }
-            if (!onbordingArray) {
-                onbordingArray = [onboardinjObj]
-            } else {
-                onbordingArray.push(onboardinjObj)
-            }
-        }
-        return onbordingArray
-    }
-
     private createMediaContentFromCells(
-        videosCell?: string,
         imagesCell?: string,
+        videosCell?: string,
         audioCell?: string,
         documentsCell?: string
     ): MediaContent {
         return {
-            videos:
-                videosCell
+            images:
+                imagesCell
                     ?.split('\n')
                     .map((url) => url.trim())
                     .filter((url) => url.length > 0) ?? [],
-            images:
-                imagesCell
+            videos:
+                videosCell
                     ?.split('\n')
                     .map((url) => url.trim())
                     .filter((url) => url.length > 0) ?? [],

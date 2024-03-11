@@ -133,6 +133,7 @@ export class AdminMenuUsersManagementSceneScene extends Scene<ISceneData, SceneE
                         data.editPermissionsModeEnabled = true
                         return this.completion.inProgress(data)
                     }
+                    break
                 case this.text.adminMenu.usersManagementButtonNewSearch:
                     await ctx.replyWithHTML(
                         this.text.adminMenu.usersManagementTextFindUser,

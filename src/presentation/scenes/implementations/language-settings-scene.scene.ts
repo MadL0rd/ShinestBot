@@ -60,7 +60,7 @@ export class LanguageSettingsSceneScene extends Scene<ISceneData, SceneEnterData
         await this.logToUserHistory(this.historyEvent.startSceneLanguageSettingsScene)
 
         const languages = await this.botContentService.getLocalLanguages()
-        const languagesButtons = languages.map((code) => `${getLanguageName(code)} ${code}`)
+        const languagesButtons = languages.map((code) => getLanguageName(code))
 
         await ctx.replyWithHTML(
             this.text.common.selectLanguageText,
@@ -78,13 +78,13 @@ export class LanguageSettingsSceneScene extends Scene<ISceneData, SceneEnterData
         if (!message || !('text' in message)) return this.completion.canNotHandle({})
 
         const languages = await this.botContentService.getLocalLanguages()
-        const languagesButtons = languages.map((code) => `${getLanguageName(code)} ${code}`)
+        const languagesButtons = languages.map((code) => getLanguageName(code))
         const languageIndex = languagesButtons.indexOf(message.text)
         if (languageIndex && languageIndex >= 0) this.completion.canNotHandle({})
 
         this.user.internalInfo.language = languages[languageIndex]
         await this.userService.update(this.user)
-        return this.completion.complete({ sceneName: 'onboarding' })
+        return this.completion.complete()
     }
 
     async handleCallback(
