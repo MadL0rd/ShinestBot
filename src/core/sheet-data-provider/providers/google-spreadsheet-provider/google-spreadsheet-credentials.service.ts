@@ -4,9 +4,7 @@ import * as process from 'node:process'
 import { Injectable } from '@nestjs/common'
 
 @Injectable()
-export class GoogleCredentialsService {
-    //constructor() {}
-
+export class GoogleSpreadsheetCredentialsService {
     // If modifying these scopes, delete token.json.
     private readonly SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
     // The file token.json stores the user's access and refresh tokens, and is

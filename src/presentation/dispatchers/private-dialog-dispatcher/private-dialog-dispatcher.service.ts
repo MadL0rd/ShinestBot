@@ -301,8 +301,9 @@ export class PrivateDialogDispatcherService {
         switch (command) {
             case '/back_to_menu':
                 return this.defaultSceneName
+            default:
+                return null
         }
-        return null
     }
 
     private getNextSceneNameFromCompletion(

@@ -2,10 +2,10 @@ import { Injectable } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import { LocalizedGroup } from './schemas/localization.schema'
 import { Model } from 'mongoose'
-import { GoogleTablesService } from '../google-tables/google-tables.service'
 import { LocalizedGroupDto } from './dto/localized-group.dto'
 import { LocalizedString } from './schemas/models/localization.localized-string'
 import { logger } from 'src/app.logger'
+import { SheetDataProviderService } from '../sheet-data-provider/sheet-data-provider.service'
 
 @Injectable()
 export class LocalizationService {
@@ -14,7 +14,7 @@ export class LocalizationService {
 
     constructor(
         @InjectModel(LocalizedGroup.name) private model: Model<LocalizedGroup>,
-        private readonly googleTablesService: GoogleTablesService
+        private readonly sheetDataProvider: SheetDataProviderService
     ) {}
 
     // =====================
@@ -26,7 +26,7 @@ export class LocalizationService {
     }
 
     async getRemoteLanguages(): Promise<string[]> {
-        const languages = await this.googleTablesService.getLanguagesFrom('uniqueMessages')
+        const languages = await this.sheetDataProvider.getLanguagesFrom('uniqueMessages')
         if (!languages || languages.isEmpty) {
             throw Error('No languages content')
         }
@@ -39,15 +39,15 @@ export class LocalizationService {
         logger.log(`\nLanguages: ${languages}`)
 
         // Get localization content
-        const content = await this.googleTablesService.getLocalizedStringsFrom('uniqueMessages')
+        const content = await this.sheetDataProvider.getLocalizedStringsFrom('uniqueMessages')
         if (!content) {
             throw Error('No languages content')
         }
 
         const localizedStrings: LocalizedString[] = content.map((row) => {
             const localizedString: LocalizedString = {
-                groupName: row.group,
-                key: row.key,
+                groupName: row.group.lowerCasedFirstCharOnly,
+                key: row.key.lowerCasedFirstCharOnly,
                 comment: row.comment,
                 parameters: [],
                 isUniqueMessage: row.isUniqueMessage == this.cachedTrueValue,

@@ -1,4 +1,5 @@
 import * as spreadsheetSchema from './SpreadsheetSchema.json'
+import { DataSheetPageSchema } from './data-sheet-page-schema.interface'
 
 type RowPrototype<BasePrototype, RequiredFields extends keyof any> = {
     [Prop in keyof BasePrototype]: Prop extends RequiredFields
@@ -6,17 +7,17 @@ type RowPrototype<BasePrototype, RequiredFields extends keyof any> = {
         : BasePrototype[Prop] | undefined
 }
 
-export namespace SpreadsheetPrototype {
+export namespace DataSheetPrototype {
     // Content schemas
     export const schemaLocalization = spreadsheetSchema.localizedStrings
     export const schemaContent = spreadsheetSchema.commonContent
     export type PageContentTypes = keyof typeof spreadsheetSchema
 
-    export function getSchemaForPage(page: SomePage): SheetPageSchema {
+    export function getSchemaForPage(page: SomePage): DataSheetPageSchema {
         if (Object.keys(schemaLocalization).includes(page)) {
-            return schemaLocalization[page as SomePageLocalization] as SheetPageSchema
+            return schemaLocalization[page as SomePageLocalization] as DataSheetPageSchema
         }
-        return schemaContent[page as SomePageContent] as SheetPageSchema
+        return schemaContent[page as SomePageContent] as DataSheetPageSchema
     }
 
     // Spreadsheet page types
@@ -25,12 +26,8 @@ export namespace SpreadsheetPrototype {
     export type SomePage = SomePageLocalization | SomePageContent
 
     export const allPages = [
-        ...Object.keys(schemaContent).filter(
-            (key) => typeof schemaLocalization[key as SomePageLocalization] === 'string'
-        ),
-        ...Object.keys(schemaContent).filter(
-            (key) => typeof schemaContent[key as SomePageContent] === 'string'
-        ),
+        ...Object.keys(schemaLocalization),
+        ...Object.keys(schemaContent),
     ] as SomePage[]
 
     // Spreadsheet page row items
@@ -44,22 +41,4 @@ export namespace SpreadsheetPrototype {
         (typeof schemaContent)[Page]['itemPrototype'],
         keyof (typeof schemaContent)[Page]['validation']['requiredFields']
     >
-}
-
-interface SheetPageSchema {
-    sheetId: string
-    sheetPublicName: string
-    contentType: 'common' | 'localizedStrings'
-    cacheConfiguration: {
-        configurationRow: number
-        firstContentRow: number
-        lastContentRow: number
-        firstLetter: string
-        lastLetter: string
-    }
-    validation: {
-        minRowLength: number
-        requiredFields: Record<string, string>
-    }
-    itemPrototype: Record<string, string>
 }

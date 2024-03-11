@@ -1,25 +1,27 @@
 import { Injectable } from '@nestjs/common'
-// import { google } from 'googleapis'
-import { GoogleCredentialsService } from './google-credentials.service'
-import { SpreadsheetPrototype } from './enums/spreadsheet-prototype'
-import {
-    replaceMarkdownWithHtml,
-    validateStringHtmlTagsAll,
-} from 'src/utils/replaceMarkdownWithHtml'
-import { internalConstants } from 'src/app.internal-constants'
-import { logger } from 'src/app.logger'
-import * as XLSX from 'xlsx'
+import { SheetDataProviderFactoryService } from './sheet-data-provider-factory/sheet-data-provider-factory.service'
+import { ISheetDataProvider } from './abscract/sheet-data-provider.interface'
+import { DataSheetPrototype } from './schemas/sheet-prototype'
 
 @Injectable()
-export class GoogleTablesService {
-    constructor(private readonly googleCredentialsService: GoogleCredentialsService) {}
+export class SheetDataProviderService {
+    // =====================
+    // Properties
+    // =====================
 
-    private readonly spreadsheetId = internalConstants.googleSpreadsheetId
+    private readonly sheetDataProvider: ISheetDataProvider
+    constructor(private readonly dataProvidersFactory: SheetDataProviderFactoryService) {
+        this.sheetDataProvider = this.dataProvidersFactory.getDefaultProvider()
+    }
 
-    async getLanguagesFrom(page: SpreadsheetPrototype.SomePageLocalization): Promise<string[]> {
-        const pageConfig = SpreadsheetPrototype.schemaLocalization[page]
+    // =====================
+    // Public methods
+    // =====================
+
+    async getLanguagesFrom(page: DataSheetPrototype.SomePageLocalization): Promise<string[]> {
+        const pageConfig = DataSheetPrototype.schemaLocalization[page]
         const cacheConfig = pageConfig.cacheConfiguration
-        const content = await this.getContentByListName(
+        const content = await this.sheetDataProvider.getContentByListName(
             pageConfig.sheetPublicName,
             `${cacheConfig.firstLetter}${cacheConfig.configurationRow}:${cacheConfig.lastLetter}${cacheConfig.configurationRow}`
         )
@@ -28,29 +30,33 @@ export class GoogleTablesService {
         return result ?? []
     }
 
-    async getLocalizedStringsFrom<Page extends SpreadsheetPrototype.SomePageLocalization>(
+    async getLocalizedStringsFrom<Page extends DataSheetPrototype.SomePageLocalization>(
         page: Page
-    ): Promise<SpreadsheetPrototype.RowItemLocalization<Page>[]> {
+    ): Promise<DataSheetPrototype.RowItemLocalization<Page>[]> {
         return this.getContentItemsFromPage(
             page
-        ) as any as SpreadsheetPrototype.RowItemLocalization<Page>[]
+        ) as any as DataSheetPrototype.RowItemLocalization<Page>[]
     }
 
-    async getContentFrom<Page extends SpreadsheetPrototype.SomePageContent>(
+    async getContentFrom<Page extends DataSheetPrototype.SomePageContent>(
         page: Page
-    ): Promise<SpreadsheetPrototype.RowItemContent<Page>[]> {
+    ): Promise<DataSheetPrototype.RowItemContent<Page>[]> {
         return this.getContentItemsFromPage(
             page
-        ) as any as SpreadsheetPrototype.RowItemContent<Page>[]
+        ) as any as DataSheetPrototype.RowItemContent<Page>[]
     }
+
+    // =====================
+    // Private methods
+    // =====================
 
     private async getContentItemsFromPage(
-        page: SpreadsheetPrototype.SomePage
+        page: DataSheetPrototype.SomePage
     ): Promise<Record<string, string | Record<string, string>>[]> {
-        const pageConfig = SpreadsheetPrototype.getSchemaForPage(page)
+        const pageConfig = DataSheetPrototype.getSchemaForPage(page)
         const cacheConfig = pageConfig.cacheConfiguration
         const validation = pageConfig.validation
-        let content = await this.getContentByListName(
+        let content = await this.sheetDataProvider.getContentByListName(
             pageConfig.sheetPublicName,
             `${cacheConfig.firstLetter}${cacheConfig.configurationRow}:${cacheConfig.lastLetter}${cacheConfig.lastContentRow}`
         )
@@ -115,46 +121,5 @@ export class GoogleTablesService {
             })
             return rowObject
         })
-    }
-
-    private async getContentByListName(pageName: string, range: string): Promise<string[][]> {
-        logger.log(`Start cache ${pageName}`)
-
-        const workbook = XLSX.read('./ShinestBotOpenDataTable.xlsx', {
-            type: 'file',
-            sheet: pageName,
-        })
-        const worksheet = workbook.Sheets[pageName]
-        const localRows: string[][] = XLSX.utils.sheet_to_json(worksheet, {
-            header: 1,
-            range: range,
-            raw: false,
-        })
-        const rows = localRows.filter((row) => row.isNotEmpty)
-
-        // const auth = await this.googleCredentialsService.authorize()
-        // const sheets = google.sheets({ version: 'v4', auth: auth })
-        // const res = await sheets.spreadsheets.values.get({
-        //     spreadsheetId: this.spreadsheetId,
-        //     range: `${pageName}!${range}`,
-        // })
-        // const rows = res.data.values
-        // if (!rows || rows.length === 0) {
-        //     logger.warn('No data found.')
-        //     return []
-        // }
-
-        // Markdown telegram spec symbols fix
-        for (let i = 0; i < rows.length; i++) {
-            for (let j = 0; j < rows[i].length; j++) {
-                let cellValue = rows[i][j]
-                if (cellValue) {
-                    cellValue = replaceMarkdownWithHtml(cellValue).trimmed
-                    validateStringHtmlTagsAll(cellValue)
-                    rows[i][j] = cellValue
-                }
-            }
-        }
-        return rows
     }
 }

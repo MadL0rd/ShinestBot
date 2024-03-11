@@ -2,8 +2,7 @@ import { Injectable, OnModuleInit } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import { Model } from 'mongoose'
 import { BotContent, BotContentDocument, BotContentStable } from './schemas/bot-content.schema'
-import { GoogleTablesService } from '../google-tables/google-tables.service'
-import { SpreadsheetPrototype } from '../google-tables/enums/spreadsheet-prototype'
+import { DataSheetPrototype } from '../sheet-data-provider/schemas/sheet-prototype'
 import { CreateBotContentDto } from './dto/create-bot-content.dto'
 import { UpdateBotContentDto } from './dto/update-bot-content.dto'
 import { logger } from 'src/app.logger'
@@ -12,6 +11,7 @@ import { internalConstants } from 'src/app.internal-constants'
 import { LocalizationService } from '../localization/localization.service'
 import { OnboardingPage } from './schemas/models/bot-content.onboarding-page'
 import { MediaContent } from './schemas/models/bot-content.media-content'
+import { SheetDataProviderService } from '../sheet-data-provider/sheet-data-provider.service'
 
 @Injectable()
 export class BotContentService implements OnModuleInit {
@@ -23,7 +23,7 @@ export class BotContentService implements OnModuleInit {
 
     constructor(
         @InjectModel(BotContent.name) private model: Model<BotContent>,
-        private readonly googleTablesService: GoogleTablesService,
+        private readonly sheetDataProvider: SheetDataProviderService,
         private readonly localizationService: LocalizationService
     ) {
         this.botContentCache = new Map<string, BotContentStable>()
@@ -35,7 +35,7 @@ export class BotContentService implements OnModuleInit {
         // eslint-disable-next-line @typescript-eslint/no-this-alias
         const self = this
         await this.localizationService.cacheLocalization()
-        const loadingPromises = SpreadsheetPrototype.allPages.map((pageName) => {
+        const loadingPromises = DataSheetPrototype.allPages.map(async (pageName) => {
             const cacheSpreadsheetFunc = async function (): Promise<void> {
                 try {
                     await self.cacheSpreadsheetPage(pageName)
@@ -43,7 +43,7 @@ export class BotContentService implements OnModuleInit {
                     logger.error(`Fail to cache spreadsheet page ${pageName}`, error)
                 }
             }
-            return cacheSpreadsheetFunc()
+            return await cacheSpreadsheetFunc()
         })
         await Promise.all(loadingPromises)
     }
@@ -72,7 +72,7 @@ export class BotContentService implements OnModuleInit {
         return contentPage
     }
 
-    async cacheSpreadsheetPage(pageName: SpreadsheetPrototype.SomePage) {
+    async cacheSpreadsheetPage(pageName: DataSheetPrototype.SomePage) {
         switch (pageName) {
             case 'uniqueMessages':
                 await this.cacheUniqueMessage()
@@ -169,7 +169,7 @@ export class BotContentService implements OnModuleInit {
     }
 
     private async cacheOnboarding() {
-        const content = await this.googleTablesService.getContentFrom('onboarding')
+        const content = await this.sheetDataProvider.getContentFrom('onboarding')
         if (!content || content.isEmpty) throw Error('No content')
 
         const onboardingContent: OnboardingPage[] = content.compactMap((rowItem) => {
