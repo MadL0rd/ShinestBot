@@ -101,7 +101,7 @@ export class SheetDataProviderService {
             })
             .filter((item) => {
                 for (const requiredField in validation.requiredFields) {
-                    const value = item[requiredField]
+                    const value = item[requiredField].trimmed
                     if (!value || value.isEmpty) return false
                 }
                 return true

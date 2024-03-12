@@ -9,8 +9,7 @@
                 "firstContentRow": 3,
                 "lastContentRow": 100,
                 "firstLetter": "A",
-                "lastLetter": "Z",
-                "minRowLength": 6
+                "lastLetter": "Z"
             },
             "validation": {
                 "minRowLength": 6,
@@ -32,7 +31,7 @@
         "onboarding": {
             "sheetId": "onboarding",
             "sheetPublicName": "Онбординг",
-            "contentType": "common",
+            "contentType": "commonContent",
             "cacheConfiguration": {
                 "configurationRow": 1,
                 "firstContentRow": 3,

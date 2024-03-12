@@ -1,7 +1,9 @@
+import { DataSheetPrototype } from './sheet-prototype'
+
 export interface DataSheetPageSchema {
     sheetId: string
     sheetPublicName: string
-    contentType: 'common' | 'localizedStrings'
+    contentType: DataSheetPrototype.PageContentTypes
     cacheConfiguration: {
         configurationRow: number
         firstContentRow: number

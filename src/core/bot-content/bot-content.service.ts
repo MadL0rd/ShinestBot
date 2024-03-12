@@ -172,7 +172,7 @@ export class BotContentService implements OnModuleInit {
         const content = await this.sheetDataProvider.getContentFrom('onboarding')
         if (!content || content.isEmpty) throw Error('No content')
 
-        const onboardingContent: OnboardingPage[] = content.compactMap((rowItem) => {
+        const onboardingContent = content.map((rowItem) => {
             const result: OnboardingPage = {
                 id: rowItem.id,
                 messageText: rowItem.messageText,
