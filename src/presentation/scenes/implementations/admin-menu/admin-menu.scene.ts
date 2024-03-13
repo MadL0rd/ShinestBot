@@ -11,7 +11,7 @@ import { Scene } from '../../models/scene.abstract'
 import { SceneUsagePermissionsValidator } from '../../models/scene-usage-permissions-validator'
 import { InjectableSceneConstructor } from '../../scene-factory/scene-injections-provider.service'
 import { LocalizationService } from 'src/core/localization/localization.service'
-import { DataSheetPrototype } from 'src/core/sheet-data-provider/schemas/sheet-prototype'
+import { DataSheetPrototype } from 'src/core/sheet-data-provider/schemas/data-sheet-prototype'
 import { BotContentService } from 'src/core/bot-content/bot-content.service'
 
 // =====================
@@ -109,35 +109,56 @@ export class AdminMenuScene extends Scene<ISceneData, SceneEnterDataType> {
     // Private methods
     // =====================
     private async cacheBotContent(ctx: Context<Update>): Promise<void> {
-        let messagePrefix = 'Список языков: '
-        const languages = await this.localizationService.getRemoteLanguages()
-        messagePrefix += languages.join('; ')
-        messagePrefix += '\n'
+        const messagePrefix = 'Кеширование таблицы\n\n'
 
-        const statuses = new Map<DataSheetPrototype.SomePage, SpreadsheetPageCacheStatus | Error>()
-        DataSheetPrototype.allPages.forEach((pageName) =>
-            statuses.set(pageName, SpreadsheetPageCacheStatus.loading)
-        )
+        const messageInfo = await ctx.replyWithHTML(messagePrefix + 'Загрузка локализации')
+        if (!ctx.chat) return
+        try {
+            await this.localizationService.cacheLocalization()
+        } catch (error) {
+            logger.error(`Fail to cache localization`, error)
+            await ctx.telegram.editMessageText(
+                ctx.chat.id,
+                messageInfo.message_id,
+                undefined,
+                messagePrefix + `❌ Загрузка локализации\n\`\`\`\n${error}\n\`\`\``,
+                {
+                    parse_mode: 'MarkdownV2',
+                }
+            )
+            return
+        }
 
-        const messageInfo = await ctx.replyWithHTML(
-            messagePrefix + this.generageTextForCacheStatuses(statuses)
+        const statuses = new Map<
+            DataSheetPrototype.SomePage,
+            SpreadsheetPageCacheStatus.Union | Error
+        >()
+        DataSheetPrototype.allPages.forEach((pageName) => statuses.set(pageName, 'loading'))
+
+        await ctx.telegram.editMessageText(
+            ctx.chat.id,
+            messageInfo.message_id,
+            undefined,
+            messagePrefix + this.generageTextForCacheStatuses(statuses),
+            {
+                parse_mode: 'MarkdownV2',
+            }
         )
         const botContentService = this.botContentService
-        const loadingPromises = DataSheetPrototype.allPages.map((pageName) => {
+        const loadingPromises = DataSheetPrototype.allPagesContent.map((pageName) => {
             const cacheSpreadsheetFunc = async function (): Promise<void> {
                 try {
                     await botContentService.cacheSpreadsheetPage(pageName)
-                    statuses.set(pageName, SpreadsheetPageCacheStatus.success)
+                    statuses.set(pageName, 'success')
                 } catch (error) {
                     statuses.set(pageName, error as Error)
-                    logger.error(`Fail to cache spreadsheep page ${pageName}`, error)
+                    logger.error(`Fail to cache spreadsheet page ${pageName}`, error)
                 }
             }
             return cacheSpreadsheetFunc()
         })
         await Promise.all(loadingPromises)
 
-        if (!ctx.chat) return
         await ctx.telegram.editMessageText(
             ctx.chat.id,
             messageInfo.message_id,
@@ -152,7 +173,7 @@ export class AdminMenuScene extends Scene<ISceneData, SceneEnterDataType> {
     }
 
     private generageTextForCacheStatuses(
-        statuses: Map<DataSheetPrototype.SomePage, SpreadsheetPageCacheStatus | Error>
+        statuses: Map<DataSheetPrototype.SomePage, SpreadsheetPageCacheStatus.Union | Error>
     ): string {
         let result = ''
         for (const sheetPage of DataSheetPrototype.allPages) {
@@ -160,20 +181,13 @@ export class AdminMenuScene extends Scene<ISceneData, SceneEnterDataType> {
             const status = statuses.get(sheetPage)
             result += `\n`
             if (status instanceof Error) {
-                result += `❌ ${pageSchema.sheetPublicName}:\n\`\`\`\n${status}\n\`\`\``
+                result += `${SpreadsheetPageCacheStatus.getEmojiForStatus('error')} ${
+                    pageSchema.sheetPublicName
+                }:\n\`\`\`\n${status}\n\`\`\``
             } else {
-                const statusRegular = status as SpreadsheetPageCacheStatus
-                switch (statusRegular) {
-                    case SpreadsheetPageCacheStatus.loading:
-                        result += '🔍'
-                        break
-                    case SpreadsheetPageCacheStatus.success:
-                        result += '🟢'
-                        break
-                    case SpreadsheetPageCacheStatus.error:
-                        result += '❌'
-                        break
-                }
+                result += SpreadsheetPageCacheStatus.getEmojiForStatus(
+                    status as SpreadsheetPageCacheStatus.Union
+                )
                 result += pageSchema.sheetPublicName
             }
         }
@@ -191,8 +205,23 @@ export class AdminMenuScene extends Scene<ISceneData, SceneEnterDataType> {
     }
 }
 
-enum SpreadsheetPageCacheStatus {
-    loading = 'loading',
-    success = 'success',
-    error = 'error',
+namespace SpreadsheetPageCacheStatus {
+    export type Union = (typeof allCases)[number]
+    export const allCases = ['loading', 'success', 'error'] as const
+
+    export function castToInstance(value?: string | Union | null): Union | null {
+        if (!value) return null
+        return allCases.includes(value) ? (value as Union) : null
+    }
+
+    export function getEmojiForStatus(value: Union) {
+        switch (value) {
+            case 'loading':
+                return '🔍'
+            case 'success':
+                return '🟢'
+            case 'error':
+                return '❌'
+        }
+    }
 }

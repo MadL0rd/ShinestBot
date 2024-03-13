@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common'
 import { SheetDataProviderFactoryService } from './sheet-data-provider-factory/sheet-data-provider-factory.service'
 import { ISheetDataProvider } from './abscract/sheet-data-provider.interface'
-import { DataSheetPrototype } from './schemas/sheet-prototype'
+import { DataSheetPrototype } from './schemas/data-sheet-prototype'
+import { LanguageCode } from 'src/utils/languages-info/getLanguageName'
 
 @Injectable()
 export class SheetDataProviderService {
@@ -18,7 +19,9 @@ export class SheetDataProviderService {
     // Public methods
     // =====================
 
-    async getLanguagesFrom(page: DataSheetPrototype.SomePageLocalization): Promise<string[]> {
+    async getLanguagesFrom(
+        page: DataSheetPrototype.SomePageLocalization
+    ): Promise<LanguageCode.Union[]> {
         const pageConfig = DataSheetPrototype.schemaLocalization[page]
         const cacheConfig = pageConfig.cacheConfiguration
         const content = await this.sheetDataProvider.getContentByListName(
@@ -26,8 +29,12 @@ export class SheetDataProviderService {
             `${cacheConfig.firstLetter}${cacheConfig.configurationRow}:${cacheConfig.lastLetter}${cacheConfig.configurationRow}`
         )
         const notLanguageKeys = Object.keys(pageConfig.itemPrototype)
-        const result = content.first?.filter((title) => notLanguageKeys.includes(title) === false)
-        return result ?? []
+        const languageCodes =
+            content.first?.filter((title) => notLanguageKeys.includes(title) === false) ?? []
+        const languageCodesStable = languageCodes.compactMap((code) =>
+            LanguageCode.castToInstance(code)
+        )
+        return languageCodesStable ?? []
     }
 
     async getLocalizedStringsFrom<Page extends DataSheetPrototype.SomePageLocalization>(
@@ -90,8 +97,12 @@ export class SheetDataProviderService {
                 for (const rowKey in rowRecord) {
                     if (itemPrototypeKeys.includes(rowKey)) {
                         rowItem[rowKey] = rowRecord[rowKey]
-                    } else {
+                    } else if (LanguageCode.allCases.includes(rowKey)) {
                         localizedValues[rowKey] = rowRecord[rowKey]
+                    } else {
+                        throw Error(
+                            `Sheet cache error: ${pageConfig.sheetId}\nKey '${rowKey}' is unsupported: there is no field '${rowKey}' in prototype or '${rowKey}' is unsupported language`
+                        )
                     }
                 }
                 if (pageConfig.contentType == 'localizedStrings') {

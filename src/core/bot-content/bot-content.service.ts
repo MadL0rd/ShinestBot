@@ -2,7 +2,7 @@ import { Injectable, OnModuleInit } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import { Model } from 'mongoose'
 import { BotContent, BotContentDocument, BotContentStable } from './schemas/bot-content.schema'
-import { DataSheetPrototype } from '../sheet-data-provider/schemas/sheet-prototype'
+import { DataSheetPrototype } from '../sheet-data-provider/schemas/data-sheet-prototype'
 import { CreateBotContentDto } from './dto/create-bot-content.dto'
 import { UpdateBotContentDto } from './dto/update-bot-content.dto'
 import { logger } from 'src/app.logger'
@@ -19,6 +19,7 @@ export class BotContentService implements OnModuleInit {
     // Initializer
     // =====================
 
+    private readonly cachedTrueValue = 'TRUE'
     private botContentCache: Map<string, BotContentStable>
 
     constructor(
@@ -35,13 +36,13 @@ export class BotContentService implements OnModuleInit {
         // eslint-disable-next-line @typescript-eslint/no-this-alias
         const self = this
         await this.localizationService.cacheLocalization()
-        const loadingPromises = DataSheetPrototype.allPages.map(async (pageName) => {
+        const loadingPromises = DataSheetPrototype.allPagesContent.map(async (pageName) => {
             const cacheSpreadsheetFunc = async function (): Promise<void> {
-                try {
-                    await self.cacheSpreadsheetPage(pageName)
-                } catch (error) {
-                    logger.error(`Fail to cache spreadsheet page ${pageName}`, error)
-                }
+                // try {
+                await self.cacheSpreadsheetPage(pageName)
+                // } catch (error) {
+                //     logger.error(`Fail to cache spreadsheet page ${pageName}`, error)
+                // }
             }
             return await cacheSpreadsheetFunc()
         })
@@ -72,9 +73,9 @@ export class BotContentService implements OnModuleInit {
         return contentPage
     }
 
-    async cacheSpreadsheetPage(pageName: DataSheetPrototype.SomePage) {
+    async cacheSpreadsheetPage(pageName: DataSheetPrototype.SomePageContent) {
         switch (pageName) {
-            case 'uniqueMessages':
+            case 'uniqueMessagesContent':
                 await this.cacheUniqueMessage()
                 break
 
@@ -113,52 +114,90 @@ export class BotContentService implements OnModuleInit {
     // =====================
 
     private async cacheUniqueMessage() {
-        await this.localizationService.cacheLocalization()
+        // Cache data from table
+        const sheetPage: DataSheetPrototype.SomePageContent = 'uniqueMessagesContent'
+        const content = await this.sheetDataProvider.getContentFrom(sheetPage)
+        if (!content || content.isEmpty) throw Error('No content')
 
-        const uniqueMessageObj = new UniqueMessage()
-        type UniqueMessageGroupKeys = keyof typeof uniqueMessageObj
-        const uniqueMessageGroupStringKeys = Object.keys(
-            uniqueMessageObj
-        ) as unknown as UniqueMessageGroupKeys[]
+        const localizedContentByLanguage =
+            await this.localizationService.localizeDataSheetRowsArray(content, {
+                type: 'unidentifiable',
+                page: sheetPage,
+                groupField: 'group',
+                keyField: 'key',
+                localizationSchema: {
+                    group: { type: 'originalContent' },
+                    key: { type: 'originalContent' },
+                    comment: { type: 'originalContent' },
+                    params: { type: 'originalContent' },
+                    isUniqueMessage: { type: 'originalContent' },
+                    defaultValue: { type: 'unidentifiable' },
+                },
+            })
 
-        const languages = await this.localizationService.getRemoteLanguages()
+        // Prepare prototype for validation
+        const uniqueMessagePrototype = new UniqueMessage() as any as Record<
+            string,
+            Record<string, string>
+        >
+        const uniqueMessagePrototypeGroupKeyStrings: string[] = []
+        for (const group of Object.keys(uniqueMessagePrototype)) {
+            for (const key of Object.keys(uniqueMessagePrototype[group])) {
+                uniqueMessagePrototypeGroupKeyStrings.push(`Group: '${group}' Key: '${key}'`)
+            }
+        }
+        uniqueMessagePrototypeGroupKeyStrings.sort()
+
+        // Combine and save UniqueMessage localized objects
+        const languages = Object.keys(localizedContentByLanguage)
         for (const language of languages) {
-            for (const groupNameString of uniqueMessageGroupStringKeys) {
-                const groupName = groupNameString as UniqueMessageGroupKeys
-                const localizedGroup = await this.localizationService.findOneByGroupName(groupName)
-                if (!localizedGroup) {
-                    throw Error(`There is no localized strings group with name ${groupName}`)
+            const contentRowsLocalized = localizedContentByLanguage[language].filter(
+                (rowItem) => rowItem.isUniqueMessage === this.cachedTrueValue
+            )
+            if (!contentRowsLocalized) {
+                throw Error(`Fatal error: content corrupted`)
+            }
+            const tableRowsGroupKeyStrings = contentRowsLocalized
+                .map((rowItem) => {
+                    return `Group: '${rowItem.group}' Key: '${rowItem.key}'`
+                })
+                .sort()
+
+            // Validate remote and local data
+            if (uniqueMessagePrototypeGroupKeyStrings != tableRowsGroupKeyStrings) {
+                const remoteTableAbsentValues = uniqueMessagePrototypeGroupKeyStrings.filter(
+                    (prototypeStringKey) =>
+                        tableRowsGroupKeyStrings.includes(prototypeStringKey) == false
+                )
+                if (remoteTableAbsentValues.isNotEmpty) {
+                    const jsonString = JSON.stringify(remoteTableAbsentValues, null, 2)
+                    throw Error(`Table does not contains some unique messages:\n${jsonString}`)
                 }
 
-                const uniqueMessageGroup = uniqueMessageObj[groupName] as unknown as Record<
-                    string,
-                    string
-                >
-                const uniqueMessageStringKeys = Object.keys(uniqueMessageGroup)
-
-                for (const uniqueMessageStringKey of uniqueMessageStringKeys) {
-                    const localizedString = localizedGroup.content[uniqueMessageStringKey]
-                    if (!localizedString)
-                        throw Error(
-                            `There is no value for\ngroup: ${groupName};\nkey: ${uniqueMessageStringKey};\nlang: ${language}`
-                        )
-                    const localizedUniqueMessage = localizedString?.localizedValues[language]
-                    if (!localizedUniqueMessage) {
-                        throw Error(
-                            `Remote table does not contains text for\nLanguage: ${language}\nGroup: ${groupName}\nKey: ${uniqueMessageStringKey}`
-                        )
-                    }
-                    uniqueMessageGroup[uniqueMessageStringKey] = localizedUniqueMessage
+                const prototypeAbsentValues = tableRowsGroupKeyStrings.filter(
+                    (prototypeStringKey) =>
+                        uniqueMessagePrototypeGroupKeyStrings.includes(prototypeStringKey) == false
+                )
+                if (prototypeAbsentValues.isNotEmpty) {
+                    const jsonString = JSON.stringify(prototypeAbsentValues, null, 2)
+                    logger.warn(`UniqueMessage class does not contains some values:\n${jsonString}`)
                 }
-                // @ts-ignore: Unreachable code error
-                uniqueMessageObj[groupName] = uniqueMessageGroup
             }
 
+            const uniqueMessagePrecastObject: Record<string, Record<string, string>> = {}
+            for (const uniqueMessageRow of contentRowsLocalized) {
+                if (!uniqueMessagePrecastObject[uniqueMessageRow.group]) {
+                    uniqueMessagePrecastObject[uniqueMessageRow.group] = {}
+                }
+                uniqueMessagePrecastObject[uniqueMessageRow.group][uniqueMessageRow.key] =
+                    uniqueMessageRow.defaultValue
+            }
+
+            // Write result
             const createBotContentDto = {
                 language: language,
-                uniqueMessage: uniqueMessageObj,
+                uniqueMessage: uniqueMessagePrecastObject as unknown as UniqueMessage,
             }
-
             const existingContent = await this.model.findOne({ language: language }).exec()
             if (existingContent && !existingContent.isNew) {
                 await this.update(createBotContentDto, existingContent)
@@ -169,30 +208,55 @@ export class BotContentService implements OnModuleInit {
     }
 
     private async cacheOnboarding() {
-        const content = await this.sheetDataProvider.getContentFrom('onboarding')
+        const sheetPage: DataSheetPrototype.SomePageContent = 'onboarding'
+        const content = await this.sheetDataProvider.getContentFrom(sheetPage)
         if (!content || content.isEmpty) throw Error('No content')
 
-        const onboardingContent = content.map((rowItem) => {
-            const result: OnboardingPage = {
-                id: rowItem.id,
-                messageText: rowItem.messageText,
-                buttonText: rowItem.buttonText,
-                media: this.createMediaContentFromCells(
-                    rowItem.picture,
-                    rowItem.video,
-                    rowItem.audio,
-                    rowItem.docs
-                ),
-            }
-            return result
-        })
+        const localizedContentByLanguage =
+            await this.localizationService.localizeDataSheetRowsArray(content, {
+                type: 'identifiable',
+                page: sheetPage,
+                group: 'onboarding',
+                itemIdField: 'id',
+                localizationSchema: {
+                    id: { type: 'originalContent' },
+                    messageText: { type: 'identifiableBase' },
+                    buttonText: {
+                        type: 'identifiableArray',
+                        arrayItemsSeparator: '\n',
+                        arrayItemComponentsSeparator: '/',
+                        arrayItemIdIndex: 0,
+                    },
+                    video: { type: 'identifiableBase' },
+                    picture: { type: 'identifiableBase' },
+                    audio: { type: 'identifiableBase' },
+                    docs: { type: 'identifiableBase' },
+                },
+            })
 
-        // TODO: add localized content for collections
-        const languages = await this.localizationService.getRemoteLanguages()
+        const languages = Object.keys(localizedContentByLanguage)
         for (const language of languages) {
+            const contentRowsLocalized = localizedContentByLanguage[language]
+            if (!contentRowsLocalized) {
+                throw Error(`Fatal error: content corrupted`)
+            }
+            const resultContent = contentRowsLocalized.map((rowItem) => {
+                const result: OnboardingPage = {
+                    id: rowItem.id,
+                    messageText: rowItem.messageText,
+                    buttonText: rowItem.buttonText,
+                    media: this.createMediaContentFromCells(
+                        rowItem.picture,
+                        rowItem.video,
+                        rowItem.audio,
+                        rowItem.docs
+                    ),
+                }
+                return result
+            })
             const createBotContentDto: CreateBotContentDto = {
                 language: language,
-                onboarding: onboardingContent,
+                onboarding: resultContent,
             }
 
             const existingContent = await this.model.findOne({ language: language }).exec()

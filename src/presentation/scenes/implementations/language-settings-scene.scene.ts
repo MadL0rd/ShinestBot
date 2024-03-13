@@ -10,7 +10,7 @@ import { Scene } from '../models/scene.abstract'
 import { SceneUsagePermissionsValidator } from '../models/scene-usage-permissions-validator'
 import { InjectableSceneConstructor } from '../scene-factory/scene-injections-provider.service'
 import { BotContentService } from 'src/core/bot-content/bot-content.service'
-import { getLanguageName } from 'src/utils/languages-info/getLanguageName'
+import { LanguageCode } from 'src/utils/languages-info/getLanguageName'
 
 // =====================
 // Scene data classes
@@ -60,7 +60,7 @@ export class LanguageSettingsSceneScene extends Scene<ISceneData, SceneEnterData
         await this.logToUserHistory(this.historyEvent.startSceneLanguageSettingsScene)
 
         const languages = await this.botContentService.getLocalLanguages()
-        const languagesButtons = languages.map((code) => getLanguageName(code))
+        const languagesButtons = languages.map((code) => LanguageCode.getLanguageName(code))
 
         await ctx.replyWithHTML(
             this.text.common.selectLanguageText,
@@ -78,11 +78,12 @@ export class LanguageSettingsSceneScene extends Scene<ISceneData, SceneEnterData
         if (!message || !('text' in message)) return this.completion.canNotHandle({})
 
         const languages = await this.botContentService.getLocalLanguages()
-        const languagesButtons = languages.map((code) => getLanguageName(code))
+        const languagesButtons = languages.map((code) => LanguageCode.getLanguageName(code))
         const languageIndex = languagesButtons.indexOf(message.text)
-        if (languageIndex && languageIndex >= 0) return this.completion.canNotHandle({})
+        const selectedLanguage = languages[languageIndex]
+        if (!selectedLanguage) return this.completion.canNotHandle({})
 
-        this.user.internalInfo.language = languages[languageIndex]
+        this.user.internalInfo.language = selectedLanguage
         await this.userService.update(this.user)
         return this.completion.complete()
     }

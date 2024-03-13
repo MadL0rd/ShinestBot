@@ -1,4 +1,4 @@
-import { DataSheetPrototype } from './sheet-prototype'
+import { DataSheetPrototype } from './data-sheet-prototype'
 
 export interface DataSheetPageSchema {
     sheetId: string

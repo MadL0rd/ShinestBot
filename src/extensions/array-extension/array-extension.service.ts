@@ -8,8 +8,14 @@ declare global {
         get isNotEmpty(): boolean
         get compact(): Exclude<T, null | undefined>[]
         get uniqueOnly(): T[]
+        get justNotUnique(): T[]
         get randomItem(): T | null
         get copy(): T[]
+
+        /**
+         * Use for Array of Promise only
+         */
+        combinePromises(): Promise<Awaited<T>[]>
 
         compactMap<U>(
             callbackfn: (value: T, index: number, array: T[]) => U,
@@ -88,6 +94,23 @@ export class ArrayExtensionService {
             },
         })
 
+        Object.defineProperty(Array.prototype, 'justNotUnique', {
+            get: function () {
+                const sortedArr = this.slice().sort()
+                // You can define the comparing function here.
+                // JS by default uses a crappy string compare.
+                // (we use slice to clone the array so the
+                // original array won't be modified)
+                const results = []
+                for (let i = 0; i < sortedArr.length - 1; i++) {
+                    if (sortedArr[i + 1] == sortedArr[i]) {
+                        results.push(sortedArr[i])
+                    }
+                }
+                return results
+            },
+        })
+
         Object.defineProperty(Array.prototype, 'copy', {
             get: function () {
                 return [...this]
@@ -98,6 +121,10 @@ export class ArrayExtensionService {
             callbackfn: (value: T, index: number, array: T[]) => U
         ): Exclude<U, null | undefined>[] {
             return this.map(callbackfn).compact
+        }
+
+        Array.prototype.combinePromises = function (): Promise<any[]> {
+            return Promise.all(this)
         }
 
         Array.prototype.generateItemsRecord = function <

@@ -177,7 +177,9 @@ export class DebugInformableLogger implements LoggerService {
         const error: Error = optionalParams[0]
         if (error) {
             try {
-                message = this.clipLogMessage(`Message: ${message}\nError: ${error}`)
+                message = this.clipLogMessage(
+                    `Message: ${message}\nError: ${error}`.replace('Error: Error:', 'Error:\t')
+                )
                 debugLine = this.getLineFromTrceback(message) ?? debugLine
             } catch (error) {
                 loggerWinston.error('Logger error info convertation failed', error)

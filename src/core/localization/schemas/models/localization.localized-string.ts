@@ -5,6 +5,5 @@ export class LocalizedString {
     key: string
     comment?: string
     parameters: LocalizedStringParameter[]
-    isUniqueMessage: boolean
     localizedValues: Record<string, string>
 }
