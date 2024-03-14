@@ -235,7 +235,9 @@ export class BotContentService implements OnModuleInit {
         const sheetPage: DataSheetPrototype.SomePageContent = 'onboarding'
         const content = await this.sheetDataProvider.getContentFrom(sheetPage)
         if (!content || content.isEmpty) throw Error('No content')
-
+        const idsDuplicated = content.map((rowItem) => rowItem.id).justNotUnique
+        if (!idsDuplicated.isEmpty)
+            throw Error(`Ids duplicated in Onboarding page: ${idsDuplicated}`)
         const localizedContentByLanguage =
             await this.localizationService.localizeDataSheetRowsArray(content, {
                 type: 'byItemId',
