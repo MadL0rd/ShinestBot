@@ -1,10 +1,10 @@
 import { InjectBot, On, Start, Update as UpdateNest } from 'nestjs-telegraf'
 import { Telegraf, Context } from 'telegraf'
 import { Update, Message } from 'node_modules/telegraf/typings/core/types/typegram'
-import { logger } from 'src/app.logger'
+import { logger } from 'src/app/app.logger'
 import { internalConstants } from './app.internal-constants'
-import { RuntimeExeptionGuard } from './exeptions-and-logging/runtime-exeption-guard.decorator'
-import { PrivateDialogDispatcherService } from './presentation/dispatchers/private-dialog-dispatcher/private-dialog-dispatcher.service'
+import { RuntimeExeptionGuard } from '../exeptions-and-logging/runtime-exeption-guard.decorator'
+import { PrivateDialogDispatcherService } from '../presentation/dispatchers/private-dialog-dispatcher/private-dialog-dispatcher.service'
 
 @UpdateNest()
 export class AppUpdate {

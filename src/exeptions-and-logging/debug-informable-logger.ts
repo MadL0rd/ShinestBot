@@ -2,7 +2,7 @@ import * as winston from 'winston'
 import { WinstonModule } from 'nest-winston'
 import DailyRotateFile from 'winston-daily-rotate-file'
 import * as path from 'path'
-import { internalConstants } from '../app.internal-constants'
+import { internalConstants } from '../app/app.internal-constants'
 import { LoggerService } from '@nestjs/common'
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const https = require('https')

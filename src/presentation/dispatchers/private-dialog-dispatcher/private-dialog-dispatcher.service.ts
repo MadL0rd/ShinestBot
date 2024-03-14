@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common'
 import { Context, Telegraf } from 'telegraf'
-import { BotContentService } from 'src/core/bot-content/bot-content.service'
-import { UserService } from 'src/core/user/user.service'
+import { BotContentService } from 'src/business-logic/bot-content/bot-content.service'
+import { UserService } from 'src/business-logic/user/user.service'
 import { SceneName } from 'src/presentation/scenes/models/scene-name.enum'
-import { logger } from 'src/app.logger'
-import { UserHistoryEvent } from 'src/core/user/enums/user-history-event.enum'
+import { logger } from 'src/app/app.logger'
+import { UserHistoryEvent } from 'src/business-logic/user/enums/user-history-event.enum'
 import { getActiveUserPermissionNames } from 'src/utils/getActiveUserPermissions'
 import { getLanguageFor } from 'src/utils/getLanguageForUser'
 import { plainToClass } from 'class-transformer'
@@ -22,7 +22,7 @@ import {
     SceneUserContext,
 } from 'src/presentation/scenes/models/scene.interface'
 import { SceneFactoryService } from 'src/presentation/scenes/scene-factory/scene-factory.service'
-import { BotContent } from 'src/core/bot-content/schemas/bot-content.schema'
+import { BotContent } from 'src/business-logic/bot-content/schemas/bot-content.schema'
 
 @Injectable()
 export class PrivateDialogDispatcherService {

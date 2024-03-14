@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { ISheetDataProvider } from '../../abscract/sheet-data-provider.interface'
 import { SheetStringsMarkdownValidatorService } from '../../sheet-strings-markdown-validator/sheet-strings-markdown-validator.service'
-import { logger } from 'src/app.logger'
+import { logger } from 'src/app/app.logger'
 import * as XLSX from 'xlsx'
 
 @Injectable()

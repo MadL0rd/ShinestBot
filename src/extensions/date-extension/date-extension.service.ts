@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
 // import * as moment from 'moment'
-import { internalConstants } from 'src/app.internal-constants'
+import { internalConstants } from 'src/app/app.internal-constants'
 
 declare global {
     interface Date {

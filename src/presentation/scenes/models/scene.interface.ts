@@ -2,9 +2,9 @@ import { Context } from 'telegraf'
 import { SceneName } from './scene-name.enum'
 import { Update } from 'telegraf/types'
 import { SceneCallbackData } from './scene-callback'
-import { BotContent } from 'src/core/bot-content/schemas/bot-content.schema'
-import { UserPermissionNames } from 'src/core/user/enums/user-permission-names.enum'
-import { UserDocument } from 'src/core/user/schemas/user.schema'
+import { BotContent } from 'src/business-logic/bot-content/schemas/bot-content.schema'
+import { UserPermissionNames } from 'src/business-logic/user/enums/user-permission-names.enum'
+import { UserDocument } from 'src/business-logic/user/schemas/user.schema'
 import { SceneEntrance } from './scene-entrance.interface'
 
 export interface IScene {

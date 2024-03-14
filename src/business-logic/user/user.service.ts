@@ -4,7 +4,7 @@ import { InjectModel } from '@nestjs/mongoose'
 import { CreateUserDto } from './dto/create-user.dto'
 import { User, UserDocument, UserHistoryRecord } from './schemas/user.schema'
 import { UpdateUserDto } from './dto/update-user.dto'
-import { logger } from 'src/app.logger'
+import { logger } from 'src/app/app.logger'
 import { UserHistoryEvent } from './enums/user-history-event.enum'
 import { UserInternalInfo } from './schemas/models/user.internal-info'
 

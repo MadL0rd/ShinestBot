@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 import { NestFactory } from '@nestjs/core'
-import { AppModule } from './app.module'
-import { logger } from 'src/app.logger'
-import { internalConstants } from './app.internal-constants'
+import { AppModule } from './app/app.module'
+import { logger } from 'src/app/app.logger'
+import { internalConstants } from './app/app.internal-constants'
 import { ExtensionsModule } from './extensions/extensions.module'
 
 async function bootstrap() {

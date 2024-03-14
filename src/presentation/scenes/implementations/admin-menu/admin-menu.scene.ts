@@ -1,6 +1,6 @@
-import { logger } from 'src/app.logger'
-import { internalConstants } from 'src/app.internal-constants'
-import { UserService } from 'src/core/user/user.service'
+import { logger } from 'src/app/app.logger'
+import { internalConstants } from 'src/app/app.internal-constants'
+import { UserService } from 'src/business-logic/user/user.service'
 import { Markup, Context } from 'telegraf'
 import { Update } from 'telegraf/types'
 import { SceneCallbackData } from '../../models/scene-callback'
@@ -12,7 +12,7 @@ import { SceneUsagePermissionsValidator } from '../../models/scene-usage-permiss
 import { InjectableSceneConstructor } from '../../scene-factory/scene-injections-provider.service'
 import { LocalizationService } from 'src/core/localization/localization.service'
 import { DataSheetPrototype } from 'src/core/sheet-data-provider/schemas/data-sheet-prototype'
-import { BotContentService } from 'src/core/bot-content/bot-content.service'
+import { BotContentService } from 'src/business-logic/bot-content/bot-content.service'
 
 // =====================
 // Scene data classes

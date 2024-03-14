@@ -1,0 +1,37 @@
+{
+    "favorites.resources": [
+        {
+            "filePath": "src/core",
+            "group": "Default"
+        },
+        {
+            "filePath": "src/business-logic",
+            "group": "Default"
+        },
+        {
+            "filePath": "src/exeptions-and-logging",
+            "group": "Default"
+        },
+        {
+            "filePath": "src/extensions",
+            "group": "Default"
+        },
+        {
+            "filePath": "src/presentation",
+            "group": "Default"
+        },
+        {
+            "filePath": "src/utils",
+            "group": "Default"
+        },
+        {
+            "filePath": "src/app",
+            "group": "Default"
+        },
+        {
+            "filePath": ".",
+            "group": "Default"
+        }
+    ],
+    "favorites.sortOrder": "MANUAL"
+}

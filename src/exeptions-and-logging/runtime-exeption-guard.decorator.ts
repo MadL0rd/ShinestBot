@@ -1,5 +1,5 @@
 import { Update } from 'node_modules/telegraf/typings/core/types/typegram'
-import { logger } from 'src/app.logger'
+import { logger } from 'src/app/app.logger'
 import { Context } from 'telegraf'
 
 export function RuntimeExeptionGuard(

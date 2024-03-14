@@ -1,5 +1,5 @@
-import { internalConstants } from 'src/app.internal-constants'
-import { UserDocument } from 'src/core/user/schemas/user.schema'
+import { internalConstants } from 'src/app/app.internal-constants'
+import { UserDocument } from 'src/business-logic/user/schemas/user.schema'
 
 export function getLanguageFor(user: UserDocument): string {
     return (

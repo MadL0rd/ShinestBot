@@ -1,5 +1,5 @@
-import { logger } from 'src/app.logger'
-import { UserService } from 'src/core/user/user.service'
+import { logger } from 'src/app/app.logger'
+import { UserService } from 'src/business-logic/user/user.service'
 import { Context } from 'telegraf'
 import { Message, Update } from 'telegraf/types'
 import {
