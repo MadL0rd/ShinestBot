@@ -63,21 +63,32 @@ export class Payment {
 }
 
 export class Notification {
+    /** Будет использоваться в случае, если chatGPT по какой-либо причине не ответил на наш запрос */
     readonly morningTextDefault = 'Доброе утро!'
+    /** Промт для GPT */
     readonly morningTextGptPromt =
         'Напишите текст утреннего уведомления для человека неизвестного пола.'
+    /** Будет использоваться в случае, если chatGPT по какой-либо причине не ответил на наш запрос */
     readonly eveningTextDefault = 'Добрый вечер!'
+    /** Промт для GPT */
     readonly eveningTextGptPromt =
         'Напишите текст вечернего уведомления для человека неизвестного пола.'
     readonly buttonFairytale = 'Написать терапевтическую сказку'
     readonly buttonMainMenu = 'Перейти в главное меню'
     readonly subscriptionText = 'Дорогой друг, некоторые твои подписки скоро истекают:'
     readonly buttonSubscriptionText = 'Оплатить'
+    /** За сколько дней до окончания подписки на пакет начнут приходить уведомления */
     readonly quantityDaysBeforeSubscriptionNotification = '7'
+    /** Список из времён доступных пользователю для установки утренних уведомлений */
     readonly morningTimeList = '07:00\n07:30\n08:00\n08:30\n09:00\n09:30\n10:00\n10:30\n11:00'
+    /** Время утреннего уведомления по умолчанию */
     readonly morningTimeDefault = '08:00'
+    /** Список из времён доступных пользователю для установки вечерних уведомлений */
     readonly eveningTimeList = '18:00\n18:30\n19:00\n19:30\n20:00\n20:30\n21:00\n21:30\n22:00'
+    /** Время вечернего уведомления по умолчанию */
     readonly eveningTimeDefault = '22:15'
+    /** Время для уведомлений о скором окончании подписки */
     readonly subscriptionTime = '20:04'
+    /** Кнопка, по нажатию на которую в настройках можно отказаться от получения уведомлений данного типа */
     readonly buttonDontSend = 'Не отправлять'
 }

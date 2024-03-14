@@ -10,7 +10,7 @@ import { LanguageSettingsSceneSceneEntranceDto } from 'src/presentation/scenes/i
 
 export namespace SceneEntrance {
     // =====================
-    // Commom types
+    // Common types
     // =====================
     export interface Dto {
         readonly sceneName: SceneName.union
