@@ -101,7 +101,7 @@ export class LocalizationService {
         schema: DataSheetRowLocalizationSchema<Page>
     ) {
         // Use for error messages only
-        const rowItemJsonString = JSON.stringify(rowItem)
+        const rowItemJsonString = JSON.stringify(rowItem, null, 2)
 
         // Detect group name
         let groupName: string | undefined = undefined
@@ -225,6 +225,11 @@ export class LocalizationService {
                             `Can not find array items inside string '${originalArrayFieldItemValue}'\ntable row item:\t${rowItemJsonString}`
                         )
                     }
+                    const duplicatedarrayItemIds = arrayItemIds.justNotUnique
+                    if (duplicatedarrayItemIds.isNotEmpty)
+                        throw Error(
+                            `Duplicated id\nfield:\t'${propKey}'\ntable row item:\t${rowItemJsonString}`
+                        )
 
                     const arrayItemsLocalizedStrings = arrayItemIds.map((arrayItemId) => {
                         const localizedStringKey = `${itemId} / ${propKey} / ${arrayItemId}`
