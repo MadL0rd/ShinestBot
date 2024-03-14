@@ -1,38 +1,38 @@
 import { DataSheetPrototype } from 'src/core/sheet-data-provider/schemas/data-sheet-prototype'
 
 export type DataSheetRowLocalizationSchema<Page extends DataSheetPrototype.SomePageContent> =
-    | IdentifiableRowLocalizationSchema<Page>
-    | UnidentifiableRowLocalizationSchema<Page>
+    | RowLocalizationSchemaIdentifiable<Page>
+    | RowLocalizationSchemaByGroupAndKey<Page>
 
-type IdentifiableRowLocalizationSchema<Page extends DataSheetPrototype.SomePageContent> = {
-    readonly type: 'identifiable'
+type RowLocalizationSchemaIdentifiable<Page extends DataSheetPrototype.SomePageContent> = {
+    readonly type: 'byItemId'
     readonly page: Page
     readonly group: string
     readonly itemIdField: keyof DataSheetPrototype.RowItemContent<Page>
-    readonly localizationSchema: IdentifiableRowFieldsLocalizationSchema<Page>
+    readonly localizationSchema: RowFieldsLocalizationSchemaIdentifiable<Page>
 }
 
-type UnidentifiableRowLocalizationSchema<Page extends DataSheetPrototype.SomePageContent> = {
-    readonly type: 'unidentifiable'
+type RowLocalizationSchemaByGroupAndKey<Page extends DataSheetPrototype.SomePageContent> = {
+    readonly type: 'byItemGroupAndKey'
     readonly page: Page
     readonly groupField: keyof DataSheetPrototype.RowItemContent<Page>
     readonly keyField: keyof DataSheetPrototype.RowItemContent<Page>
-    readonly localizationSchema: UnidentifiableRowFieldsLocalizationSchema<Page>
+    readonly localizationSchema: RowFieldsLocalizationSchemaGroupAndKeyOnly<Page>
 }
 
-type IdentifiableRowFieldsLocalizationSchema<Page extends DataSheetPrototype.SomePageContent> = {
+type RowFieldsLocalizationSchemaIdentifiable<Page extends DataSheetPrototype.SomePageContent> = {
     readonly [Prop in keyof DataSheetPrototype.RowItemContent<Page>]: RowFieldTypeIdentifiable
 }
 
-type UnidentifiableRowFieldsLocalizationSchema<Page extends DataSheetPrototype.SomePageContent> = {
-    readonly [Prop in keyof DataSheetPrototype.RowItemContent<Page>]: RowFieldTypeUnidentifiable
+type RowFieldsLocalizationSchemaGroupAndKeyOnly<Page extends DataSheetPrototype.SomePageContent> = {
+    readonly [Prop in keyof DataSheetPrototype.RowItemContent<Page>]: RowFieldTypeGroupAndKeyOnly
 }
 
 type RowFieldTypeIdentifiable =
     | RowFieldOriginalContent
     | RowFieldIdentifiableBase
     | RowFieldIdentifiableArray
-type RowFieldTypeUnidentifiable = RowFieldOriginalContent | RowFieldUnidentifiable
+type RowFieldTypeGroupAndKeyOnly = RowFieldOriginalContent | RowFieldByItemGroupAndKey
 
 type RowFieldOriginalContent = {
     /**
@@ -41,25 +41,25 @@ type RowFieldOriginalContent = {
     readonly type: 'originalContent'
 }
 
-type RowFieldUnidentifiable = {
+type RowFieldByItemGroupAndKey = {
     /**
      * Localized field with key format for localized string `${fieldName}`
      * */
-    readonly type: 'unidentifiable'
+    readonly type: 'byItemGroupAndKey'
 }
 
 type RowFieldIdentifiableBase = {
     /**
      * Localized field with key format for localized string `${itemId} / ${fieldName}`
      * */
-    readonly type: 'identifiableBase'
+    readonly type: 'byIdAndFieldName'
 }
 
 type RowFieldIdentifiableArray = {
     /**
      * Localized field with key format for localized string `${itemId} / ${fieldName} / ${arrayItemId}`
      * */
-    readonly type: 'identifiableArray'
+    readonly type: 'byIdAndFieldNameForArray'
     readonly arrayItemsSeparator: '\n'
     readonly arrayItemComponentsSeparator: '/'
     readonly arrayItemIdIndex: 0

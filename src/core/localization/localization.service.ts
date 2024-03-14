@@ -106,10 +106,10 @@ export class LocalizationService {
         // Detect group name
         let groupName: string | undefined = undefined
         switch (schema.type) {
-            case 'identifiable':
+            case 'byItemId':
                 groupName = schema.group
                 break
-            case 'unidentifiable':
+            case 'byItemGroupAndKey':
                 groupName = rowItem[schema.groupField] as string | undefined
                 break
         }
@@ -132,7 +132,7 @@ export class LocalizationService {
             resultItemForksByLanguage[language] = structuredClone(rowItem) as Record<string, string>
         })
         let itemId: string | undefined = undefined
-        if (schema.type === 'identifiable') {
+        if (schema.type === 'byItemId') {
             itemId = rowItem[schema.itemIdField] as string
         }
         Object.keys(rowItem).forEach((propKey) => {
@@ -153,9 +153,9 @@ export class LocalizationService {
                 case 'originalContent':
                     return
 
-                case 'unidentifiable': {
+                case 'byItemGroupAndKey': {
                     let keyValue = propKey
-                    if (schema.type == 'unidentifiable') {
+                    if (schema.type == 'byItemGroupAndKey') {
                         keyValue = rowItem[schema.keyField] as typeof keyValue
                     }
                     const fieldLocalizedString = localizedGroup.content[keyValue]
@@ -171,7 +171,7 @@ export class LocalizationService {
                     return
                 }
 
-                case 'identifiableBase': {
+                case 'byIdAndFieldName': {
                     if (!itemId) {
                         throw Error(
                             `Can not get id field content from data table row item:\t${rowItemJsonString}`
@@ -191,7 +191,7 @@ export class LocalizationService {
                     return
                 }
 
-                case 'identifiableArray': {
+                case 'byIdAndFieldNameForArray': {
                     if (!itemId) {
                         throw Error(
                             `Can not get id field content from data table row item:\t${rowItemJsonString}`

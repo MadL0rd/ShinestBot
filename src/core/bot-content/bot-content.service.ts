@@ -148,7 +148,7 @@ export class BotContentService implements OnModuleInit {
 
         const localizedContentByLanguage =
             await this.localizationService.localizeDataSheetRowsArray(content, {
-                type: 'unidentifiable',
+                type: 'byItemGroupAndKey',
                 page: sheetPage,
                 groupField: 'group',
                 keyField: 'key',
@@ -158,7 +158,7 @@ export class BotContentService implements OnModuleInit {
                     comment: { type: 'originalContent' },
                     params: { type: 'originalContent' },
                     isUniqueMessage: { type: 'originalContent' },
-                    defaultValue: { type: 'unidentifiable' },
+                    defaultValue: { type: 'byItemGroupAndKey' },
                     defaultValueLanguage: { type: 'originalContent' },
                 },
             })
@@ -238,23 +238,23 @@ export class BotContentService implements OnModuleInit {
 
         const localizedContentByLanguage =
             await this.localizationService.localizeDataSheetRowsArray(content, {
-                type: 'identifiable',
+                type: 'byItemId',
                 page: sheetPage,
                 group: 'onboarding',
                 itemIdField: 'id',
                 localizationSchema: {
                     id: { type: 'originalContent' },
-                    messageText: { type: 'identifiableBase' },
+                    messageText: { type: 'byIdAndFieldName' },
                     buttonText: {
-                        type: 'identifiableArray',
+                        type: 'byIdAndFieldNameForArray',
                         arrayItemsSeparator: '\n',
                         arrayItemComponentsSeparator: '/',
                         arrayItemIdIndex: 0,
                     },
-                    video: { type: 'identifiableBase' },
-                    picture: { type: 'identifiableBase' },
-                    audio: { type: 'identifiableBase' },
-                    docs: { type: 'identifiableBase' },
+                    video: { type: 'byIdAndFieldName' },
+                    picture: { type: 'byIdAndFieldName' },
+                    audio: { type: 'byIdAndFieldName' },
+                    docs: { type: 'byIdAndFieldName' },
                 },
             })
 
