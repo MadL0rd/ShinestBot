@@ -1,5 +1,5 @@
-import { logger } from 'src/app.logger'
-import { UserService } from 'src/core/user/user.service'
+import { logger } from 'src/app/app.logger'
+import { UserService } from 'src/business-logic/user/user.service'
 import { Markup, Context } from 'telegraf'
 import { Update } from 'telegraf/types'
 import { SceneCallbackData } from '../../models/scene-callback'
@@ -10,7 +10,7 @@ import { Scene } from '../../models/scene.abstract'
 import { SceneUsagePermissionsValidator } from '../../models/scene-usage-permissions-validator'
 import { InjectableSceneConstructor } from '../../scene-factory/scene-injections-provider.service'
 import { replaceMarkdownWithHtml } from 'src/utils/replaceMarkdownWithHtml'
-import { UserHistoryEvent } from 'src/core/user/enums/user-history-event.enum'
+import { UserHistoryEvent } from 'src/business-logic/user/enums/user-history-event.enum'
 
 // =====================
 // Scene data classes

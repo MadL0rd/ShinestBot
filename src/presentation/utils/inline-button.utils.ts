@@ -1,4 +1,4 @@
-import { logger } from 'src/app.logger'
+import { logger } from 'src/app/app.logger'
 import { InlineKeyboardButton } from 'telegraf/types'
 import {
     SceneCallbackAction,

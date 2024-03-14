@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common'
 import { SheetDataProviderFactoryService } from './sheet-data-provider-factory/sheet-data-provider-factory.service'
 import { ISheetDataProvider } from './abscract/sheet-data-provider.interface'
-import { DataSheetPrototype } from './schemas/sheet-prototype'
+import { DataSheetPrototype } from './schemas/data-sheet-prototype'
+import { LanguageCode } from 'src/utils/languages-info/getLanguageName'
 
 @Injectable()
 export class SheetDataProviderService {
@@ -18,7 +19,9 @@ export class SheetDataProviderService {
     // Public methods
     // =====================
 
-    async getLanguagesFrom(page: DataSheetPrototype.SomePageLocalization): Promise<string[]> {
+    async getLanguagesFrom(
+        page: DataSheetPrototype.SomePageLocalization
+    ): Promise<LanguageCode.Union[]> {
         const pageConfig = DataSheetPrototype.schemaLocalization[page]
         const cacheConfig = pageConfig.cacheConfiguration
         const content = await this.sheetDataProvider.getContentByListName(
@@ -26,8 +29,12 @@ export class SheetDataProviderService {
             `${cacheConfig.firstLetter}${cacheConfig.configurationRow}:${cacheConfig.lastLetter}${cacheConfig.configurationRow}`
         )
         const notLanguageKeys = Object.keys(pageConfig.itemPrototype)
-        const result = content.first?.filter((title) => notLanguageKeys.includes(title) === false)
-        return result ?? []
+        const languageCodes =
+            content.first?.filter((title) => notLanguageKeys.includes(title) === false) ?? []
+        const languageCodesStable = languageCodes.compactMap((code) =>
+            LanguageCode.castToInstance(code)
+        )
+        return languageCodesStable ?? []
     }
 
     async getLocalizedStringsFrom<Page extends DataSheetPrototype.SomePageLocalization>(
@@ -67,12 +74,18 @@ export class SheetDataProviderService {
                 `Sheet cache error: ${pageConfig.sheetId}. Configuration row identification failed!`
             )
         }
-        Object.keys(pageConfig.itemPrototype).forEach((key) => {
+        const itemPrototypeKeys = Object.keys(pageConfig.itemPrototype)
+        itemPrototypeKeys.forEach((key) => {
             if (configurationRow.includes(key) === false)
                 throw Error(
                     `Sheet cache error: ${pageConfig.sheetId}. Remote configuration row does not contains key "${key}"!`
                 )
         })
+        const configurationRowLanguages = configurationRow.filter(
+            (rowKey) =>
+                itemPrototypeKeys.includes(rowKey) == false &&
+                LanguageCode.allCases.includes(rowKey)
+        )
 
         content = content
             .slice(cacheConfig.firstContentRow - cacheConfig.configurationRow)
@@ -81,31 +94,41 @@ export class SheetDataProviderService {
         if (content.isEmpty) {
             throw Error(`Sheet cache error: ${pageConfig.sheetId}. No content`)
         }
-        const itemPrototypeKeys = Object.keys(pageConfig.itemPrototype)
 
-        const result = this.rowsToStringRecords(configurationRow, content)
-            .map((rowRecord) => {
-                const rowItem: Record<string, string | Record<string, string>> = {}
-                const localizedValues: Record<string, string> = {}
-                for (const rowKey in rowRecord) {
-                    if (itemPrototypeKeys.includes(rowKey)) {
-                        rowItem[rowKey] = rowRecord[rowKey]
-                    } else {
-                        localizedValues[rowKey] = rowRecord[rowKey]
-                    }
+        const result = this.rowsToStringRecords(configurationRow, content).map((rowRecord) => {
+            const rowItem: Record<string, string | Record<string, string>> = {}
+            const localizedValues: Record<string, string> = {}
+            for (const rowKey in rowRecord) {
+                if (!rowRecord[rowKey] || rowRecord[rowKey].isEmpty) continue
+
+                if (itemPrototypeKeys.includes(rowKey)) {
+                    rowItem[rowKey] = rowRecord[rowKey]
+                } else if (configurationRowLanguages.includes(rowKey)) {
+                    localizedValues[rowKey] = rowRecord[rowKey]
                 }
-                if (pageConfig.contentType == 'localizedStrings') {
-                    rowItem['localizedValues'] = localizedValues
+            }
+            if (pageConfig.contentType == 'localizedStrings') {
+                const itemLanguages = Object.keys(localizedValues)
+                if (configurationRowLanguages.length != itemLanguages.length) {
+                    const rowItemJson = JSON.stringify(rowRecord, null, 2)
+                    throw Error(
+                        `Sheet cache error: ${pageConfig.sheetId}\nRow item miss some languages\n${rowItemJson}`
+                    )
                 }
-                return rowItem
-            })
-            .filter((item) => {
-                for (const requiredField in validation.requiredFields) {
-                    const value = item[requiredField].trimmed
-                    if (!value || value.isEmpty) return false
+                rowItem['localizedValues'] = localizedValues
+            }
+
+            for (const requiredField in validation.requiredFields) {
+                const value = rowItem[requiredField]
+                if (!value || value.isEmpty) {
+                    const rowItemJson = JSON.stringify(rowRecord)
+                    throw Error(
+                        `Sheet cache error: ${pageConfig.sheetId}\nRow item miss required field '${requiredField}'\n${rowItemJson}`
+                    )
                 }
-                return true
-            })
+            }
+            return rowItem
+        })
 
         return result
     }

@@ -2,8 +2,8 @@ import { Injectable } from '@nestjs/common'
 import { google } from 'googleapis'
 import { GoogleSpreadsheetCredentialsService } from './google-spreadsheet-credentials.service'
 import { ISheetDataProvider } from '../../abscract/sheet-data-provider.interface'
-import { internalConstants } from 'src/app.internal-constants'
-import { logger } from 'src/app.logger'
+import { internalConstants } from 'src/app/app.internal-constants'
+import { logger } from 'src/app/app.logger'
 import { SheetStringsMarkdownValidatorService } from '../../sheet-strings-markdown-validator/sheet-strings-markdown-validator.service'
 
 @Injectable()

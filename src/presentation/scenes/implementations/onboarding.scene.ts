@@ -1,5 +1,5 @@
-import { logger } from 'src/app.logger'
-import { UserService } from 'src/core/user/user.service'
+import { logger } from 'src/app/app.logger'
+import { UserService } from 'src/business-logic/user/user.service'
 import { Context } from 'telegraf'
 import { Message, Update } from 'telegraf/types'
 import { SceneCallbackData } from '../models/scene-callback'
@@ -8,7 +8,7 @@ import { SceneName } from '../models/scene-name.enum'
 import { SceneHandlerCompletion } from '../models/scene.interface'
 import { Scene } from '../models/scene.abstract'
 import { SceneUsagePermissionsValidator } from '../models/scene-usage-permissions-validator'
-import { OnboardingPage } from 'src/core/bot-content/schemas/models/bot-content.onboarding-page'
+import { OnboardingPage } from 'src/business-logic/bot-content/schemas/models/bot-content.onboarding-page'
 import { InjectableSceneConstructor } from '../scene-factory/scene-injections-provider.service'
 
 // =====================

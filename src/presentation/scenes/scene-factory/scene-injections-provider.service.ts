@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common'
-import { UserService } from 'src/core/user/user.service'
+import { UserService } from 'src/business-logic/user/user.service'
 import { InjectBot } from 'nestjs-telegraf'
-import { BotContentService } from 'src/core/bot-content/bot-content.service'
+import { BotContentService } from 'src/business-logic/bot-content/bot-content.service'
 import { LocalizationService } from 'src/core/localization/localization.service'
 import { Telegraf } from 'telegraf'
-import { logger } from 'src/app.logger'
-import { StatisticService } from 'src/core/user/statistic.service'
+import { logger } from 'src/app/app.logger'
+import { StatisticService } from 'src/business-logic/user/statistic.service'
 
 interface Type<T> {
     new (...args: any[]): T

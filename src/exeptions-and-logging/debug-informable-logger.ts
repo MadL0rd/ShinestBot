@@ -2,7 +2,7 @@ import * as winston from 'winston'
 import { WinstonModule } from 'nest-winston'
 import DailyRotateFile from 'winston-daily-rotate-file'
 import * as path from 'path'
-import { internalConstants } from '../app.internal-constants'
+import { internalConstants } from '../app/app.internal-constants'
 import { LoggerService } from '@nestjs/common'
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const https = require('https')
@@ -177,7 +177,9 @@ export class DebugInformableLogger implements LoggerService {
         const error: Error = optionalParams[0]
         if (error) {
             try {
-                message = this.clipLogMessage(`Message: ${message}\nError: ${error}`)
+                message = this.clipLogMessage(
+                    `Message: ${message}\nError: ${error}`.replace('Error: Error:', 'Error:\t')
+                )
                 debugLine = this.getLineFromTrceback(message) ?? debugLine
             } catch (error) {
                 loggerWinston.error('Logger error info convertation failed', error)

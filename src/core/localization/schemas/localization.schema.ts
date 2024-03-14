@@ -9,6 +9,9 @@ export class LocalizedGroup {
     @Prop()
     name: string
 
+    @Prop()
+    languages: string[]
+
     @Prop({ type: mongoose.Schema.Types.Mixed })
     content: Record<string, LocalizedString>
 }

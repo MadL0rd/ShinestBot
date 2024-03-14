@@ -1,4 +1,4 @@
-import * as spreadsheetSchema from './SpreadsheetSchema.json'
+import * as spreadsheetSchema from './spreadsheet-schema.json'
 import { DataSheetPageSchema } from './data-sheet-page-schema.interface'
 
 type RowPrototype<BasePrototype, RequiredFields extends keyof any> = {
@@ -25,10 +25,9 @@ export namespace DataSheetPrototype {
     export type SomePageContent = keyof typeof schemaContent
     export type SomePage = SomePageLocalization | SomePageContent
 
-    export const allPages = [
-        ...Object.keys(schemaLocalization),
-        ...Object.keys(schemaContent),
-    ] as SomePage[]
+    export const allPagesLocalization = Object.keys(schemaLocalization) as SomePageLocalization[]
+    export const allPagesContent = Object.keys(schemaContent) as SomePageContent[]
+    export const allPages = [...allPagesLocalization, ...allPagesContent] as SomePage[]
 
     // Spreadsheet page row items
     export type RowItemLocalization<Page extends SomePageLocalization> = RowPrototype<

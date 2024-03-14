@@ -1,5 +1,5 @@
-import { logger } from 'src/app.logger'
-import { UserService } from 'src/core/user/user.service'
+import { logger } from 'src/app/app.logger'
+import { UserService } from 'src/business-logic/user/user.service'
 import { Markup, Context } from 'telegraf'
 import { Update } from 'telegraf/types'
 import moment from 'moment'
@@ -10,8 +10,8 @@ import { SceneHandlerCompletion } from '../../models/scene.interface'
 import { Scene } from '../../models/scene.abstract'
 import { SceneUsagePermissionsValidator } from '../../models/scene-usage-permissions-validator'
 import { InjectableSceneConstructor } from '../../scene-factory/scene-injections-provider.service'
-import { StatisticService } from 'src/core/user/statistic.service'
-import { internalConstants } from 'src/app.internal-constants'
+import { StatisticService } from 'src/business-logic/user/statistic.service'
+import { internalConstants } from 'src/app/app.internal-constants'
 import { FileName } from '../../models/file-name.enum'
 
 // =====================

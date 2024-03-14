@@ -1,5 +1,5 @@
-import { UniqueMessage } from 'src/core/bot-content/schemas/models/bot-content.unique-message'
-import { UserPermissionNames } from 'src/core/user/enums/user-permission-names.enum'
+import { UniqueMessage } from 'src/business-logic/bot-content/schemas/models/bot-content.unique-message'
+import { UserPermissionNames } from 'src/business-logic/user/enums/user-permission-names.enum'
 import { PermissionsValidationResult } from './scene.interface'
 
 export namespace SceneUsagePermissionsValidator {
