@@ -35,14 +35,19 @@ export class BotContentService implements OnModuleInit {
 
         // eslint-disable-next-line @typescript-eslint/no-this-alias
         const self = this
-        await this.localizationService.cacheLocalization()
+        try {
+            await this.localizationService.cacheLocalization()
+        } catch (error) {
+            logger.error(`Fail to cache localization`, error)
+            return
+        }
         const loadingPromises = DataSheetPrototype.allPagesContent.map(async (pageName) => {
             const cacheSpreadsheetFunc = async function (): Promise<void> {
-                // try {
-                await self.cacheSpreadsheetPage(pageName)
-                // } catch (error) {
-                //     logger.error(`Fail to cache spreadsheet page ${pageName}`, error)
-                // }
+                try {
+                    await self.cacheSpreadsheetPage(pageName)
+                } catch (error) {
+                    logger.error(`Fail to cache spreadsheet page ${pageName}`, error)
+                }
             }
             return await cacheSpreadsheetFunc()
         })
@@ -91,6 +96,18 @@ export class BotContentService implements OnModuleInit {
     // Database
     // =====================
 
+    private async createOrUpdateExisting(
+        language: string,
+        createBotContentDto: CreateBotContentDto
+    ) {
+        const existingContent = await this.model.findOne({ language: language }).exec()
+        if (existingContent && !existingContent.isNew) {
+            await this.update(createBotContentDto, existingContent)
+        } else {
+            await this.create(createBotContentDto)
+        }
+    }
+
     private async create(createBotContentDto: CreateBotContentDto): Promise<BotContent> {
         return this.model.create(createBotContentDto)
     }
@@ -106,6 +123,16 @@ export class BotContentService implements OnModuleInit {
 
     private async findOneBy(lang: string): Promise<BotContent | null> {
         return this.model.findOne({ language: lang }).exec()
+    }
+
+    /** Needs to clear all old BotContent models with unsupported languages from database */
+    private async useOnlySupportedLanguages(currentLanguages: string[]) {
+        const dbLanguages = await this.getLocalLanguages()
+        for (const dbLanguage of dbLanguages) {
+            if (currentLanguages.includes(dbLanguage)) continue
+            await this.model.deleteOne({ language: dbLanguage }).exec()
+            this.botContentCache = new Map<string, BotContentStable>()
+        }
     }
 
     // =====================
@@ -132,6 +159,7 @@ export class BotContentService implements OnModuleInit {
                     params: { type: 'originalContent' },
                     isUniqueMessage: { type: 'originalContent' },
                     defaultValue: { type: 'unidentifiable' },
+                    defaultValueLanguage: { type: 'originalContent' },
                 },
             })
 
@@ -194,17 +222,13 @@ export class BotContentService implements OnModuleInit {
             }
 
             // Write result
-            const createBotContentDto = {
+            await this.createOrUpdateExisting(language, {
                 language: language,
                 uniqueMessage: uniqueMessagePrecastObject as unknown as UniqueMessage,
-            }
-            const existingContent = await this.model.findOne({ language: language }).exec()
-            if (existingContent && !existingContent.isNew) {
-                await this.update(createBotContentDto, existingContent)
-            } else {
-                await this.create(createBotContentDto)
-            }
+            })
         }
+
+        await this.useOnlySupportedLanguages(languages)
     }
 
     private async cacheOnboarding() {
@@ -254,18 +278,14 @@ export class BotContentService implements OnModuleInit {
                 }
                 return result
             })
-            const createBotContentDto: CreateBotContentDto = {
+
+            // Write result
+            await this.createOrUpdateExisting(language, {
                 language: language,
                 onboarding: resultContent,
-            }
-
-            const existingContent = await this.model.findOne({ language: language }).exec()
-            if (existingContent && !existingContent.isNew) {
-                await this.update(createBotContentDto, existingContent)
-            } else {
-                await this.create(createBotContentDto)
-            }
+            })
         }
+        await this.useOnlySupportedLanguages(languages)
     }
 
     private createMediaContentFromCells(

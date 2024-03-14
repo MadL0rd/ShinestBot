@@ -5,14 +5,14 @@
             "sheetPublicName": "УникальныеСообщения",
             "contentType": "localizedStrings",
             "cacheConfiguration": {
-                "configurationRow": 2,
+                "configurationRow": 1,
                 "firstContentRow": 3,
                 "lastContentRow": 1000,
                 "firstLetter": "A",
                 "lastLetter": "Z"
             },
             "validation": {
-                "minRowLength": 6,
+                "minRowLength": 2,
                 "requiredFields": {
                     "group": "",
                     "key": "",
@@ -25,7 +25,8 @@
                 "comment": "",
                 "params": "",
                 "isUniqueMessage": "",
-                "defaultValue": ""
+                "defaultValue": "",
+                "defaultValueLanguage": ""
             }
         },
         "localisationCommon": {
@@ -33,23 +34,26 @@
             "sheetPublicName": "Локализация",
             "contentType": "localizedStrings",
             "cacheConfiguration": {
-                "configurationRow": 2,
+                "configurationRow": 1,
                 "firstContentRow": 3,
                 "lastContentRow": 1000,
                 "firstLetter": "A",
                 "lastLetter": "Z"
             },
             "validation": {
-                "minRowLength": 4,
+                "minRowLength": 2,
                 "requiredFields": {
                     "group": "",
-                    "key": ""
+                    "key": "",
+                    "defaultValue": ""
                 }
             },
             "itemPrototype": {
                 "group": "",
                 "key": "",
-                "comment": ""
+                "comment": "",
+                "defaultValue": "",
+                "defaultValueLanguage": ""
             }
         }
     },
@@ -59,14 +63,14 @@
             "sheetPublicName": "УникальныеСообщения",
             "contentType": "commonContent",
             "cacheConfiguration": {
-                "configurationRow": 2,
+                "configurationRow": 1,
                 "firstContentRow": 3,
                 "lastContentRow": 1000,
                 "firstLetter": "A",
                 "lastLetter": "Z"
             },
             "validation": {
-                "minRowLength": 6,
+                "minRowLength": 2,
                 "requiredFields": {
                     "group": "",
                     "key": "",
@@ -79,7 +83,8 @@
                 "comment": "",
                 "params": "",
                 "isUniqueMessage": "",
-                "defaultValue": ""
+                "defaultValue": "",
+                "defaultValueLanguage": ""
             }
         },
         "onboarding": {
@@ -94,7 +99,7 @@
                 "lastLetter": "G"
             },
             "validation": {
-                "minRowLength": 3,
+                "minRowLength": 2,
                 "requiredFields": {
                     "id": "",
                     "messageText": "",

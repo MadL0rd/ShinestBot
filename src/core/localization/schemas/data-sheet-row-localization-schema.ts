@@ -64,9 +64,3 @@ type RowFieldIdentifiableArray = {
     readonly arrayItemComponentsSeparator: '/'
     readonly arrayItemIdIndex: 0
 }
-
-export type Kek = IdentifiableRowFieldsLocalizationSchema<'onboarding'>
-export type Kek1 = IdentifiableRowLocalizationSchema<'onboarding'>
-
-export type Jopa = UnidentifiableRowFieldsLocalizationSchema<'onboarding'>
-export type Jopa1 = UnidentifiableRowLocalizationSchema<'onboarding'>

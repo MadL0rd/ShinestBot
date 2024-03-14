@@ -1,4 +1,4 @@
-import * as spreadsheetSchema from './SpreadsheetSchema.json'
+import * as spreadsheetSchema from './spreadsheet-schema.json'
 import { DataSheetPageSchema } from './data-sheet-page-schema.interface'
 
 type RowPrototype<BasePrototype, RequiredFields extends keyof any> = {

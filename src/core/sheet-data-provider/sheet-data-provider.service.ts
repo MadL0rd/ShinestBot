@@ -74,12 +74,18 @@ export class SheetDataProviderService {
                 `Sheet cache error: ${pageConfig.sheetId}. Configuration row identification failed!`
             )
         }
-        Object.keys(pageConfig.itemPrototype).forEach((key) => {
+        const itemPrototypeKeys = Object.keys(pageConfig.itemPrototype)
+        itemPrototypeKeys.forEach((key) => {
             if (configurationRow.includes(key) === false)
                 throw Error(
                     `Sheet cache error: ${pageConfig.sheetId}. Remote configuration row does not contains key "${key}"!`
                 )
         })
+        const configurationRowLanguages = configurationRow.filter(
+            (rowKey) =>
+                itemPrototypeKeys.includes(rowKey) == false &&
+                LanguageCode.allCases.includes(rowKey)
+        )
 
         content = content
             .slice(cacheConfig.firstContentRow - cacheConfig.configurationRow)
@@ -88,35 +94,41 @@ export class SheetDataProviderService {
         if (content.isEmpty) {
             throw Error(`Sheet cache error: ${pageConfig.sheetId}. No content`)
         }
-        const itemPrototypeKeys = Object.keys(pageConfig.itemPrototype)
 
-        const result = this.rowsToStringRecords(configurationRow, content)
-            .map((rowRecord) => {
-                const rowItem: Record<string, string | Record<string, string>> = {}
-                const localizedValues: Record<string, string> = {}
-                for (const rowKey in rowRecord) {
-                    if (itemPrototypeKeys.includes(rowKey)) {
-                        rowItem[rowKey] = rowRecord[rowKey]
-                    } else if (LanguageCode.allCases.includes(rowKey)) {
-                        localizedValues[rowKey] = rowRecord[rowKey]
-                    } else {
-                        throw Error(
-                            `Sheet cache error: ${pageConfig.sheetId}\nKey '${rowKey}' is unsupported: there is no field '${rowKey}' in prototype or '${rowKey}' is unsupported language`
-                        )
-                    }
+        const result = this.rowsToStringRecords(configurationRow, content).map((rowRecord) => {
+            const rowItem: Record<string, string | Record<string, string>> = {}
+            const localizedValues: Record<string, string> = {}
+            for (const rowKey in rowRecord) {
+                if (!rowRecord[rowKey] || rowRecord[rowKey].isEmpty) continue
+
+                if (itemPrototypeKeys.includes(rowKey)) {
+                    rowItem[rowKey] = rowRecord[rowKey]
+                } else if (configurationRowLanguages.includes(rowKey)) {
+                    localizedValues[rowKey] = rowRecord[rowKey]
                 }
-                if (pageConfig.contentType == 'localizedStrings') {
-                    rowItem['localizedValues'] = localizedValues
+            }
+            if (pageConfig.contentType == 'localizedStrings') {
+                const itemLanguages = Object.keys(localizedValues)
+                if (configurationRowLanguages.length != itemLanguages.length) {
+                    const rowItemJson = JSON.stringify(rowRecord, null, 2)
+                    throw Error(
+                        `Sheet cache error: ${pageConfig.sheetId}\nRow item miss some languages\n${rowItemJson}`
+                    )
                 }
-                return rowItem
-            })
-            .filter((item) => {
-                for (const requiredField in validation.requiredFields) {
-                    const value = item[requiredField].trimmed
-                    if (!value || value.isEmpty) return false
+                rowItem['localizedValues'] = localizedValues
+            }
+
+            for (const requiredField in validation.requiredFields) {
+                const value = rowItem[requiredField]
+                if (!value || value.isEmpty) {
+                    const rowItemJson = JSON.stringify(rowRecord)
+                    throw Error(
+                        `Sheet cache error: ${pageConfig.sheetId}\nRow item miss required field '${requiredField}'\n${rowItemJson}`
+                    )
                 }
-                return true
-            })
+            }
+            return rowItem
+        })
 
         return result
     }

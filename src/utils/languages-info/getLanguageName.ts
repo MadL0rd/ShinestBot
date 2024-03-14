@@ -1,4 +1,4 @@
-import * as languagesInfo from './languagesInfo.json'
+import * as languagesInfo from './languages-info.json'
 
 export namespace LanguageCode {
     export type Union = keyof typeof languagesInfo

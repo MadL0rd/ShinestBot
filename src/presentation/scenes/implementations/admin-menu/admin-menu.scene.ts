@@ -109,19 +109,21 @@ export class AdminMenuScene extends Scene<ISceneData, SceneEnterDataType> {
     // Private methods
     // =====================
     private async cacheBotContent(ctx: Context<Update>): Promise<void> {
-        const messagePrefix = 'Кеширование таблицы\n\n'
+        let messagePrefix = 'Кеширование таблицы'
 
-        const messageInfo = await ctx.replyWithHTML(messagePrefix + 'Загрузка локализации')
+        let localizationInfo = emoji.loading + ' Загрузка локализации'
+        const messageInfo = await ctx.replyWithHTML(`${messagePrefix}\n\n${localizationInfo}`)
         if (!ctx.chat) return
         try {
             await this.localizationService.cacheLocalization()
         } catch (error) {
             logger.error(`Fail to cache localization`, error)
+            localizationInfo = emoji.error + ' Загрузка локализации'
             await ctx.telegram.editMessageText(
                 ctx.chat.id,
                 messageInfo.message_id,
                 undefined,
-                messagePrefix + `❌ Загрузка локализации\n\`\`\`\n${error}\n\`\`\``,
+                `${messagePrefix}\n\n${localizationInfo}\n\n\`\`\`\n${error}\n\`\`\``,
                 {
                     parse_mode: 'MarkdownV2',
                 }
@@ -129,17 +131,21 @@ export class AdminMenuScene extends Scene<ISceneData, SceneEnterDataType> {
             return
         }
 
+        localizationInfo = emoji.success + ' Загрузка локализации'
+
         const statuses = new Map<
-            DataSheetPrototype.SomePage,
+            DataSheetPrototype.SomePageContent,
             SpreadsheetPageCacheStatus.Union | Error
         >()
-        DataSheetPrototype.allPages.forEach((pageName) => statuses.set(pageName, 'loading'))
+        DataSheetPrototype.allPagesContent.forEach((pageName) => statuses.set(pageName, 'loading'))
 
         await ctx.telegram.editMessageText(
             ctx.chat.id,
             messageInfo.message_id,
             undefined,
-            messagePrefix + this.generageTextForCacheStatuses(statuses),
+            `${messagePrefix}\n\n${localizationInfo}\n\n${this.generageTextForCacheStatuses(
+                statuses
+            )}`,
             {
                 parse_mode: 'MarkdownV2',
             }
@@ -159,13 +165,14 @@ export class AdminMenuScene extends Scene<ISceneData, SceneEnterDataType> {
         })
         await Promise.all(loadingPromises)
 
+        messagePrefix = 'Процесс обновления завершен'
         await ctx.telegram.editMessageText(
             ctx.chat.id,
             messageInfo.message_id,
             undefined,
-            messagePrefix +
-                this.generageTextForCacheStatuses(statuses) +
-                '\n\nПроцесс обновления завершен',
+            `${messagePrefix}\n\n${localizationInfo}\n\n${this.generageTextForCacheStatuses(
+                statuses
+            )}`,
             {
                 parse_mode: 'MarkdownV2',
             }
@@ -173,10 +180,10 @@ export class AdminMenuScene extends Scene<ISceneData, SceneEnterDataType> {
     }
 
     private generageTextForCacheStatuses(
-        statuses: Map<DataSheetPrototype.SomePage, SpreadsheetPageCacheStatus.Union | Error>
+        statuses: Map<DataSheetPrototype.SomePageContent, SpreadsheetPageCacheStatus.Union | Error>
     ): string {
         let result = ''
-        for (const sheetPage of DataSheetPrototype.allPages) {
+        for (const sheetPage of DataSheetPrototype.allPagesContent) {
             const pageSchema = DataSheetPrototype.getSchemaForPage(sheetPage)
             const status = statuses.get(sheetPage)
             result += `\n`
@@ -188,10 +195,10 @@ export class AdminMenuScene extends Scene<ISceneData, SceneEnterDataType> {
                 result += SpreadsheetPageCacheStatus.getEmojiForStatus(
                     status as SpreadsheetPageCacheStatus.Union
                 )
-                result += pageSchema.sheetPublicName
+                result += ' ' + pageSchema.sheetPublicName
             }
         }
-        return result
+        return result.trimmed
     }
 
     private menuMarkup(): object {
@@ -203,6 +210,12 @@ export class AdminMenuScene extends Scene<ISceneData, SceneEnterDataType> {
             [this.text.common.buttonReturnToMainMenu],
         ])
     }
+}
+
+const emoji = {
+    loading: '⏳',
+    success: '✅',
+    error: '❌',
 }
 
 namespace SpreadsheetPageCacheStatus {
@@ -217,11 +230,11 @@ namespace SpreadsheetPageCacheStatus {
     export function getEmojiForStatus(value: Union) {
         switch (value) {
             case 'loading':
-                return '🔍'
+                return emoji.loading
             case 'success':
-                return '🟢'
+                return emoji.success
             case 'error':
-                return '❌'
+                return emoji.error
         }
     }
 }

@@ -36,14 +36,14 @@ export class LocalizationService {
 
         // Validate localizationContent content have no duplicates of pair group / key
         const allGroupKeyPairsDuplicates = localizationContent.map((rowItem) => {
-            return {
+            return JSON.stringify({
                 group: rowItem.group,
                 key: rowItem.key,
-            }
+            })
         }).justNotUnique
         if (allGroupKeyPairsDuplicates.isNotEmpty) {
             throw Error(
-                `Fail to cache localizad strings: duplicated found\n${JSON.stringify(
+                `Fail to cache localizad strings: duplicates found\n${JSON.stringify(
                     allGroupKeyPairsDuplicates
                 )}`
             )
@@ -278,18 +278,18 @@ export class LocalizationService {
             })
             .combinePromises()
 
-        const languagesArrayHaveSameLength =
-            languagesForAllPages.map(
-                (languagesPageContent) => languagesPageContent.languages.length
-            ).uniqueOnly.length == 1
-        if (languagesArrayHaveSameLength === false) {
+        const languagesSetDefault = languagesForAllPages[0].languages.toSorted()
+        const languagesSetDefaultString = languagesForAllPages[0].languages.toSorted().join(', ')
+        for (const languagesSet of languagesForAllPages) {
+            const languagesSetString = languagesSet.languages.toSorted().join(', ')
+            if (languagesSetString == languagesSetDefaultString) continue
+
             const contentJsonString = JSON.stringify(languagesForAllPages)
             throw Error(
                 `Fail to get languages: localization pages have different languages set\nContent:\t${contentJsonString}`
             )
         }
-
-        return languagesForAllPages[0].languages
+        return languagesSetDefault
     }
 
     private async cacheLocalizationRowsCommonArray() {
@@ -297,9 +297,7 @@ export class LocalizationService {
             .map(async (page) => {
                 const pageContent = await this.sheetDataProvider.getLocalizedStringsFrom(page)
                 if (!pageContent || pageContent.isEmpty) {
-                    throw Error(
-                        `Fail to get table content: fail to get languages from page ${page}`
-                    )
+                    throw Error(`Fail to get table content from page ${page}`)
                 }
                 return pageContent
             })
