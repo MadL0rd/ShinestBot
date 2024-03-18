@@ -295,8 +295,7 @@ export class BotContentService implements OnModuleInit {
         const content = await this.sheetDataProvider.getContentFrom(sheetPage)
         if (!content || content.isEmpty) throw Error('No content')
         const idsDuplicated = content.map((rowItem) => rowItem.id).justNotUnique
-        if (!idsDuplicated.isEmpty)
-            throw Error(`Ids duplicated in Onboarding page: ${idsDuplicated}`)
+        if (!idsDuplicated.isEmpty) throw Error(`Ids duplicated: ${idsDuplicated}`)
         const localizedContentByLanguage =
             await this.localizationService.localizeDataSheetRowsArray(content, {
                 type: 'byItemId',
@@ -411,6 +410,7 @@ export class BotContentService implements OnModuleInit {
                     case 'numeric':
                         answerType = {
                             name: 'numeric',
+                            unit: unit,
                         }
                         break
                     case 'image':
