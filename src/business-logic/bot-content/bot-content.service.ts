@@ -12,6 +12,7 @@ import { LocalizationService } from '../../core/localization/localization.servic
 import { OnboardingPage } from './schemas/models/bot-content.onboarding-page'
 import { MediaContent } from './schemas/models/bot-content.media-content'
 import { SheetDataProviderService } from '../../core/sheet-data-provider/sheet-data-provider.service'
+import { Survey, SurveyCacheHelpers } from './schemas/models/bot-content.survey'
 
 @Injectable()
 export class BotContentService implements OnModuleInit {
@@ -86,6 +87,10 @@ export class BotContentService implements OnModuleInit {
 
             case 'onboarding':
                 await this.cacheOnboarding()
+                break
+
+            case 'survey':
+                await this.cacheSurvey()
                 break
         }
         this.botContentCache = new Map<string, BotContentStable>()
@@ -247,12 +252,7 @@ export class BotContentService implements OnModuleInit {
                 localizationSchema: {
                     id: { type: 'originalContent' },
                     messageText: { type: 'byIdAndFieldName' },
-                    buttonText: {
-                        type: 'byIdAndFieldNameForArray',
-                        arrayItemsSeparator: '\n',
-                        arrayItemComponentsSeparator: '/',
-                        arrayItemIdIndex: 0,
-                    },
+                    buttonText: { type: 'byIdAndFieldName' },
                     video: { type: 'byIdAndFieldName' },
                     picture: { type: 'byIdAndFieldName' },
                     audio: { type: 'byIdAndFieldName' },
@@ -289,6 +289,259 @@ export class BotContentService implements OnModuleInit {
         }
         await this.useOnlySupportedLanguages(languages)
     }
+
+    private async cacheSurvey() {
+        const sheetPage: DataSheetPrototype.SomePageContent = 'survey'
+        const content = await this.sheetDataProvider.getContentFrom(sheetPage)
+        if (!content || content.isEmpty) throw Error('No content')
+        const idsDuplicated = content.map((rowItem) => rowItem.id).justNotUnique
+        if (!idsDuplicated.isEmpty)
+            throw Error(`Ids duplicated in Onboarding page: ${idsDuplicated}`)
+        const localizedContentByLanguage =
+            await this.localizationService.localizeDataSheetRowsArray(content, {
+                type: 'byItemId',
+                page: sheetPage,
+                group: sheetPage,
+                itemIdField: 'id',
+                localizationSchema: {
+                    id: { type: 'originalContent' },
+                    isRequired: { type: 'originalContent' },
+                    questionText: { type: 'byIdAndFieldName' },
+                    publicTitle: { type: 'byIdAndFieldName' },
+                    answerType: { type: 'originalContent' },
+                    answerParams: {
+                        type: 'byIdAndFieldNameForArray',
+                        itemsSeparator: '\n',
+                        itemComponentsSeparator: '/',
+                        itemIdIndex: 0,
+                        needToBeLocalizedPrefix: '$',
+                    },
+                    filters: { type: 'originalContent' },
+                    showInPublicationTelegram: { type: 'originalContent' },
+                },
+            })
+
+        const languages = Object.keys(localizedContentByLanguage)
+        for (const language of languages) {
+            const contentRowsLocalized = localizedContentByLanguage[language]
+            if (!contentRowsLocalized) {
+                throw Error(`Fatal error: content corrupted`)
+            }
+            const resultContent = contentRowsLocalized.map((rowItem) => {
+                const rowAnswerType =
+                    SurveyCacheHelpers.answerTypeNameByPublicName[rowItem.answerType]
+                const rowItemString = JSON.stringify(rowItem, null, 2)
+                if (!rowAnswerType) {
+                    throw Error(`Unsupported unser type: ${rowItem.answerType}\n${rowItemString}`)
+                }
+                let answerType: Survey.AnswerType
+
+                let useIdAsPublicationTag: boolean | undefined
+                let unit: string | undefined
+                let maxCount: number | undefined
+
+                const answerParams =
+                    rowItem.answerParams
+                        ?.split('\n')
+                        .map((param) => {
+                            const paramStrings = param.split('/').map((item) => item.trimmed)
+                            return {
+                                id: paramStrings[0],
+                                value: paramStrings[1] ?? '',
+                            }
+                        })
+                        .filter((answerParam) => {
+                            // Detect and filter special params
+                            switch (answerParam.id) {
+                                case 'useIdAsPublicationTag':
+                                    useIdAsPublicationTag = true
+                                    return false
+
+                                case 'unit':
+                                    unit = answerParam.value
+                                    if (!unit) {
+                                        throw Error(
+                                            `Question answerOptions contains empty option 'unit'\n${rowItemString}`
+                                        )
+                                    }
+                                    return false
+
+                                case 'maxCount':
+                                    maxCount = Number(answerParam.value)
+                                    if (Number.isNaN(maxCount) || !maxCount || maxCount < 1) {
+                                        throw Error(
+                                            `Question answerOptions contains wrong option 'maxCount'\n${rowItemString}`
+                                        )
+                                    }
+                                    return false
+                            }
+                            return true
+                        }) ?? []
+
+                switch (rowAnswerType) {
+                    case 'string':
+                        answerType = {
+                            name: 'string',
+                        }
+                        break
+                    case 'answerOptions':
+                        const answerOptions = answerParams.map((answerParam) => {
+                            if (answerParam.value.isEmpty) {
+                                throw Error(
+                                    `Question with type answerOptions contains empty option with id: ${answerParam.id}\n${rowItemString}`
+                                )
+                            }
+                            const option: Survey.AnswerOption = {
+                                id: answerParam.id,
+                                text: answerParam.value,
+                            }
+                            return option
+                        })
+                        if (answerParams.isEmpty) {
+                            throw Error(
+                                `Question with type answerOptions does not contains options\n${rowItemString}`
+                            )
+                        }
+                        answerType = {
+                            name: 'answerOptions',
+                            options: answerOptions,
+                            useIdAsPublicationTag: useIdAsPublicationTag ?? false,
+                        }
+                        break
+                    case 'numeric':
+                        answerType = {
+                            name: 'numeric',
+                        }
+                        break
+                    case 'image':
+                        if (!maxCount) {
+                            throw Error(
+                                `Question with type 'image' does not contain option 'maxCount'\n${rowItemString}`
+                            )
+                        }
+                        answerType = {
+                            name: 'image',
+                            mediaMaxCount: maxCount,
+                        }
+                        break
+
+                    case 'video':
+                        if (!maxCount) {
+                            throw Error(
+                                `Question with type 'image' does not contain option 'maxCount'\n${rowItemString}`
+                            )
+                        }
+                        answerType = {
+                            name: 'video',
+                            mediaMaxCount: maxCount,
+                        }
+                        break
+
+                    case 'mediaGroup':
+                        if (!maxCount) {
+                            throw Error(
+                                `Question with type 'image' does not contain option 'maxCount'\n${rowItemString}`
+                            )
+                        }
+                        answerType = {
+                            name: 'mediaGroup',
+                            mediaMaxCount: maxCount,
+                        }
+                        break
+                }
+
+                let filters: Survey.Filter[] = []
+                if (rowItem.filters && rowItem.filters.isNotEmpty) {
+                    filters = rowItem.filters
+                        .split('\n')
+                        .map((filterLine) => filterLine.trimmed)
+                        .filter((filterLine) => filterLine.isNotEmpty)
+                        .map((filterLine) => {
+                            const lineComponents = filterLine
+                                .split('/')
+                                .map((option: string) => option.trimmed)
+
+                            if (
+                                lineComponents.length < 3 ||
+                                lineComponents[1].isEmpty ||
+                                lineComponents[2].isEmpty
+                            ) {
+                                throw Error(`Question filters is not correct\n${rowItemString}`)
+                            }
+                            return {
+                                targetQuestionId: lineComponents[1],
+                                validOptionIds: lineComponents[2].split('|').map((value) => {
+                                    const result = value.trimmed
+                                    if (result.isEmpty) {
+                                        throw Error(
+                                            `Question filters is not correct\n${rowItemString}`
+                                        )
+                                    }
+                                    return result
+                                }),
+                            }
+                        })
+                }
+
+                const result: Survey.Question = {
+                    id: rowItem.id,
+                    required: rowItem.isRequired == this.cachedTrueValue,
+                    questionText: rowItem.questionText,
+                    publicTitle: rowItem.publicTitle,
+                    answerType: answerType,
+                    filters: filters,
+                    addAnswerToTelegramPublication: false,
+                }
+                return result
+            })
+
+            // Validate filters
+            for (const question of resultContent) {
+                if (question.filters.isEmpty) continue
+                for (const filter of question.filters) {
+                    const targetQuestion = resultContent.find((question) => {
+                        return question.id == filter.targetQuestionId
+                    })
+                    if (!targetQuestion) {
+                        const questionString = JSON.stringify(question, null, 2)
+                        throw Error(
+                            `Question filters contains undefiend id: ${filter.targetQuestionId}\n${questionString}`
+                        )
+                    }
+                    if (targetQuestion.answerType.name != 'answerOptions') {
+                        const questionString = JSON.stringify(question, null, 2)
+                        throw Error(
+                            `Question filters contains answerId '${targetQuestion.id}' but type of target question answer is not 'answerOptions'\n${questionString}`
+                        )
+                    }
+                    for (const validOptionId of filter.validOptionIds) {
+                        const targetQuestionContainsValidValue =
+                            targetQuestion.answerType.options.some(
+                                (option) => option.id == validOptionId
+                            )
+                        if (targetQuestionContainsValidValue) continue
+
+                        const questionString = JSON.stringify(question, null, 2)
+                        throw Error(
+                            `Question filters contains option id '${validOptionId}' but target question answer options does not contains same id\n${questionString}`
+                        )
+                    }
+                }
+            }
+
+            // Write result
+            await this.createOrUpdateExisting(language, {
+                language: language,
+                survey: { questions: resultContent },
+            })
+        }
+        await this.useOnlySupportedLanguages(languages)
+    }
+
+    // =====================
+    // Private methods:
+    // Helpers
+    // =====================
 
     private createMediaContentFromCells(
         imagesCell?: string,
