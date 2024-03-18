@@ -1,38 +1,61 @@
+import { logger } from 'src/app/app.logger'
+import { UserService } from 'src/business-logic/user/user.service'
 import { Context } from 'telegraf'
-import { Message, Update } from 'telegraf/typings/core/types/typegram'
-import { SceneName } from '../enums/scene-name.enum'
-import { SceneHandlerCompletion, Scene, SceneCallbackData } from '../scene.interface'
-import { Markup } from 'telegraf'
-import { logger } from 'src/app.logger'
-import { OnboardingPage } from 'src/core/bot-content/schemas/models/bot-content.onboarding-page'
+import { Message, Update } from 'telegraf/types'
+import { SceneCallbackData } from '../models/scene-callback'
+import { SceneEntrance } from '../models/scene-entrance.interface'
+import { SceneName } from '../models/scene-name.enum'
+import { SceneHandlerCompletion } from '../models/scene.interface'
+import { Scene } from '../models/scene.abstract'
+import { SceneUsagePermissionsValidator } from '../models/scene-usage-permissions-validator'
+import { OnboardingPage } from 'src/business-logic/bot-content/schemas/models/bot-content.onboarding-page'
+import { InjectableSceneConstructor } from '../scene-factory/scene-injections-provider.service'
 
 // =====================
-// Scene data class
+// Scene data classes
 // =====================
+export class OnboardingSceneEntranceDto implements SceneEntrance.Dto {
+    readonly sceneName = 'onboarding'
+}
+type SceneEnterDataType = OnboardingSceneEntranceDto
 interface ISceneData {
     onboardingPageIndex: number
     continueButtonText: string
 }
 
-export class OnboardingScene extends Scene<ISceneData> {
+// =====================
+// Scene main class
+// =====================
+
+@InjectableSceneConstructor()
+export class OnboardingScene extends Scene<ISceneData, SceneEnterDataType> {
     // =====================
     // Properties
     // =====================
 
-    readonly name: SceneName = SceneName.onboarding
-    get dataDefault(): ISceneData {
-        return this.generateData({
-            onboardingPageIndex: 1,
-            continueButtonText: 'Далее',
-        })
+    readonly name: SceneName.union = 'onboarding'
+    protected get dataDefault(): ISceneData {
+        return {} as ISceneData
+    }
+    protected get permissionsValidator(): SceneUsagePermissionsValidator.IPermissionsValidator {
+        return new SceneUsagePermissionsValidator.CanUseIfNotBanned()
+    }
+
+    constructor(protected readonly userService: UserService) {
+        super()
     }
 
     // =====================
     // Public methods
     // =====================
 
-    async handleEnterScene(ctx: Context<Update>): Promise<SceneHandlerCompletion> {
-        logger.log(`${this.name} scene handleEnterScene. User: ${ctx.from.id} ${ctx.from.username}`)
+    async handleEnterScene(
+        ctx: Context,
+        data?: SceneEnterDataType
+    ): Promise<SceneHandlerCompletion> {
+        logger.log(
+            `${this.name} scene handleEnterScene. User: ${this.user.telegramInfo.id} ${this.user.telegramInfo.username}`
+        )
         await this.logToUserHistory(this.historyEvent.startSceneOnboarding)
 
         const onboardingPageIndex = 0
@@ -40,15 +63,17 @@ export class OnboardingScene extends Scene<ISceneData> {
         await this.showOnboardingPage(ctx, page)
 
         return this.completion.inProgress({
-            onboardingPageIndex: 0,
+            onboardingPageIndex: onboardingPageIndex,
             continueButtonText: page.buttonText,
         })
     }
 
-    async handleMessage(ctx: Context<Update>, dataRaw: object): Promise<SceneHandlerCompletion> {
-        logger.log(`${this.name} scene handleMessage. User: ${ctx.from.id} ${ctx.from.username}`)
+    async handleMessage(ctx: Context, dataRaw: object): Promise<SceneHandlerCompletion> {
+        logger.log(
+            `${this.name} scene handleMessage. User: ${this.user.telegramInfo.id} ${this.user.telegramInfo.username}`
+        )
 
-        const data: ISceneData = this.restoreData(dataRaw)
+        const data = this.restoreData(dataRaw)
         const message = ctx.message as Message.TextMessage
 
         if (data.continueButtonText === message?.text) {
@@ -65,7 +90,7 @@ export class OnboardingScene extends Scene<ISceneData> {
                     })
                 )
             } else {
-                return this.completion.complete(SceneName.mainMenu)
+                return this.completion.complete()
             }
         }
 
@@ -73,10 +98,10 @@ export class OnboardingScene extends Scene<ISceneData> {
     }
 
     async handleCallback(
-        ctx: Context<Update>,
+        ctx: Context<Update.CallbackQueryUpdate>,
         data: SceneCallbackData
     ): Promise<SceneHandlerCompletion> {
-        throw new Error('Method not implemented.')
+        throw Error('Method not implemented.')
     }
 
     // =====================

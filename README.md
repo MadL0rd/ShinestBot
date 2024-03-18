@@ -53,6 +53,12 @@ docker-compose logs --tail 50
 ## Test spreadsheet
 [Google spreadsheet](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/)
 
+## Nest cli tips
+
+```sh
+nest g resource core/users --no-spec
+```
+
 ## License
 
 Shinest Bot is licensed under the terms of the [MIT license](LICENSE.md). Please see the [LICENSE](LICENSE.md) file for full details.

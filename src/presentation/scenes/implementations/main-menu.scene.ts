@@ -1,60 +1,103 @@
+import { logger } from 'src/app/app.logger'
+import { UserService } from 'src/business-logic/user/user.service'
 import { Context } from 'telegraf'
-import { Message, Update } from 'telegraf/typings/core/types/typegram'
-import { SceneName } from '../enums/scene-name.enum'
-import { SceneHandlerCompletion, Scene, SceneCallbackData } from '../scene.interface'
-import { logger } from 'src/app.logger'
-import { Markup } from 'telegraf'
-import { UserPermissions } from 'src/core/user/enums/user-permissions.enum'
+import { Message, Update } from 'telegraf/types'
+import {
+    SceneCallbackData,
+    SceneCallbackAction,
+    SceneCallbackDataSegue,
+} from '../models/scene-callback'
+import { SceneEntrance } from '../models/scene-entrance.interface'
+import { SceneName } from '../models/scene-name.enum'
+import { SceneHandlerCompletion } from '../models/scene.interface'
+import { Scene } from '../models/scene.abstract'
+import { SceneUsagePermissionsValidator } from '../models/scene-usage-permissions-validator'
+import { InjectableSceneConstructor } from '../scene-factory/scene-injections-provider.service'
 
 // =====================
-// Scene data class
+// Scene data classes
 // =====================
+export class MainMenuSceneEntranceDto implements SceneEntrance.Dto {
+    readonly sceneName = 'mainMenu'
+}
+type SceneEnterDataType = MainMenuSceneEntranceDto
 interface ISceneData {}
 
-export class MainMenuScene extends Scene<ISceneData> {
+// =====================
+// Scene main class
+// =====================
+
+@InjectableSceneConstructor()
+export class MainMenuScene extends Scene<ISceneData, SceneEnterDataType> {
     // =====================
     // Properties
     // =====================
 
-    readonly name: SceneName = SceneName.mainMenu
+    readonly name: SceneName.union = 'mainMenu'
+    protected get dataDefault(): ISceneData {
+        return {} as ISceneData
+    }
+    protected get permissionsValidator(): SceneUsagePermissionsValidator.IPermissionsValidator {
+        return new SceneUsagePermissionsValidator.CanUseIfNotBanned()
+    }
+
+    constructor(protected readonly userService: UserService) {
+        super()
+    }
 
     // =====================
     // Public methods
     // =====================
 
-    async handleEnterScene(ctx: Context<Update>): Promise<SceneHandlerCompletion> {
-        logger.log(`${this.name} scene handleEnterScene. User: ${ctx.from.id} ${ctx.from.username}`)
+    async handleEnterScene(
+        ctx: Context,
+        data?: SceneEnterDataType
+    ): Promise<SceneHandlerCompletion> {
+        logger.log(
+            `${this.name} scene handleEnterScene. User: ${this.user.telegramInfo.id} ${this.user.telegramInfo.username}`
+        )
         await this.logToUserHistory(this.historyEvent.startSceneMainMenu)
 
         await ctx.replyWithHTML(this.text.mainMenu.text, this.menuMarkup())
 
-        return this.completion.inProgress()
+        return this.completion.inProgress({})
     }
 
-    async handleMessage(ctx: Context<Update>, dataRaw: object): Promise<SceneHandlerCompletion> {
-        logger.log(`${this.name} scene handleMessage. User: ${ctx.from.id} ${ctx.from.username}`)
+    async handleMessage(ctx: Context, dataRaw: object): Promise<SceneHandlerCompletion> {
+        logger.log(
+            `${this.name} scene handleMessage. User: ${this.user.telegramInfo.id} ${this.user.telegramInfo.username}`
+        )
         const message = ctx.message as Message.TextMessage
 
         switch (message?.text) {
             case this.text.mainMenu.buttonRepoLink:
                 await ctx.replyWithHTML(this.text.mainMenu.textRepoLink)
-                return this.completion.inProgress()
+                return this.completion.inProgress({})
 
             case this.text.mainMenu.buttonLanguageSettings:
-                return this.completion.complete(SceneName.languageSettings)
+                return this.completion.complete({ sceneName: 'languageSettingsScene' })
 
             case this.text.mainMenu.buttonAdminMenu:
-                return this.completion.complete(SceneName.adminMenu)
+                return this.completion.complete({ sceneName: 'adminMenu' })
         }
 
-        return this.completion.canNotHandle()
+        return this.completion.canNotHandle({})
     }
 
     async handleCallback(
-        ctx: Context<Update>,
+        ctx: Context<Update.CallbackQueryUpdate>,
         data: SceneCallbackData
     ): Promise<SceneHandlerCompletion> {
-        throw new Error('Method not implemented.')
+        switch (data.action) {
+            case SceneCallbackAction.segueButton:
+                const callbackData = data.data as SceneCallbackDataSegue
+
+                const nextScene = SceneName.castToInstance(callbackData.segueSceneName)
+                if (!nextScene) return this.completion.canNotHandle({})
+
+                return this.completion.completeWithUnsafeSceneEntrance(nextScene)
+        }
+        return this.completion.canNotHandle({})
     }
 
     // =====================
@@ -63,13 +106,14 @@ export class MainMenuScene extends Scene<ISceneData> {
 
     private menuMarkup(): object {
         const ownerOrAdmin =
-            this.userActivePermissions.includes(UserPermissions.admin) ||
-            this.userActivePermissions.includes(UserPermissions.owner)
-
-        return this.keyboardMarkupFor([
-            [this.text.mainMenu.buttonRepoLink],
-            [this.text.mainMenu.buttonLanguageSettings],
-            ownerOrAdmin ? [this.text.mainMenu.buttonAdminMenu] : [],
-        ])
+            this.userActivePermissions.includes('admin') ||
+            this.userActivePermissions.includes('owner')
+        return this.keyboardMarkupWithAutoLayoutFor(
+            [
+                this.text.mainMenu.buttonRepoLink,
+                this.text.mainMenu.buttonLanguageSettings,
+                ownerOrAdmin ? this.text.mainMenu.buttonAdminMenu : null,
+            ].compact
+        )
     }
 }

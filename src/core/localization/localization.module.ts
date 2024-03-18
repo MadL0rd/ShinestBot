@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common'
 import { MongooseModule } from '@nestjs/mongoose'
 import { LocalizationService } from './localization.service'
 import { LocalizedGroup, LocalizedationSchema } from './schemas/localization.schema'
-import { GoogleTablesModule } from '../google-tables/google-tables.module'
+import { SheetDataProviderModule } from '../sheet-data-provider/sheet-data-provider.module'
 
 @Module({
     imports: [
@@ -12,7 +12,7 @@ import { GoogleTablesModule } from '../google-tables/google-tables.module'
                 schema: LocalizedationSchema,
             },
         ]),
-        GoogleTablesModule,
+        SheetDataProviderModule,
     ],
     providers: [LocalizationService],
     exports: [LocalizationService],

@@ -1,15 +1,11 @@
-import { UserPermissions } from 'src/core/user/enums/user-permissions.enum'
-import { UserDocument } from 'src/core/user/schemas/user.schema'
+import { UserPermissionNames } from 'src/business-logic/user/enums/user-permission-names.enum'
+import { UserDocument } from 'src/business-logic/user/schemas/user.schema'
 
-export function getActiveUserPermissions(user: UserDocument): UserPermissions[] {
+export function getActiveUserPermissionNames(user: UserDocument): UserPermissionNames.union[] {
     return (
-        user.internalInfo?.permissions
-            ?.map((permission) => {
-                if (permission.expirationDate < new Date()) {
-                    return undefined
-                }
-                return permission?.permissionName ?? undefined
-            })
-            .filter((x) => !!x) ?? []
+        user.internalInfo?.permissions?.compactMap((permission) => {
+            if (permission.expirationDate && permission.expirationDate < new Date()) return null
+            return UserPermissionNames.castToInstance(permission.permissionName)
+        }) ?? []
     )
 }

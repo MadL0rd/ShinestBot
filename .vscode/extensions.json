@@ -3,6 +3,7 @@
         "wmaurer.change-case",
         "esbenp.prettier-vscode",
         "dbaeumer.vscode-eslint",
-        "ms-toolsai.jupyter"
+        "ms-toolsai.jupyter",
+        "howardzuo.vscode-favorites"
     ]
 }

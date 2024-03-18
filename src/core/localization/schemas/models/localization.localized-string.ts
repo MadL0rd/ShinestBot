@@ -3,8 +3,7 @@ import { LocalizedStringParameter } from './localization.localized-string-parame
 export class LocalizedString {
     groupName: string
     key: string
-    comment: string
+    comment?: string
     parameters: LocalizedStringParameter[]
-    isUniqueMessage: boolean
     localizedValues: Record<string, string>
 }

@@ -41,4 +41,5 @@ lerna-debug.log*
 __pycache__/
 
 # Creds for google spreadsheet
+# credentials.json
 credentials.json

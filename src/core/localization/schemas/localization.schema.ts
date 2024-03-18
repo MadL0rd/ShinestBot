@@ -1,4 +1,4 @@
-import { HydratedDocument } from 'mongoose'
+import mongoose, { HydratedDocument } from 'mongoose'
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose'
 import { LocalizedString } from './models/localization.localized-string'
 
@@ -10,7 +10,10 @@ export class LocalizedGroup {
     name: string
 
     @Prop()
-    content: LocalizedString[]
+    languages: string[]
+
+    @Prop({ type: mongoose.Schema.Types.Mixed })
+    content: Record<string, LocalizedString>
 }
 
 export type LocalizedGroupStable = Required<LocalizedGroup>
