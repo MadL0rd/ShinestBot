@@ -1,3 +1,4 @@
+import { Survey } from 'src/business-logic/bot-content/schemas/models/bot-content.survey'
 import { UserPermissionNames } from '../../enums/user-permission-names.enum'
 
 export class UserInternalInfo {
@@ -6,6 +7,7 @@ export class UserInternalInfo {
     language?: string
     permissions: UserPermission[]
     notificationsSchedule: UserNotificationsSchedule
+    surveyAnswersCache?: Survey.PassedAnswersCache
 }
 
 export class UserPermission {

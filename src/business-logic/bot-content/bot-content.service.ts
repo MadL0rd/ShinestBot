@@ -96,6 +96,10 @@ export class BotContentService implements OnModuleInit {
         this.botContentCache = new Map<string, BotContentStable>()
     }
 
+    async cacheLocalization() {
+        this.localizationService.cacheLocalization()
+    }
+
     // =====================
     // Private methods:
     // Database
@@ -383,7 +387,7 @@ export class BotContentService implements OnModuleInit {
                             name: 'string',
                         }
                         break
-                    case 'answerOptions':
+                    case 'withOptions':
                         const answerOptions = answerParams.map((answerParam) => {
                             if (answerParam.value.isEmpty) {
                                 throw Error(
@@ -402,7 +406,7 @@ export class BotContentService implements OnModuleInit {
                             )
                         }
                         answerType = {
-                            name: 'answerOptions',
+                            name: 'withOptions',
                             options: answerOptions,
                             useIdAsPublicationTag: useIdAsPublicationTag ?? false,
                         }
@@ -483,7 +487,7 @@ export class BotContentService implements OnModuleInit {
                         })
                 }
 
-                const result: Survey.Question = {
+                const result = {
                     id: rowItem.id,
                     required: rowItem.isRequired == this.cachedTrueValue,
                     questionText: rowItem.questionText,
@@ -491,7 +495,7 @@ export class BotContentService implements OnModuleInit {
                     answerType: answerType,
                     filters: filters,
                     addAnswerToTelegramPublication: false,
-                }
+                } as Survey.Question
                 return result
             })
 
@@ -508,7 +512,7 @@ export class BotContentService implements OnModuleInit {
                             `Question filters contains undefiend id: ${filter.targetQuestionId}\n${questionString}`
                         )
                     }
-                    if (targetQuestion.answerType.name != 'answerOptions') {
+                    if (targetQuestion.answerType.name != 'withOptions') {
                         const questionString = JSON.stringify(question, null, 2)
                         throw Error(
                             `Question filters contains answerId '${targetQuestion.id}' but type of target question answer is not 'answerOptions'\n${questionString}`
@@ -532,7 +536,7 @@ export class BotContentService implements OnModuleInit {
             // Write result
             await this.createOrUpdateExisting(language, {
                 language: language,
-                survey: { questions: resultContent },
+                survey: { contentLanguage: language, questions: resultContent },
             })
         }
         await this.useOnlySupportedLanguages(languages)

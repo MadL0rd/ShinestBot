@@ -2,10 +2,10 @@ import { Injectable } from '@nestjs/common'
 import { UserService } from 'src/business-logic/user/user.service'
 import { InjectBot } from 'nestjs-telegraf'
 import { BotContentService } from 'src/business-logic/bot-content/bot-content.service'
-import { LocalizationService } from 'src/core/localization/localization.service'
 import { Telegraf } from 'telegraf'
 import { logger } from 'src/app/app.logger'
 import { StatisticService } from 'src/business-logic/user/statistic.service'
+import { SurveyDataProviderFactoryService } from 'src/presentation/survey-data-provider/survey-provider-factory/survey-provider-factory.service'
 
 interface Type<T> {
     new (...args: any[]): T
@@ -31,7 +31,7 @@ export class SceneInjectionsProviderService {
     constructor(
         protected readonly userService: UserService,
         protected readonly botContentService: BotContentService,
-        protected readonly localizationService: LocalizationService,
+        protected readonly surveyDataProviderFactory: SurveyDataProviderFactoryService,
         protected readonly statisticService: StatisticService,
         @InjectBot() private readonly bot: Telegraf
     ) {
@@ -50,7 +50,7 @@ export class SceneInjectionsProviderService {
     private register(key: string, instance: any) {
         if (!this.registry.has(key)) {
             this.registry.set(key, instance)
-            console.log(`Added ${key} to the registry.`)
+            logger.log(`Added ${key} to the scene registry.`)
         }
     }
 

@@ -10,7 +10,6 @@ import { SceneHandlerCompletion } from '../../models/scene.interface'
 import { Scene } from '../../models/scene.abstract'
 import { SceneUsagePermissionsValidator } from '../../models/scene-usage-permissions-validator'
 import { InjectableSceneConstructor } from '../../scene-factory/scene-injections-provider.service'
-import { LocalizationService } from 'src/core/localization/localization.service'
 import { DataSheetPrototype } from 'src/core/sheet-data-provider/schemas/data-sheet-prototype'
 import { BotContentService } from 'src/business-logic/bot-content/bot-content.service'
 
@@ -43,7 +42,6 @@ export class AdminMenuScene extends Scene<ISceneData, SceneEnterDataType> {
 
     constructor(
         protected readonly userService: UserService,
-        private readonly localizationService: LocalizationService,
         private readonly botContentService: BotContentService
     ) {
         super()
@@ -115,7 +113,7 @@ export class AdminMenuScene extends Scene<ISceneData, SceneEnterDataType> {
         const messageInfo = await ctx.replyWithHTML(`${messagePrefix}\n\n${localizationInfo}`)
         if (!ctx.chat) return
         try {
-            await this.localizationService.cacheLocalization()
+            await this.botContentService.cacheLocalization()
         } catch (error) {
             logger.error(`Fail to cache localization`, error)
             localizationInfo = emoji.error + ' Загрузка локализации'
