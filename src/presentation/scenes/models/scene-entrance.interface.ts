@@ -10,6 +10,7 @@ import { SurveySceneEntranceDto } from 'src/presentation/scenes/implementations/
 import { SurveyContinueSceneEntranceDto } from 'src/presentation/scenes/implementations/survey-continue.scene'
 import { SurveyFinalSceneEntranceDto } from 'src/presentation/scenes/implementations/survey-final.scene'
 import { SurveyQuestionOptionsSceneEntranceDto } from 'src/presentation/scenes/implementations/survey-question-options.scene'
+import { SurveyQuestionStringNumericSceneEntranceDto } from '../implementations/survey-question-string-numeric.scene'
 /** New scene entrance dto import placeholder */
 
 export namespace SceneEntrance {
@@ -38,5 +39,6 @@ export namespace SceneEntrance {
         | SurveyContinueSceneEntranceDto
         | SurveyFinalSceneEntranceDto
         | SurveyQuestionOptionsSceneEntranceDto
+        | SurveyQuestionStringNumericSceneEntranceDto
     /** New scene entrance dto placeholder */
 }

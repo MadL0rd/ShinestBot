@@ -18,5 +18,6 @@ export enum UserHistoryEvent {
     startSceneSurveyContinue = 'Перешел к сцене SurveyContinue',
     startSceneSurveyFinal = 'Перешел к сцене SurveyFinal',
     startSceneSurveyQuestionOptions = 'Перешел к сцене SurveyQuestionOptions',
+    startSceneSurveyQuestionStringNumeric = 'Перешел к сцене surveyQuestionStringNumeric',
     /** New scene event placeholder */
 }

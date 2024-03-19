@@ -88,8 +88,6 @@ export class SurveyScene extends Scene<ISceneData, SceneEnterDataType> {
 
         const isQuestionFirst = cache.passedAnswers.isEmpty
         switch (nextQuestion.type) {
-            case 'string':
-                return this.completion.complete()
             case 'options':
                 return this.completion.complete({
                     sceneName: 'surveyQuestionOptions',
@@ -98,7 +96,13 @@ export class SurveyScene extends Scene<ISceneData, SceneEnterDataType> {
                     isQuestionFirst: isQuestionFirst,
                 })
             case 'numeric':
-                return this.completion.complete()
+            case 'string':
+                return this.completion.complete({
+                    sceneName: 'surveyQuestionStringNumeric',
+                    provider: data.provider,
+                    question: nextQuestion,
+                    isQuestionFirst: isQuestionFirst,
+                })
             case 'image':
                 return this.completion.complete()
             case 'video':

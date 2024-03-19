@@ -12,6 +12,7 @@ export namespace SceneName {
         'surveyContinue',
         'surveyFinal',
         'surveyQuestionOptions',
+        'surveyQuestionStringNumeric',
         /** New scene name placeholder */
     ] as const
 

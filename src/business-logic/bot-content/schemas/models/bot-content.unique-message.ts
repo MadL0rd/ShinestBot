@@ -101,6 +101,18 @@ export class SurveyContinue {
 export class Survey {
     readonly buttonOptionalQuestionSkip = 'Пропустить'
     readonly buttonBackToPreviousQuestion = '⬅️ Вернуться к предыдущему вопросу'
+    /** Будет написано перед comandBackToPreviousQuestion */
+    readonly textPrefixComandBackToPreviousQuestion = 'Чтобы вернуться к предыдущему вопросу нажмите:'
+    /** Любая команда, которая начинается с символа /,
+но не  /back_to_menu и /start */
+    readonly comandBackToPreviousQuestion = '/back'
+    /** Будет написано перед comandSkipQuestion */
+    readonly textPrefixComandSkipQuestion = 'Чтобы пропустить вопрос нажмите:'
+    /** Любая команда, которая начинается с символа /,
+но не  /back_to_menu и /start */
+    readonly comandSkipQuestion = '/skip'
+    /** Сообщение, которое будет выведено пользователю, если он ввёл текст в ответ на вопрос, где надо дать число */
+    readonly errorMessageAnswerIsNotNumber = 'Введите число\nЕсли вам нужно указать дробное значение, то отделите его точкой или запятой\n\n<i>Пример: 123.4</i>'
 }
 
 export class SurveyFinal {

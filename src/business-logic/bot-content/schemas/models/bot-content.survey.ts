@@ -95,37 +95,37 @@ export namespace Survey {
     // =====================
     // Passed Answers
     // =====================
-    type PassedAnswerWithOptions = {
+    export type PassedAnswerWithOptions = {
         readonly type: 'options'
         question: QuestionWithOptions
         selectedOptionId?: string
     }
 
-    type PassedAnswerNumeric = {
+    export type PassedAnswerNumeric = {
         readonly type: 'numeric'
         question: QuestionNumeric
         selectedNumber?: number
     }
 
-    type PassedAnswerString = {
+    export type PassedAnswerString = {
         readonly type: 'string'
         question: QuestionString
         selectedString?: string
     }
 
-    type PassedAnswerImage = {
+    export type PassedAnswerImage = {
         readonly type: 'image'
         question: QuestionImage
         media: TelegramFileData[]
     }
 
-    type PassedAnswerVideo = {
+    export type PassedAnswerVideo = {
         readonly type: 'video'
         question: QuestionVideo
         media: TelegramFileData[]
     }
 
-    type PassedAnswerMediaGroup = {
+    export type PassedAnswerMediaGroup = {
         readonly type: 'mediaGroup'
         question: QuestionMediaGroup
         media: TelegramFileData[]
