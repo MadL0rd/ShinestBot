@@ -1,3 +1,5 @@
+import { UniqueMessage } from './bot-content.unique-message'
+
 export namespace Survey {
     // =====================
     // Models for db
@@ -15,12 +17,11 @@ export namespace Survey {
     // =====================
     // Question Types
     // =====================
-    type QuestionAbstract<SomeAnswerType extends AnswerType> = {
+    type QuestionCommonFields = {
         readonly id: string
-        readonly required: boolean
+        readonly isRequired: boolean
         readonly questionText: string
         readonly publicTitle: string
-        readonly answerType: SomeAnswerType
         readonly filters: Filter[]
         readonly addAnswerToTelegramPublication: boolean
     }
@@ -29,12 +30,12 @@ export namespace Survey {
         readonly validOptionIds: string[]
     }
 
-    type QuestionWithOptions = QuestionAbstract<AnswerTypeWithOptions>
-    type QuestionNumeric = QuestionAbstract<AnswerTypeNumeric>
-    type QuestionString = QuestionAbstract<AnswerTypeString>
-    type QuestionImage = QuestionAbstract<AnswerTypeImage>
-    type QuestionVideo = QuestionAbstract<AnswerTypeVideo>
-    type QuestionMediaGroup = QuestionAbstract<AnswerTypeMediaGroup>
+    export type QuestionWithOptions = QuestionCommonFields & AnswerTypeWithOptions
+    export type QuestionNumeric = QuestionCommonFields & AnswerTypeNumeric
+    export type QuestionString = QuestionCommonFields & AnswerTypeString
+    export type QuestionImage = QuestionCommonFields & AnswerTypeImage
+    export type QuestionVideo = QuestionCommonFields & AnswerTypeVideo
+    export type QuestionMediaGroup = QuestionCommonFields & AnswerTypeMediaGroup
 
     export type Question =
         | QuestionWithOptions
@@ -48,7 +49,7 @@ export namespace Survey {
     // Answer Types
     // =====================
     export type AnswerTypeWithOptions = {
-        readonly name: 'withOptions'
+        readonly type: 'options'
         readonly options: AnswerOption[]
         readonly useIdAsPublicationTag: boolean
     }
@@ -58,26 +59,26 @@ export namespace Survey {
     }
 
     type AnswerTypeNumeric = {
-        readonly name: 'numeric'
+        readonly type: 'numeric'
         readonly unit?: string
     }
 
     type AnswerTypeString = {
-        readonly name: 'string'
+        readonly type: 'string'
     }
 
     type AnswerTypeImage = {
-        readonly name: 'image'
+        readonly type: 'image'
         readonly mediaMaxCount: number
     }
 
     type AnswerTypeVideo = {
-        readonly name: 'video'
+        readonly type: 'video'
         readonly mediaMaxCount: number
     }
 
     type AnswerTypeMediaGroup = {
-        readonly name: 'mediaGroup'
+        readonly type: 'mediaGroup'
         readonly mediaMaxCount: number
     }
 
@@ -89,37 +90,43 @@ export namespace Survey {
         | AnswerTypeVideo
         | AnswerTypeMediaGroup
 
-    export type AnswerTypeName = Survey.AnswerType['name']
+    export type AnswerTypeName = Survey.AnswerType['type']
 
     // =====================
     // Passed Answers
     // =====================
     type PassedAnswerWithOptions = {
+        readonly type: 'options'
         question: QuestionWithOptions
-        selectedOption?: string
+        selectedOptionId?: string
     }
 
     type PassedAnswerNumeric = {
+        readonly type: 'numeric'
         question: QuestionNumeric
-        selectedNumber: number
+        selectedNumber?: number
     }
 
     type PassedAnswerString = {
+        readonly type: 'string'
         question: QuestionString
-        selectedString: string
+        selectedString?: string
     }
 
     type PassedAnswerImage = {
+        readonly type: 'image'
         question: QuestionImage
         media: TelegramFileData[]
     }
 
     type PassedAnswerVideo = {
+        readonly type: 'video'
         question: QuestionVideo
         media: TelegramFileData[]
     }
 
     type PassedAnswerMediaGroup = {
+        readonly type: 'mediaGroup'
         question: QuestionMediaGroup
         media: TelegramFileData[]
     }
@@ -142,7 +149,7 @@ export namespace Survey {
 
 export namespace SurveyCacheHelpers {
     export const answerTypeNames = {
-        withOptions: 'Выбор варианта',
+        options: 'Выбор варианта',
         numeric: 'Число',
         string: 'Строка',
         image: 'Изображение',
@@ -166,5 +173,61 @@ export namespace SurveyCacheHelpers {
     }
     export function getAnswerTypeByPublicName(publicName: string) {
         return answerTypeNameByPublicName[publicName]
+    }
+}
+
+export namespace SurveyUsageHelpers {
+    export function findNextQuestion(
+        survey: Survey.Model,
+        passedQuestionAnswers: Survey.PassedAnswer[]
+    ): Survey.Question | null {
+        const allQuestions = survey.questions.filter(function (question) {
+            for (const filter of question.filters) {
+                const targetAnswer = passedQuestionAnswers.find(
+                    (answer) => answer.question.id == filter.targetQuestionId
+                )
+                if (!targetAnswer || targetAnswer.type != 'options') {
+                    return false
+                }
+
+                const answerValue = targetAnswer.selectedOptionId
+                if (!answerValue || filter.validOptionIds.includes(answerValue) == false) {
+                    return false
+                }
+            }
+            return true
+        })
+        for (const question of allQuestions) {
+            if (!passedQuestionAnswers.some((element) => element.question.id == question.id)) {
+                return question
+            }
+        }
+        return null
+    }
+
+    export function getAnswerStringValue(
+        answer: Survey.PassedAnswer,
+        text: UniqueMessage
+    ): string | undefined {
+        switch (answer.type) {
+            case 'options':
+                return answer.question.options.find(
+                    (option) => option.id == answer.selectedOptionId
+                )?.text
+            case 'numeric':
+                const unitLabel = answer.question.unit
+                if (unitLabel && answer.selectedNumber) {
+                    return `${answer.selectedNumber.toStringWithSpaces} ${unitLabel}`
+                } else {
+                    return answer.selectedNumber?.toStringWithSpaces
+                }
+            case 'string':
+                return answer.selectedString
+
+            case 'image':
+            case 'video':
+            case 'mediaGroup':
+                return `${text.surveyFinal.textMediaPrefix} (${answer.media.length} ${text.surveyFinal.textMediaUnit})`
+        }
     }
 }

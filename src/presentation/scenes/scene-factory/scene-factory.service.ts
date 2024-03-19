@@ -9,6 +9,10 @@ import { AdminMenuGenerateMetricsScene } from 'src/presentation/scenes/implement
 import { AdminMenuUsersManagementSceneScene } from 'src/presentation/scenes/implementations/admin-menu/admin-menu-users-management-scene.scene'
 import { AdminMenuMailingSceneScene } from 'src/presentation/scenes/implementations/admin-menu/admin-menu-mailing-scene.scene'
 import { LanguageSettingsSceneScene } from 'src/presentation/scenes/implementations/language-settings-scene.scene'
+import { SurveyScene } from 'src/presentation/scenes/implementations/survey.scene'
+import { SurveyContinueScene } from 'src/presentation/scenes/implementations/survey-continue.scene'
+import { SurveyFinalScene } from 'src/presentation/scenes/implementations/survey-final.scene'
+import { SurveyQuestionOptionsScene } from 'src/presentation/scenes/implementations/survey-question-options.scene'
 /** New scene import placeholder */
 
 @Injectable()
@@ -31,6 +35,14 @@ export class SceneFactoryService {
                 return this.injectionsProvider.resolve(AdminMenuMailingSceneScene)
             case 'languageSettingsScene':
                 return this.injectionsProvider.resolve(LanguageSettingsSceneScene)
+            case 'survey':
+                return this.injectionsProvider.resolve(SurveyScene)
+            case 'surveyContinue':
+                return this.injectionsProvider.resolve(SurveyContinueScene)
+            case 'surveyFinal':
+                return this.injectionsProvider.resolve(SurveyFinalScene)
+            case 'surveyQuestionOptions':
+                return this.injectionsProvider.resolve(SurveyQuestionOptionsScene)
             /** New scene generation placeholder */
         }
         return null

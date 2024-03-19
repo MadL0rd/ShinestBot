@@ -8,5 +8,9 @@ export interface ISurveyDataProvider {
     type: SurveyDataProviderType
     getSurvey(botContent: BotContent): Promise<Survey.Model>
     getAnswersCache(botContent: BotContent, user: User): Promise<Survey.PassedAnswersCache>
-    setAnswersCache(cache: Survey.PassedAnswersCache, user: User): Promise<void>
+    getAnswersCacheStable(botContent: BotContent, user: User): Promise<Survey.PassedAnswersCache>
+    setAnswersCache(user: User, cache: Survey.PassedAnswersCache | undefined): Promise<void>
+    clearAnswersCache(user: User): Promise<void>
+    pushAnswerToCache(user: User, answer: Survey.PassedAnswer): Promise<void>
+    popAnswerFromCache(user: User): Promise<void>
 }

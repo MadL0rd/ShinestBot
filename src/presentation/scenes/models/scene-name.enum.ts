@@ -8,6 +8,10 @@ export namespace SceneName {
         'adminMenuUsersManagementScene',
         'adminMenuMailingScene',
         'languageSettingsScene',
+        'survey',
+        'surveyContinue',
+        'surveyFinal',
+        'surveyQuestionOptions',
         /** New scene name placeholder */
     ] as const
 

@@ -304,7 +304,7 @@ export class BotContentService implements OnModuleInit {
             await this.localizationService.localizeDataSheetRowsArray(content, {
                 type: 'byItemId',
                 page: sheetPage,
-                group: sheetPage,
+                group: 'surveyContent',
                 itemIdField: 'id',
                 localizationSchema: {
                     id: { type: 'originalContent' },
@@ -384,10 +384,15 @@ export class BotContentService implements OnModuleInit {
                 switch (rowAnswerType) {
                     case 'string':
                         answerType = {
-                            name: 'string',
+                            type: 'string',
                         }
                         break
-                    case 'withOptions':
+                    case 'options':
+                        if (answerParams.isEmpty) {
+                            throw Error(
+                                `Question with type answerOptions does not contains options\n${rowItemString}`
+                            )
+                        }
                         const answerOptions = answerParams.map((answerParam) => {
                             if (answerParam.value.isEmpty) {
                                 throw Error(
@@ -400,20 +405,32 @@ export class BotContentService implements OnModuleInit {
                             }
                             return option
                         })
-                        if (answerParams.isEmpty) {
+                        const optionIdDuplicates = answerOptions.map(
+                            (option) => option.id
+                        ).justNotUnique
+                        if (optionIdDuplicates.isNotEmpty) {
                             throw Error(
-                                `Question with type answerOptions does not contains options\n${rowItemString}`
+                                `Question with type answerOptions contains options with same id\n${rowItemString}`
                             )
                         }
+                        const optionTextDuplicates = answerOptions.map(
+                            (option) => option.text
+                        ).justNotUnique
+                        if (optionTextDuplicates.isNotEmpty) {
+                            throw Error(
+                                `Question with type answerOptions contains options with same text\n${rowItemString}`
+                            )
+                        }
+
                         answerType = {
-                            name: 'withOptions',
+                            type: 'options',
                             options: answerOptions,
                             useIdAsPublicationTag: useIdAsPublicationTag ?? false,
                         }
                         break
                     case 'numeric':
                         answerType = {
-                            name: 'numeric',
+                            type: 'numeric',
                             unit: unit,
                         }
                         break
@@ -424,7 +441,7 @@ export class BotContentService implements OnModuleInit {
                             )
                         }
                         answerType = {
-                            name: 'image',
+                            type: 'image',
                             mediaMaxCount: maxCount,
                         }
                         break
@@ -436,7 +453,7 @@ export class BotContentService implements OnModuleInit {
                             )
                         }
                         answerType = {
-                            name: 'video',
+                            type: 'video',
                             mediaMaxCount: maxCount,
                         }
                         break
@@ -448,7 +465,7 @@ export class BotContentService implements OnModuleInit {
                             )
                         }
                         answerType = {
-                            name: 'mediaGroup',
+                            type: 'mediaGroup',
                             mediaMaxCount: maxCount,
                         }
                         break
@@ -487,15 +504,15 @@ export class BotContentService implements OnModuleInit {
                         })
                 }
 
-                const result = {
+                const result: Survey.Question = {
                     id: rowItem.id,
-                    required: rowItem.isRequired == this.cachedTrueValue,
+                    isRequired: rowItem.isRequired == this.cachedTrueValue,
                     questionText: rowItem.questionText,
                     publicTitle: rowItem.publicTitle,
-                    answerType: answerType,
                     filters: filters,
                     addAnswerToTelegramPublication: false,
-                } as Survey.Question
+                    ...answerType,
+                }
                 return result
             })
 
@@ -512,17 +529,16 @@ export class BotContentService implements OnModuleInit {
                             `Question filters contains undefiend id: ${filter.targetQuestionId}\n${questionString}`
                         )
                     }
-                    if (targetQuestion.answerType.name != 'withOptions') {
+                    if (targetQuestion.type != 'options') {
                         const questionString = JSON.stringify(question, null, 2)
                         throw Error(
                             `Question filters contains answerId '${targetQuestion.id}' but type of target question answer is not 'answerOptions'\n${questionString}`
                         )
                     }
                     for (const validOptionId of filter.validOptionIds) {
-                        const targetQuestionContainsValidValue =
-                            targetQuestion.answerType.options.some(
-                                (option) => option.id == validOptionId
-                            )
+                        const targetQuestionContainsValidValue = targetQuestion.options.some(
+                            (option) => option.id == validOptionId
+                        )
                         if (targetQuestionContainsValidValue) continue
 
                         const questionString = JSON.stringify(question, null, 2)

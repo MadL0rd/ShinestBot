@@ -79,6 +79,13 @@ export class MainMenuScene extends Scene<ISceneData, SceneEnterDataType> {
 
             case this.text.mainMenu.buttonAdminMenu:
                 return this.completion.complete({ sceneName: 'adminMenu' })
+
+            case this.text.mainMenu.buttonSurvey:
+                return this.completion.complete({
+                    sceneName: 'survey',
+                    provider: 'default',
+                    allowContinueQuestion: true,
+                })
         }
 
         return this.completion.canNotHandle({})
@@ -111,6 +118,7 @@ export class MainMenuScene extends Scene<ISceneData, SceneEnterDataType> {
         return this.keyboardMarkupWithAutoLayoutFor(
             [
                 this.text.mainMenu.buttonRepoLink,
+                this.text.mainMenu.buttonSurvey,
                 this.text.mainMenu.buttonLanguageSettings,
                 ownerOrAdmin ? this.text.mainMenu.buttonAdminMenu : null,
             ].compact

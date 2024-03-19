@@ -2,6 +2,7 @@ version: '3'
 
 services:
   nest:
+    container_name: 'shinest_bot'
     build:
       context: .
       dockerfile: ./Dockerfile
@@ -15,10 +16,10 @@ services:
       - ${APP_EXPOSE_PORT}
       - ${APP_EXPOSE_PORT_WEBHOOK}
     env_file:
-      - .env.sample
+      - .env
   
   mongodb:
-    container_name: 'sunshine_mongo'
+    container_name: 'shinest_mongo'
     image: mongo:latest
     ports:
       - 27018:27017
