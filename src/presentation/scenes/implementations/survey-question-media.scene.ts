@@ -174,7 +174,7 @@ export class SurveyQuestionMediaScene extends Scene<ISceneData, SceneEnterDataTy
 
         // Handling delete requests for media in edit mode.
         if (ctx.message && 'text' in ctx.message) {
-            const mediaIndex = Number(ctx.message.text)
+            const mediaIndex = parseInt(ctx.message.text)
             if (
                 !mediaIndex ||
                 Number.isNaN(mediaIndex) ||

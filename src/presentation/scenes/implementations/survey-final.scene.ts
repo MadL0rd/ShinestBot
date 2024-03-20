@@ -96,6 +96,7 @@ export class SurveyFinalScene extends Scene<ISceneData, SceneEnterDataType> {
             logger.error('Start data corrupted')
             return this.completion.complete()
         }
+        const provider = this.dataProviderFactory.getSurveyProvider(data.provider)
 
         const message = ctx.message
         if (!message || !('text' in message))
@@ -107,6 +108,23 @@ export class SurveyFinalScene extends Scene<ISceneData, SceneEnterDataType> {
 
             case this.text.common.buttonReturnToMainMenu:
                 return this.completion.complete({ sceneName: 'mainMenu' })
+        }
+
+        const cache = await provider.getAnswersCacheStable(this.content, this.user)
+        const questionIndex = parseInt(message.text)
+        if (
+            questionIndex &&
+            !Number.isNaN(questionIndex) &&
+            questionIndex <= cache.passedAnswers.length &&
+            questionIndex >= 1
+        ) {
+            cache.passedAnswers.splice(questionIndex - 1, 1)
+            await provider.setAnswersCache(this.user, cache)
+            return this.completion.complete({
+                sceneName: 'survey',
+                provider: data.provider,
+                allowContinueQuestion: false,
+            })
         }
 
         return this.completion.canNotHandle({ provider: data.provider })
