@@ -91,16 +91,22 @@ export class SurveyQuestionMediaScene extends Scene<ISceneData, SceneEnterDataTy
     }
 
     async handleMessage(ctx: Context, dataRaw: object): Promise<SceneHandlerCompletion> {
+        // Logging the scene's handling process.
         logger.log(
             `${this.name} scene handleMessage. User: ${this.user.telegramInfo.id} ${this.user.telegramInfo.username}`
         )
+
+        // Restoring data and checking for corruption.
         const data = this.restoreData(dataRaw)
         if (!data || !data.provider || !data.question) {
             logger.error('Start data corrupted')
             return this.completion.complete()
         }
+
+        // Retrieving the appropriate provider based on the data.
         const provider = this.dataProviderFactory.getSurveyProvider(data.provider)
 
+        // Handling various user inputs based on message text.
         if (ctx.message && 'text' in ctx.message) {
             switch (ctx.message.text) {
                 case this.text.survey.buttonOptionalQuestionSkip: {
@@ -166,7 +172,7 @@ export class SurveyQuestionMediaScene extends Scene<ISceneData, SceneEnterDataTy
             }
         }
 
-        // Edit mode handlers
+        // Handling delete requests for media in edit mode.
         if (ctx.message && 'text' in ctx.message) {
             const mediaIndex = Number(ctx.message.text)
             if (
@@ -183,7 +189,7 @@ export class SurveyQuestionMediaScene extends Scene<ISceneData, SceneEnterDataTy
             return this.completion.inProgress(data)
         }
 
-        // Media files handlers
+        // Handling media files uploaded by the user.
         const contextMedia = this.getMediaFromContext(ctx).filter((mediaFile) => {
             switch (data.question.type) {
                 case 'image':
@@ -206,6 +212,7 @@ export class SurveyQuestionMediaScene extends Scene<ISceneData, SceneEnterDataTy
             return this.completion.inProgress(data)
         }
 
+        // If none of the cases match, indicate that the handler cannot process the data.
         return this.completion.canNotHandle(data)
     }
 
@@ -221,13 +228,16 @@ export class SurveyQuestionMediaScene extends Scene<ISceneData, SceneEnterDataTy
     // =====================
 
     private async showMediaUploadingMenu(ctx: Context<Update>, data: ISceneData) {
+        // Extracting media group information.
         const mediaGroupArgs = data.mediaGroupBuffer.map((item) => ({
             type: item.fileType,
             media: item.telegramFileId,
         }))
 
+        // Initializing buttons array.
         const buttons = []
 
+        // Sending media group if available.
         if (mediaGroupArgs.length > 0) {
             await ctx.replyWithMediaGroup(mediaGroupArgs)
             buttons.push(
@@ -236,16 +246,20 @@ export class SurveyQuestionMediaScene extends Scene<ISceneData, SceneEnterDataTy
             )
         }
 
+        // Adding skip button if question is optional.
         if (data.question.isRequired == false) {
             buttons.push(this.text.survey.buttonOptionalQuestionSkip)
         }
 
+        // Adding back button if not the first question.
         if (data.isQuestionFirst == false) {
             buttons.push(this.text.survey.buttonBackToPreviousQuestion)
         }
 
+        // Composing message text with media count information.
         const messageText = `${data.question.questionText}\n\n<i>${this.text.surveyQuestionMedia.textFilesCountPrefix} <b>${mediaGroupArgs.length}/${data.question.mediaMaxCount}</b></i>`
 
+        // Sending the message with appropriate buttons layout.
         await ctx.replyWithHTML(
             messageText,
             buttons.length == 0
@@ -264,17 +278,23 @@ export class SurveyQuestionMediaScene extends Scene<ISceneData, SceneEnterDataTy
             const fileUrlStr = fileUrl.toString()
             return { telegramFileId: telegramFileId, telegramUrl: fileUrlStr, fileType: fileType }
         }
+        return undefined
     }
 
-    private getMediaFromContext(ctx: Context) {
+    private getMediaFromContext(ctx: Context): Survey.TelegramFileData[] {
+        // Casting to MediaGroupContext to access media group.
         const mediaGroupCtx = ctx as unknown as MediaGroupContext
         const contextMedia: Survey.TelegramFileData[] = []
+
+        // Checking if context contains media group.
         if (mediaGroupCtx && mediaGroupCtx.mediaGroup) {
+            // Looping through media group messages to extract media.
             for (const mediaMessage of mediaGroupCtx.mediaGroup) {
                 const mediaGroupItem = this.getFileIdAndType(mediaMessage)
                 if (mediaGroupItem) contextMedia.push(mediaGroupItem)
             }
         } else {
+            // If not media group, extract media from message directly.
             const mediaItem = this.getFileIdAndType(ctx.message)
             if (mediaItem) {
                 contextMedia.push(mediaItem)
