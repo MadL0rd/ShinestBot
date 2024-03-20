@@ -2,10 +2,21 @@ import { BotContent } from 'src/business-logic/bot-content/schemas/bot-content.s
 import { Survey } from 'src/business-logic/bot-content/schemas/models/bot-content.survey'
 import { User } from 'src/business-logic/user/schemas/user.schema'
 
-export type SurveyDataProviderType = 'default'
+export namespace SurveyDataProviderType {
+    export const allCases = ['default'] as const
+    export type Union = (typeof allCases)[number]
+
+    export function getId(sceneName: Union): number {
+        return allCases.indexOf(sceneName) + 1
+    }
+
+    export function getById(id: number): Union | null {
+        return allCases[id - 1] ?? null
+    }
+}
 
 export interface ISurveyDataProvider {
-    type: SurveyDataProviderType
+    type: SurveyDataProviderType.Union
     getSurvey(botContent: BotContent): Promise<Survey.Model>
     getAnswersCache(botContent: BotContent, user: User): Promise<Survey.PassedAnswersCache>
     getAnswersCacheStable(botContent: BotContent, user: User): Promise<Survey.PassedAnswersCache>

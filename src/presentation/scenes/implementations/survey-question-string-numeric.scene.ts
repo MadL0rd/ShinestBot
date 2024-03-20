@@ -2,7 +2,7 @@ import { logger } from 'src/app/app.logger'
 import { UserService } from 'src/business-logic/user/user.service'
 import { Markup, Context } from 'telegraf'
 import { Update } from 'telegraf/types'
-import { SceneCallbackData } from '../models/scene-callback'
+import { SceneCallbackAction, SceneCallbackData } from '../models/scene-callback'
 import { SceneEntrance } from '../models/scene-entrance.interface'
 import { SceneName } from '../models/scene-name.enum'
 import { SceneHandlerCompletion } from '../models/scene.interface'
@@ -10,7 +10,10 @@ import { Scene } from '../models/scene.abstract'
 import { SceneUsagePermissionsValidator } from '../models/scene-usage-permissions-validator'
 import { InjectableSceneConstructor } from '../scene-factory/scene-injections-provider.service'
 import { SurveyDataProviderType } from 'src/presentation/survey-data-provider/models/survey-data-provider.interface'
-import { Survey } from 'src/business-logic/bot-content/schemas/models/bot-content.survey'
+import {
+    Survey,
+    SurveyUsageHelpers,
+} from 'src/business-logic/bot-content/schemas/models/bot-content.survey'
 import { SurveyDataProviderFactoryService } from 'src/presentation/survey-data-provider/survey-provider-factory/survey-provider-factory.service'
 import { removeKeyboard } from 'telegraf/markup'
 
@@ -19,14 +22,21 @@ import { removeKeyboard } from 'telegraf/markup'
 // =====================
 export class SurveyQuestionStringNumericSceneEntranceDto implements SceneEntrance.Dto {
     readonly sceneName = 'surveyQuestionStringNumeric'
-    readonly provider: SurveyDataProviderType
+    readonly provider: SurveyDataProviderType.Union
     readonly question: Survey.QuestionString | Survey.QuestionNumeric
     readonly isQuestionFirst: boolean
 }
 type SceneEnterDataType = SurveyQuestionStringNumericSceneEntranceDto
 interface ISceneData {
-    readonly provider: SurveyDataProviderType
+    readonly provider: SurveyDataProviderType.Union
     readonly question: Survey.QuestionString | Survey.QuestionNumeric
+}
+
+type CallbackDataType = {
+    /** provider id */
+    p: number
+    /** answer id */
+    a: string
 }
 
 // =====================
@@ -39,7 +49,7 @@ export class SurveyQuestionStringNumericScene extends Scene<ISceneData, SceneEnt
     // Properties
     // =====================
 
-    readonly name: SceneName.union = 'surveyQuestionStringNumeric'
+    readonly name: SceneName.Union = 'surveyQuestionStringNumeric'
     protected get dataDefault(): ISceneData {
         return {} as ISceneData
     }
@@ -72,12 +82,36 @@ export class SurveyQuestionStringNumericScene extends Scene<ISceneData, SceneEnt
             return this.completion.complete()
         }
 
-        let questionText = `${data.question.questionText}\n`
-        if (!data.question.isRequired) {
-            questionText += `${this.text.survey.textPrefixComandSkipQuestion} ${this.text.survey.comandSkipQuestion}`
+        if (!data.question.isRequired || !data.isQuestionFirst) {
+            const inlineButtonData: CallbackDataType = {
+                p: SurveyDataProviderType.getId(data.provider),
+                a: data.question.id,
+            }
+            await ctx.replyWithHTML(this.text.survey.texMessageAditionaltInlineMenu, {
+                reply_markup: {
+                    inline_keyboard: [
+                        [
+                            data.question.isRequired
+                                ? null
+                                : this.inlineButton({
+                                      text: this.text.survey.buttonAditionaltInlineMenuSkip,
+                                      action: SceneCallbackAction.surveySkipQuestion,
+                                      data: inlineButtonData,
+                                  }),
+                            data.isQuestionFirst
+                                ? null
+                                : this.inlineButton({
+                                      text: this.text.survey
+                                          .buttonAditionaltInlineMenuBackToPrevious,
+                                      action: SceneCallbackAction.surveyBackToPreviousQuestion,
+                                      data: inlineButtonData,
+                                  }),
+                        ].compact,
+                    ],
+                },
+            })
         }
-
-        await ctx.replyWithHTML(questionText, removeKeyboard())
+        await ctx.replyWithHTML(data.question.questionText, removeKeyboard())
 
         return this.completion.inProgress(data)
     }
@@ -96,40 +130,6 @@ export class SurveyQuestionStringNumericScene extends Scene<ISceneData, SceneEnt
         const message = ctx.message
         if (!message || !('text' in message)) return this.completion.canNotHandle(data)
 
-        switch (message.text) {
-            case this.text.survey.comandBackToPreviousQuestion:
-                await provider.popAnswerFromCache(this.user)
-                return this.completion.complete({
-                    sceneName: 'survey',
-                    provider: data.provider,
-                    allowContinueQuestion: false,
-                })
-            case this.text.survey.comandSkipQuestion:
-                if (data.question.isRequired) break
-                let answer: Survey.PassedAnswerString | Survey.PassedAnswerNumeric
-                switch (data.question.type) {
-                    case 'numeric':
-                        answer = {
-                            type: 'numeric',
-                            question: data.question,
-                            selectedNumber: undefined,
-                        }
-                        break
-                    case 'string':
-                        answer = {
-                            type: 'string',
-                            question: data.question,
-                            selectedString: undefined,
-                        }
-                        break
-                }
-                await provider.pushAnswerToCache(this.user, answer)
-                return this.completion.complete({
-                    sceneName: 'survey',
-                    provider: data.provider,
-                    allowContinueQuestion: false,
-                })
-        }
         switch (data.question.type) {
             case 'numeric':
                 const convertedAnswer = parseFloat(
@@ -168,7 +168,77 @@ export class SurveyQuestionStringNumericScene extends Scene<ISceneData, SceneEnt
         ctx: Context<Update.CallbackQueryUpdate>,
         data: SceneCallbackData
     ): Promise<SceneHandlerCompletion> {
-        throw Error('Method not implemented.')
+        if (ctx.callbackQuery.message) {
+            await ctx.deleteMessage(ctx.callbackQuery.message.message_id)
+        }
+
+        if (
+            !(
+                data.data &&
+                'a' in data.data &&
+                'p' in data.data &&
+                typeof data.data.a == 'string' &&
+                typeof data.data.p == 'number'
+            )
+        ) {
+            return this.completion.canNotHandleUnsafe()
+        }
+        const inlineButtonData = data.data as CallbackDataType
+
+        const providerType = SurveyDataProviderType.getById(inlineButtonData.p)
+        if (!providerType) return this.completion.canNotHandleUnsafe()
+
+        const provider = this.dataProviderFactory.getSurveyProvider(providerType)
+        if (!provider) return this.completion.canNotHandleUnsafe()
+
+        const answerId = inlineButtonData.a
+        const cache = await provider.getAnswersCache(this.content, this.user)
+        const survaySource = await provider.getSurvey(this.content)
+        const nextQuestion = SurveyUsageHelpers.findNextQuestion(survaySource, cache.passedAnswers)
+        if (nextQuestion?.id != answerId) return this.completion.canNotHandleUnsafe()
+
+        switch (data.action) {
+            case SceneCallbackAction.surveyBackToPreviousQuestion:
+                await provider.popAnswerFromCache(this.user)
+                await ctx.replyWithHTML(
+                    this.text.survey.textAditionaltInlineMenuBackToPreviousEventLog
+                )
+                return this.completion.complete({
+                    sceneName: 'survey',
+                    provider: providerType,
+                    allowContinueQuestion: false,
+                })
+
+            case SceneCallbackAction.surveySkipQuestion:
+                let answer: Survey.PassedAnswerString | Survey.PassedAnswerNumeric
+                switch (nextQuestion.type) {
+                    case 'numeric':
+                        answer = {
+                            type: 'numeric',
+                            question: nextQuestion,
+                            selectedNumber: undefined,
+                        }
+                        break
+                    case 'string':
+                        answer = {
+                            type: 'string',
+                            question: nextQuestion,
+                            selectedString: undefined,
+                        }
+                        break
+                    default:
+                        return this.completion.canNotHandleUnsafe()
+                }
+                await provider.pushAnswerToCache(this.user, answer)
+                await ctx.replyWithHTML(this.text.survey.textAditionaltInlineMenuSkipEventLog)
+                return this.completion.complete({
+                    sceneName: 'survey',
+                    provider: providerType,
+                    allowContinueQuestion: false,
+                })
+            default:
+                return this.completion.canNotHandleUnsafe()
+        }
     }
 
     // =====================

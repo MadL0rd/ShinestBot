@@ -8,7 +8,7 @@ import { UserDocument } from 'src/business-logic/user/schemas/user.schema'
 import { SceneEntrance } from './scene-entrance.interface'
 
 export interface IScene {
-    readonly name: SceneName.union
+    readonly name: SceneName.Union
 
     injectUserContext(userContext: SceneUserContext): IScene
     validateUseScenePermissions(): PermissionsValidationResult

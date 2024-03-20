@@ -33,7 +33,7 @@ export class MainMenuScene extends Scene<ISceneData, SceneEnterDataType> {
     // Properties
     // =====================
 
-    readonly name: SceneName.union = 'mainMenu'
+    readonly name: SceneName.Union = 'mainMenu'
     protected get dataDefault(): ISceneData {
         return {} as ISceneData
     }

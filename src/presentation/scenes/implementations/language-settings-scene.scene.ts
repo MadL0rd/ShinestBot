@@ -31,7 +31,7 @@ export class LanguageSettingsSceneScene extends Scene<ISceneData, SceneEnterData
     // Properties
     // =====================
 
-    readonly name: SceneName.union = 'languageSettingsScene'
+    readonly name: SceneName.Union = 'languageSettingsScene'
     protected get dataDefault(): ISceneData {
         return {} as ISceneData
     }

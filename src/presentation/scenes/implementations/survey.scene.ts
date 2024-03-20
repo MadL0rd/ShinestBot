@@ -18,12 +18,12 @@ import { SurveyUsageHelpers } from 'src/business-logic/bot-content/schemas/model
 // =====================
 export class SurveySceneEntranceDto implements SceneEntrance.Dto {
     readonly sceneName = 'survey'
-    readonly provider: SurveyDataProviderType
+    readonly provider: SurveyDataProviderType.Union
     readonly allowContinueQuestion: boolean
 }
 type SceneEnterDataType = SurveySceneEntranceDto
 interface ISceneData {
-    readonly provider: SurveyDataProviderType
+    readonly provider: SurveyDataProviderType.Union
 }
 
 // =====================
@@ -36,7 +36,7 @@ export class SurveyScene extends Scene<ISceneData, SceneEnterDataType> {
     // Properties
     // =====================
 
-    readonly name: SceneName.union = 'survey'
+    readonly name: SceneName.Union = 'survey'
     protected get dataDefault(): ISceneData {
         return {} as ISceneData
     }

@@ -17,11 +17,11 @@ import { SurveyDataProviderFactoryService } from 'src/presentation/survey-data-p
 // =====================
 export class SurveyContinueSceneEntranceDto implements SceneEntrance.Dto {
     readonly sceneName = 'surveyContinue'
-    readonly provider: SurveyDataProviderType
+    readonly provider: SurveyDataProviderType.Union
 }
 type SceneEnterDataType = SurveyContinueSceneEntranceDto
 interface ISceneData {
-    readonly provider: SurveyDataProviderType
+    readonly provider: SurveyDataProviderType.Union
 }
 
 // =====================
@@ -34,7 +34,7 @@ export class SurveyContinueScene extends Scene<ISceneData, SceneEnterDataType> {
     // Properties
     // =====================
 
-    readonly name: SceneName.union = 'surveyContinue'
+    readonly name: SceneName.Union = 'surveyContinue'
     protected get dataDefault(): ISceneData {
         return {} as ISceneData
     }

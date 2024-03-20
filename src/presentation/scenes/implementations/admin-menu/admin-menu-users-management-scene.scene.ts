@@ -36,7 +36,7 @@ export class AdminMenuUsersManagementSceneScene extends Scene<ISceneData, SceneE
     // Properties
     // =====================
 
-    readonly name: SceneName.union = 'adminMenuUsersManagementScene'
+    readonly name: SceneName.Union = 'adminMenuUsersManagementScene'
     protected get dataDefault(): ISceneData {
         return {} as ISceneData
     }

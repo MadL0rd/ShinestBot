@@ -63,7 +63,7 @@ export abstract class Scene<SceneDataType extends object, SceneEnterDataType ext
     // =====================
     // Abstract properties
     // =====================
-    readonly name: SceneName.union
+    readonly name: SceneName.Union
     protected readonly userService: UserService
     protected get dataDefault(): SceneDataType {
         return {} as SceneDataType
@@ -262,6 +262,14 @@ class SceneHandlerCompletionTemplates<SceneDataType extends object> {
         }
     }
 
+    canNotHandleUnsafe(): SceneHandlerCompletion {
+        return {
+            inProgress: true,
+            didHandledUserInteraction: false,
+            sceneData: {} as SceneDataType,
+        }
+    }
+
     inProgress(data: SceneDataType): SceneHandlerCompletion {
         return {
             inProgress: true,
@@ -278,7 +286,7 @@ class SceneHandlerCompletionTemplates<SceneDataType extends object> {
         }
     }
 
-    completeWithUnsafeSceneEntrance(sceneName: SceneName.union): SceneHandlerCompletion {
+    completeWithUnsafeSceneEntrance(sceneName: SceneName.Union): SceneHandlerCompletion {
         return {
             inProgress: false,
             didHandledUserInteraction: true,

@@ -33,7 +33,7 @@ export class AdminMenuMailingSceneScene extends Scene<ISceneData, SceneEnterData
     // Properties
     // =====================
 
-    readonly name: SceneName.union = 'adminMenuMailingScene'
+    readonly name: SceneName.Union = 'adminMenuMailingScene'
     protected get dataDefault(): ISceneData {
         return {} as ISceneData
     }

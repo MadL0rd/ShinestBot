@@ -19,7 +19,7 @@ export interface InlineButtonDto {
  */
 export function generateInlineButton(
     button: InlineButtonDto,
-    sceneName: SceneName.union
+    sceneName: SceneName.Union
 ): InlineKeyboardButton {
     const callbackData = new SceneCallbackData(
         SceneName.getId(sceneName),

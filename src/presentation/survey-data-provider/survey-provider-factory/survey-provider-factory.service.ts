@@ -9,7 +9,7 @@ import {
 export class SurveyDataProviderFactoryService {
     constructor(private readonly providerDefault: SurveyProviderDefaultService) {}
 
-    getSurveyProvider(type: SurveyDataProviderType): ISurveyDataProvider {
+    getSurveyProvider(type: SurveyDataProviderType.Union): ISurveyDataProvider {
         switch (type) {
             case 'default':
                 return this.providerDefault

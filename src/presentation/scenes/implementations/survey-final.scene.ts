@@ -18,11 +18,11 @@ import { SurveyFormatter } from 'src/utils/survey-formatter'
 // =====================
 export class SurveyFinalSceneEntranceDto implements SceneEntrance.Dto {
     readonly sceneName = 'surveyFinal'
-    readonly provider: SurveyDataProviderType
+    readonly provider: SurveyDataProviderType.Union
 }
 type SceneEnterDataType = SurveyFinalSceneEntranceDto
 interface ISceneData {
-    readonly provider: SurveyDataProviderType
+    readonly provider: SurveyDataProviderType.Union
 }
 
 // =====================
@@ -35,7 +35,7 @@ export class SurveyFinalScene extends Scene<ISceneData, SceneEnterDataType> {
     // Properties
     // =====================
 
-    readonly name: SceneName.union = 'surveyFinal'
+    readonly name: SceneName.Union = 'surveyFinal'
     protected get dataDefault(): ISceneData {
         return {} as ISceneData
     }

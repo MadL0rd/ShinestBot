@@ -32,7 +32,7 @@ export class AdminMenuScene extends Scene<ISceneData, SceneEnterDataType> {
     // Properties
     // =====================
 
-    readonly name: SceneName.union = 'adminMenu'
+    readonly name: SceneName.Union = 'adminMenu'
     protected get dataDefault(): ISceneData {
         return {} as ISceneData
     }
@@ -157,6 +157,7 @@ export class AdminMenuScene extends Scene<ISceneData, SceneEnterDataType> {
                 } catch (error) {
                     statuses.set(pageName, error as Error)
                     logger.error(`Fail to cache spreadsheet page ${pageName}`, error)
+                    return
                 }
             }
             return cacheSpreadsheetFunc()

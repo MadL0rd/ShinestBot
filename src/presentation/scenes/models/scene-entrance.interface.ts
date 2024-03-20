@@ -18,7 +18,7 @@ export namespace SceneEntrance {
     // Common types
     // =====================
     export type Dto = {
-        readonly sceneName: SceneName.union
+        readonly sceneName: SceneName.Union
     }
 
     // =====================

@@ -20,7 +20,7 @@ import { SurveyQuestionStringNumericScene } from 'src/presentation/scenes/implem
 export class SceneFactoryService {
     constructor(private readonly injectionsProvider: SceneInjectionsProviderService) {}
 
-    createSceneWith(name: SceneName.union): IScene | null {
+    createSceneWith(name: SceneName.Union): IScene | null {
         switch (name) {
             case 'mainMenu':
                 return this.injectionsProvider.resolve(MainMenuScene)
