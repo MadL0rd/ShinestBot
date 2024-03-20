@@ -9,12 +9,12 @@ import { AdminMenuGenerateMetricsScene } from 'src/presentation/scenes/implement
 import { AdminMenuUsersManagementSceneScene } from 'src/presentation/scenes/implementations/admin-menu/admin-menu-users-management-scene.scene'
 import { AdminMenuMailingSceneScene } from 'src/presentation/scenes/implementations/admin-menu/admin-menu-mailing-scene.scene'
 import { LanguageSettingsSceneScene } from 'src/presentation/scenes/implementations/language-settings-scene.scene'
-import { SurveyScene } from 'src/presentation/scenes/implementations/survey.scene'
-import { SurveyContinueScene } from 'src/presentation/scenes/implementations/survey-continue.scene'
-import { SurveyFinalScene } from 'src/presentation/scenes/implementations/survey-final.scene'
-import { SurveyQuestionOptionsScene } from 'src/presentation/scenes/implementations/survey-question-options.scene'
-import { SurveyQuestionStringNumericScene } from 'src/presentation/scenes/implementations/survey-question-string-numeric.scene'
-import { SurveyQuestionMediaScene } from 'src/presentation/scenes/implementations/survey-question-media.scene'
+import { SurveyScene } from 'src/presentation/scenes/implementations/survey/survey.scene'
+import { SurveyContinueScene } from 'src/presentation/scenes/implementations/survey/survey-continue.scene'
+import { SurveyFinalScene } from 'src/presentation/scenes/implementations/survey/survey-final.scene'
+import { SurveyQuestionOptionsScene } from 'src/presentation/scenes/implementations/survey/survey-question-options.scene'
+import { SurveyQuestionStringNumericScene } from 'src/presentation/scenes/implementations/survey/survey-question-string-numeric.scene'
+import { SurveyQuestionMediaScene } from 'src/presentation/scenes/implementations/survey/survey-question-media.scene'
 /** New scene import placeholder */
 
 @Injectable()
