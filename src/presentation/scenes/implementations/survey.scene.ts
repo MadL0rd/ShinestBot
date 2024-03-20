@@ -104,11 +104,14 @@ export class SurveyScene extends Scene<ISceneData, SceneEnterDataType> {
                     isQuestionFirst: isQuestionFirst,
                 })
             case 'image':
-                return this.completion.complete()
             case 'video':
-                return this.completion.complete()
             case 'mediaGroup':
-                return this.completion.complete()
+                return this.completion.complete({
+                    sceneName: 'surveyQuestionMedia',
+                    provider: data.provider,
+                    question: nextQuestion,
+                    isQuestionFirst: isQuestionFirst,
+                })
         }
     }
 

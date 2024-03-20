@@ -11,6 +11,7 @@ export class UniqueMessage {
     readonly notification = new Notification()
     readonly surveyContinue = new SurveyContinue()
     readonly survey = new Survey()
+    readonly surveyQuestionMedia = new SurveyQuestionMedia()
     readonly surveyFinal = new SurveyFinal()
 }
 
@@ -104,10 +105,18 @@ export class Survey {
     readonly texMessageAditionaltInlineMenu = 'Также вы можете'
     readonly buttonAditionaltInlineMenuSkip = '👀 Пропустить'
     readonly buttonAditionaltInlineMenuBackToPrevious = '⬆️ Вернуться'
-    readonly textAditionaltInlineMenuSkipEventLog = '👀 Вопрос пропущен'
-    readonly textAditionaltInlineMenuBackToPreviousEventLog = '⬆️ Возврат к предыдущему вопросу'
+    readonly textAditionaltInlineMenuSkipEventLog = '<i>👀 Вопрос пропущен</i>'
+    readonly textAditionaltInlineMenuBackToPreviousEventLog = '<i>⬆️ Возврат к предыдущему вопросу</i>'
     /** Сообщение, которое будет выведено пользователю, если он ввёл текст в ответ на вопрос, где надо дать число */
     readonly errorMessageAnswerIsNotNumber = 'Введите число\nЕсли вам нужно указать дробное значение, то отделите его точкой или запятой\n\n<i>Пример: 123.4</i>'
+}
+
+export class SurveyQuestionMedia {
+    readonly buttonDone = '✅ Готово'
+    readonly buttonEdit = '🔄 Редактировать'
+    readonly buttonEditModeExit = 'Отмена'
+    readonly textFilesCountPrefix = 'Загружено файлов:'
+    readonly textEditMode = 'Выберите файл, который хотите удалить'
 }
 
 export class SurveyFinal {

@@ -14,6 +14,7 @@ import { SurveyContinueScene } from 'src/presentation/scenes/implementations/sur
 import { SurveyFinalScene } from 'src/presentation/scenes/implementations/survey-final.scene'
 import { SurveyQuestionOptionsScene } from 'src/presentation/scenes/implementations/survey-question-options.scene'
 import { SurveyQuestionStringNumericScene } from 'src/presentation/scenes/implementations/survey-question-string-numeric.scene'
+import { SurveyQuestionMediaScene } from 'src/presentation/scenes/implementations/survey-question-media.scene'
 /** New scene import placeholder */
 
 @Injectable()
@@ -46,6 +47,8 @@ export class SceneFactoryService {
                 return this.injectionsProvider.resolve(SurveyQuestionOptionsScene)
             case 'surveyQuestionStringNumeric':
                 return this.injectionsProvider.resolve(SurveyQuestionStringNumericScene)
+            case 'surveyQuestionMedia':
+                return this.injectionsProvider.resolve(SurveyQuestionMediaScene)
             /** New scene generation placeholder */
         }
         return null

@@ -210,25 +210,7 @@ export class SurveyQuestionStringNumericScene extends Scene<ISceneData, SceneEnt
                 })
 
             case SceneCallbackAction.surveySkipQuestion:
-                let answer: Survey.PassedAnswerString | Survey.PassedAnswerNumeric
-                switch (nextQuestion.type) {
-                    case 'numeric':
-                        answer = {
-                            type: 'numeric',
-                            question: nextQuestion,
-                            selectedNumber: undefined,
-                        }
-                        break
-                    case 'string':
-                        answer = {
-                            type: 'string',
-                            question: nextQuestion,
-                            selectedString: undefined,
-                        }
-                        break
-                    default:
-                        return this.completion.canNotHandleUnsafe()
-                }
+                const answer = SurveyUsageHelpers.getEmptyAnswerForQuestion(nextQuestion)
                 await provider.pushAnswerToCache(this.user, answer)
                 await ctx.replyWithHTML(this.text.survey.textAditionaltInlineMenuSkipEventLog)
                 return this.completion.complete({

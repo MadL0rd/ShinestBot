@@ -45,6 +45,8 @@ export namespace Survey {
         | QuestionVideo
         | QuestionMediaGroup
 
+    export type QuestionMedia = QuestionImage | QuestionVideo | QuestionMediaGroup
+
     // =====================
     // Answer Types
     // =====================
@@ -145,6 +147,8 @@ export namespace Survey {
         | PassedAnswerImage
         | PassedAnswerVideo
         | PassedAnswerMediaGroup
+
+    export type PassedAnswerMedia = PassedAnswerImage | PassedAnswerVideo | PassedAnswerMediaGroup
 }
 
 export namespace SurveyCacheHelpers {
@@ -228,6 +232,47 @@ export namespace SurveyUsageHelpers {
             case 'video':
             case 'mediaGroup':
                 return `${text.surveyFinal.textMediaPrefix} (${answer.media.length} ${text.surveyFinal.textMediaUnit})`
+        }
+    }
+
+    export function getEmptyAnswerForQuestion(question: Survey.Question): Survey.PassedAnswer {
+        switch (question.type) {
+            case 'string':
+                return {
+                    type: 'string',
+                    question: question,
+                    selectedString: undefined,
+                }
+            case 'options':
+                return {
+                    type: 'options',
+                    question: question,
+                    selectedOptionId: undefined,
+                }
+            case 'numeric':
+                return {
+                    type: 'numeric',
+                    question: question,
+                    selectedNumber: undefined,
+                }
+            case 'image':
+                return {
+                    type: 'image',
+                    question: question,
+                    media: [],
+                }
+            case 'video':
+                return {
+                    type: 'video',
+                    question: question,
+                    media: [],
+                }
+            case 'mediaGroup':
+                return {
+                    type: 'mediaGroup',
+                    question: question,
+                    media: [],
+                }
         }
     }
 }
