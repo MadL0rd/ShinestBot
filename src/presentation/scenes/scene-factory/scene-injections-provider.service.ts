@@ -6,6 +6,7 @@ import { Telegraf } from 'telegraf'
 import { logger } from 'src/app/app.logger'
 import { StatisticService } from 'src/business-logic/user/statistic.service'
 import { SurveyDataProviderFactoryService } from 'src/presentation/survey-data-provider/survey-provider-factory/survey-provider-factory.service'
+import { PublicationStorageService } from 'src/business-logic/publication-storage/publication-storage.service'
 
 interface Type<T> {
     new (...args: any[]): T
@@ -33,6 +34,7 @@ export class SceneInjectionsProviderService {
         protected readonly botContentService: BotContentService,
         protected readonly surveyDataProviderFactory: SurveyDataProviderFactoryService,
         protected readonly statisticService: StatisticService,
+        protected readonly publicationStorageService: PublicationStorageService,
         @InjectBot() private readonly bot: Telegraf
     ) {
         const propertyNames = Object.keys(this).filter((prop) => prop != 'registry')

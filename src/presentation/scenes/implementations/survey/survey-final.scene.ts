@@ -12,6 +12,10 @@ import { InjectableSceneConstructor } from '../../scene-factory/scene-injections
 import { SurveyDataProviderType } from 'src/presentation/survey-data-provider/models/survey-data-provider.interface'
 import { SurveyDataProviderFactoryService } from 'src/presentation/survey-data-provider/survey-provider-factory/survey-provider-factory.service'
 import { SurveyFormatter } from 'src/utils/survey-formatter'
+import { PublicationStorageService } from 'src/business-logic/publication-storage/publication-storage.service'
+import { BotContentService } from 'src/business-logic/bot-content/bot-content.service'
+import { getLanguageFor } from 'src/utils/getLanguageForUser'
+import { internalConstants } from 'src/app/app.internal-constants'
 
 // =====================
 // Scene data classes
@@ -45,7 +49,9 @@ export class SurveyFinalScene extends Scene<ISceneData, SceneEnterDataType> {
 
     constructor(
         protected readonly userService: UserService,
-        private readonly dataProviderFactory: SurveyDataProviderFactoryService
+        private readonly dataProviderFactory: SurveyDataProviderFactoryService,
+        private readonly publicationStorageService: PublicationStorageService,
+        private readonly botContentService: BotContentService
     ) {
         super()
     }
@@ -96,6 +102,7 @@ export class SurveyFinalScene extends Scene<ISceneData, SceneEnterDataType> {
             logger.error('Start data corrupted')
             return this.completion.complete()
         }
+        // THIS IS REAL PROVIDER
         const provider = this.dataProviderFactory.getSurveyProvider(data.provider)
 
         const message = ctx.message
@@ -104,7 +111,33 @@ export class SurveyFinalScene extends Scene<ISceneData, SceneEnterDataType> {
 
         switch (message.text) {
             case this.text.surveyFinal.buttonDone:
-            // TODO: implement final action
+                const userLanguage = getLanguageFor(this.user)
+                const botContent = await this.botContentService.getContent(userLanguage)
+                const passedAnswers = (await provider.getAnswersCacheStable(botContent, this.user))
+                    .passedAnswers
+                await this.publicationStorageService.create({
+                    userTelegramId: 0,
+                    creationDate: new Date(),
+                    answers: passedAnswers,
+                    status: 'moderation',
+                })
+                const moderationChannelId = internalConstants.moderationChannelId
+                if (!moderationChannelId) {
+                    logger.error('Cannot find moderationChannelId')
+                    return this.completion.complete({ sceneName: 'mainMenu' })
+                }
+                await ctx.telegram.sendMessage(
+                    moderationChannelId,
+                    SurveyFormatter.generateTextFromPassedAnswers(
+                        {
+                            contentLanguage: userLanguage,
+                            passedAnswers: passedAnswers,
+                        },
+                        botContent
+                    ),
+                    { parse_mode: 'HTML' }
+                )
+                return this.completion.complete({ sceneName: 'mainMenu' })
 
             case this.text.common.buttonReturnToMainMenu:
                 return this.completion.complete({ sceneName: 'mainMenu' })
