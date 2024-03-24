@@ -38,7 +38,7 @@ export abstract class Scene<SceneDataType extends object, SceneEnterDataType ext
     private _content: BotContent
     private _text: UniqueMessage
     private _user: UserDocument
-    private _userActivePermissions: UserPermissionNames.union[]
+    private _userActivePermissions: UserPermissionNames.Union[]
 
     // =====================
     // Protected properties:
@@ -50,7 +50,7 @@ export abstract class Scene<SceneDataType extends object, SceneEnterDataType ext
     protected get user(): UserDocument {
         return this._user
     }
-    protected get userActivePermissions(): UserPermissionNames.union[] {
+    protected get userActivePermissions(): UserPermissionNames.Union[] {
         return this._userActivePermissions
     }
     protected get content(): BotContent {

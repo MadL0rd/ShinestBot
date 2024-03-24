@@ -61,6 +61,6 @@ export interface PermissionsValidationResult {
  */
 export interface SceneUserContext {
     readonly user: UserDocument
-    readonly userActivePermissions: UserPermissionNames.union[]
+    readonly userActivePermissions: UserPermissionNames.Union[]
     readonly botContent: BotContent
 }

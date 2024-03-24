@@ -11,7 +11,7 @@ export class UserInternalInfo {
 }
 
 export class UserPermission {
-    permissionName: UserPermissionNames.union | string
+    permissionName: UserPermissionNames.Union | string
     comment?: string
     startDate: Date = new Date()
     expirationDate?: Date
