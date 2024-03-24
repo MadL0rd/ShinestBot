@@ -13,6 +13,7 @@ import { GptApiModule } from '../business-logic/gpt-api/gpt-api.module'
 import { DispatchersModule } from '../presentation/dispatchers/dispatchers.module'
 import { ScenesModule } from '../presentation/scenes/scenes.module'
 import { SheetDataProviderModule } from '../core/sheet-data-provider/sheet-data-provider.module'
+import { PublicationStorageModule } from 'src/business-logic/publication-storage/publication-storage.module'
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const mediaGroup = require('telegraf-media-group')
 
@@ -48,6 +49,7 @@ const mediaGroup = require('telegraf-media-group')
         DispatchersModule,
         ScenesModule,
         SheetDataProviderModule,
+        PublicationStorageModule,
     ],
     providers: [AppUpdate],
 })
