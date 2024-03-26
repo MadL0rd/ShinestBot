@@ -64,7 +64,7 @@ export class SurveyProviderDefaultService implements ISurveyDataProvider {
         const answers = cache.passedAnswers
         const source = await this.getSurvey(botContent)
 
-        // If survay is not completed
+        // If survey is not completed
         if (SurveyUsageHelpers.findNextQuestion(source, answers)) cache
 
         // Sort questions in original order

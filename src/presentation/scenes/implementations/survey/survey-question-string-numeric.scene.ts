@@ -193,8 +193,8 @@ export class SurveyQuestionStringNumericScene extends Scene<ISceneData, SceneEnt
 
         const answerId = inlineButtonData.a
         const cache = await provider.getAnswersCache(this.content, this.user)
-        const survaySource = await provider.getSurvey(this.content)
-        const nextQuestion = SurveyUsageHelpers.findNextQuestion(survaySource, cache.passedAnswers)
+        const surveySource = await provider.getSurvey(this.content)
+        const nextQuestion = SurveyUsageHelpers.findNextQuestion(surveySource, cache.passedAnswers)
         if (nextQuestion?.id != answerId) return this.completion.canNotHandleUnsafe()
 
         switch (data.action) {
