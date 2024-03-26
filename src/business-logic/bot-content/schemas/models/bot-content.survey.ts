@@ -181,6 +181,18 @@ export namespace SurveyCacheHelpers {
 }
 
 export namespace SurveyUsageHelpers {
+    export function isMediaType(answerType: Survey.AnswerTypeName): boolean {
+        switch (answerType) {
+            case 'string':
+            case 'options':
+            case 'numeric':
+                return false
+            case 'image':
+            case 'video':
+            case 'mediaGroup':
+                return true
+        }
+    }
     export function findNextQuestion(
         survey: Survey.Model,
         passedQuestionAnswers: Survey.PassedAnswer[]

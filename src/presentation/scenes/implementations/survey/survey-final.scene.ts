@@ -14,7 +14,6 @@ import { SurveyDataProviderFactoryService } from 'src/presentation/survey-data-p
 import { SurveyFormatter } from 'src/utils/survey-formatter'
 import { PublicationStorageService } from 'src/business-logic/publication-storage/publication-storage.service'
 import { BotContentService } from 'src/business-logic/bot-content/bot-content.service'
-import { getLanguageFor } from 'src/utils/getLanguageForUser'
 import { internalConstants } from 'src/app/app.internal-constants'
 
 // =====================
@@ -111,14 +110,13 @@ export class SurveyFinalScene extends Scene<ISceneData, SceneEnterDataType> {
 
         switch (message.text) {
             case this.text.surveyFinal.buttonDone:
-                const userLanguage = getLanguageFor(this.user)
-                const botContent = await this.botContentService.getContent(userLanguage)
-                const passedAnswers = (await provider.getAnswersCacheStable(botContent, this.user))
-                    .passedAnswers
-                await this.publicationStorageService.create({
-                    userTelegramId: 0,
+                const answersCache = await provider.getAnswersCacheStable(this.content, this.user)
+
+                const publication = await this.publicationStorageService.create({
+                    userTelegramId: this.user.telegramId,
                     creationDate: new Date(),
-                    answers: passedAnswers,
+                    language: answersCache.contentLanguage,
+                    answers: answersCache.passedAnswers,
                     status: 'moderation',
                 })
                 const moderationChannelId = internalConstants.moderationChannelId
@@ -126,17 +124,21 @@ export class SurveyFinalScene extends Scene<ISceneData, SceneEnterDataType> {
                     logger.error('Cannot find moderationChannelId')
                     return this.completion.complete({ sceneName: 'mainMenu' })
                 }
-                await ctx.telegram.sendMessage(
-                    moderationChannelId,
-                    SurveyFormatter.generateTextFromPassedAnswers(
-                        {
-                            contentLanguage: userLanguage,
-                            passedAnswers: passedAnswers,
-                        },
-                        botContent
-                    ),
-                    { parse_mode: 'HTML' }
+                const answersText = SurveyFormatter.moderationPreSynchronizedText(
+                    publication,
+                    this.content
                 )
+                const moderationChannelMessage = await ctx.telegram.sendMessage(
+                    moderationChannelId,
+                    answersText,
+                    {
+                        parse_mode: 'HTML',
+                    }
+                )
+                await this.publicationStorageService.update(publication._id.toString(), {
+                    moderationChannelPublicationId: moderationChannelMessage.message_id,
+                })
+                // TODO: clear survey cache here
                 return this.completion.complete({ sceneName: 'mainMenu' })
 
             case this.text.common.buttonReturnToMainMenu:

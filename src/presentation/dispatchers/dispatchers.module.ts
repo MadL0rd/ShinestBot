@@ -5,10 +5,19 @@ import { LocalizationModule } from 'src/core/localization/localization.module'
 import { UserModule } from 'src/business-logic/user/user.module'
 import { TelegrafModule } from 'nestjs-telegraf'
 import { ScenesModule } from '../scenes/scenes.module'
+import { ModerationChatDispatcherService } from './moderation-chat-dispatcher/moderation-chat-dispatcher.service'
+import { PublicationStorageModule } from 'src/business-logic/publication-storage/publication-storage.module'
 
 @Module({
-    imports: [BotContentModule, LocalizationModule, UserModule, TelegrafModule, ScenesModule],
-    providers: [PrivateDialogDispatcherService],
-    exports: [PrivateDialogDispatcherService],
+    imports: [
+        BotContentModule,
+        LocalizationModule,
+        UserModule,
+        TelegrafModule,
+        ScenesModule,
+        PublicationStorageModule,
+    ],
+    providers: [PrivateDialogDispatcherService, ModerationChatDispatcherService],
+    exports: [PrivateDialogDispatcherService, ModerationChatDispatcherService],
 })
 export class DispatchersModule {}

@@ -12,6 +12,9 @@ export class Publication {
     creationDate: Date
 
     @Prop()
+    language: string
+
+    @Prop()
     answers: Survey.PassedAnswer[]
 
     @Prop()

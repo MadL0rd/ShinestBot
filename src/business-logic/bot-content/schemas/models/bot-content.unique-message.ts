@@ -13,6 +13,7 @@ export class UniqueMessage {
     readonly survey = new Survey()
     readonly surveyQuestionMedia = new SurveyQuestionMedia()
     readonly surveyFinal = new SurveyFinal()
+    readonly moderation = new Moderation()
 }
 
 export class Common {
@@ -125,4 +126,32 @@ export class SurveyFinal {
     readonly textOptionalAnswerIsNull = '<i>Не указано</i>'
     readonly text = '👆🏻 Выше все данные из вашей заявки.\nВы можете отправить её в текущем виде либо отредактировать.\n\nЧтобы отредактировать какой-то пункт, отправьте мне его номер.\n\n<i>P.S.: Вы можете вернуться в главное меню и отредактировать заявку позже, просто при возвращении нажмите кнопку *Опрос*, а затем *Продолжить*</i>'
     readonly buttonDone = 'Отправить'
+}
+
+export class Moderation {
+    /** Команда для чата модерации */
+    readonly messageCommandApprove = 'Принять'
+    /** Команда для чата модерации */
+    readonly messageCommandReject = 'Отклонить'
+    /** Команда для чата модерации */
+    readonly messageCommandNotRelevant = 'Не актуально'
+    /** Плейсхолдер */
+    readonly messageAdvertIdPlaceholder = 'advertIdPlaceholder'
+    /** Плейсхолдер */
+    readonly messageAddressPlaceholder = 'addressPlaceholder'
+    /** Плейсхолдер */
+    readonly messagePostLinkPlaceholder = 'postLinkPlaceholder'
+    /** Плейсхолдер */
+    readonly messagePostStatusPlaceholder = 'advertStatusPlaceholder'
+    /** Плейсхолдер */
+    readonly messagePostDatePlaceholder = 'advertCreationDatePlaceholder'
+    readonly publicationStatusModeration = '📝 Проверка'
+    readonly publicationStatusRejected = '🚫 Отклонено'
+    readonly publicationStatusActive = '✅ Актуально'
+    readonly publicationStatusNotRelevant = '❌ Не актуально'
+    readonly messageText = '📩 *Сообщение от команды ShinestBot*\n\nID публикации: *advertIdPlaceholder*\nАдрес: addressPlaceholder\nДата подачи заявки: advertCreationDatePlaceholder'
+    readonly messageTextAccepted = '🎉 *Поздравляем* 🎉\nВаше объявление было опубликовано\n\nID: *advertIdPlaceholder*\nАдрес: addressPlaceholder\nДата подачи заявки: advertCreationDatePlaceholder\n\n[Ссылка на публикацию](postLinkPlaceholder)'
+    readonly messageTextRejected = '🚫 *Внимание* 🚫\nВаше объявление было Отклонено\n\nID: *advertIdPlaceholder*\nАдрес: addressPlaceholder\nДата подачи заявки: advertCreationDatePlaceholder'
+    readonly messageTextNotRelevant = '⚠️ *Внимание* ⚠️\nВаше объявление было отмечено как неактуальное\n\nID: *advertIdPlaceholder*\nДата подачи заявки: advertCreationDatePlaceholder\n\n[Ссылка на публикацию](postLinkPlaceholder)'
+    readonly moderationMessageTextNewSearchResult = '✅ *Внимание* ✅\nПоявилось новая публикация, подходящая под ваши фильтры\n\nАдрес: addressPlaceholder'
 }

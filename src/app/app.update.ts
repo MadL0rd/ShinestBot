@@ -5,6 +5,7 @@ import { logger } from 'src/app/app.logger'
 import { internalConstants } from './app.internal-constants'
 import { RuntimeExeptionGuard } from '../exeptions-and-logging/runtime-exeption-guard.decorator'
 import { PrivateDialogDispatcherService } from '../presentation/dispatchers/private-dialog-dispatcher/private-dialog-dispatcher.service'
+import { ModerationChatDispatcherService } from 'src/presentation/dispatchers/moderation-chat-dispatcher/moderation-chat-dispatcher.service'
 
 @UpdateNest()
 export class AppUpdate {
@@ -14,7 +15,8 @@ export class AppUpdate {
 
     constructor(
         @InjectBot() private readonly bot: Telegraf<Context>,
-        private readonly privateDialogDispatcher: PrivateDialogDispatcherService
+        private readonly privateDialogDispatcher: PrivateDialogDispatcherService,
+        private readonly moderationChatDispatcher: ModerationChatDispatcherService
     ) {}
 
     // =====================
@@ -59,6 +61,9 @@ export class AppUpdate {
         if (ctx.chat?.type === 'private') {
             // Message from private chat with user
             await this.privateDialogDispatcher.handleUserMessage(ctx)
+        } else if (ctx.chat?.id == internalConstants.moderationChatId) {
+            // Message in moderation chat
+            await this.moderationChatDispatcher.handleUserMessage(ctx)
         } else if (ctx.chat?.id == internalConstants.fileStorageChatId) {
             // Message in file storage chat
 
