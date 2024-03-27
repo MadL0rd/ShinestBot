@@ -14,6 +14,7 @@ export class UniqueMessage {
     readonly surveyQuestionMedia = new SurveyQuestionMedia()
     readonly surveyFinal = new SurveyFinal()
     readonly moderation = new Moderation()
+    readonly userPublications = new UserPublications()
 }
 
 export class Common {
@@ -149,9 +150,25 @@ export class Moderation {
     readonly publicationStatusRejected = '🚫 Отклонено'
     readonly publicationStatusActive = '✅ Актуально'
     readonly publicationStatusNotRelevant = '❌ Не актуально'
-    readonly messageText = '📩 *Сообщение от команды ShinestBot*\n\nID публикации: *advertIdPlaceholder*\nАдрес: addressPlaceholder\nДата подачи заявки: advertCreationDatePlaceholder'
-    readonly messageTextAccepted = '🎉 *Поздравляем* 🎉\nВаше объявление было опубликовано\n\nID: *advertIdPlaceholder*\nАдрес: addressPlaceholder\nДата подачи заявки: advertCreationDatePlaceholder\n\n[Ссылка на публикацию](postLinkPlaceholder)'
-    readonly messageTextRejected = '🚫 *Внимание* 🚫\nВаше объявление было Отклонено\n\nID: *advertIdPlaceholder*\nАдрес: addressPlaceholder\nДата подачи заявки: advertCreationDatePlaceholder'
+    readonly messageText = '📩 *Сообщение от команды ShinestBot*\n\nID публикации: *advertIdPlaceholder*\nДата подачи заявки: advertCreationDatePlaceholder'
+    readonly messageTextAccepted = '🎉 *Поздравляем* 🎉\nВаше объявление было опубликовано\n\nID: *advertIdPlaceholder*\nДата подачи заявки: advertCreationDatePlaceholder\n\n[Ссылка на публикацию](postLinkPlaceholder)'
+    readonly messageTextRejected = '🚫 *Внимание* 🚫\nВаше объявление было Отклонено\n\nID: *advertIdPlaceholder*\nДата подачи заявки: advertCreationDatePlaceholder'
     readonly messageTextNotRelevant = '⚠️ *Внимание* ⚠️\nВаше объявление было отмечено как неактуальное\n\nID: *advertIdPlaceholder*\nДата подачи заявки: advertCreationDatePlaceholder\n\n[Ссылка на публикацию](postLinkPlaceholder)'
-    readonly moderationMessageTextNewSearchResult = '✅ *Внимание* ✅\nПоявилось новая публикация, подходящая под ваши фильтры\n\nАдрес: addressPlaceholder'
+    readonly moderationMessageTextNewSearchResult = '✅ *Внимание* ✅\nПоявилось новая публикация, подходящая под ваши фильтры'
+}
+
+export class UserPublications {
+    readonly text = 'Ваши объявления:'
+    readonly textEmpty = 'Вы еще не подавали объявлений'
+    readonly textModeratorContact = 'Напишите мне ваш вопрос, ответ модераторатора придёт вам вместе с уведомлением\n\nДля отмены текущего действия нажмите /cancel'
+    readonly advertInfoFormat = 'ID: *advertIdPlaceholder*\nСтатус: advertStatusPlaceholder\nДата подачи заявки: advertCreationDatePlaceholder'
+    readonly advertInfoLinkFormat = '[Ссылка на публикацию](postLinkPlaceholder)'
+    readonly buttonSetStatusNotRelevant = '❌ Отметить как неактуальное '
+    readonly buttonReuseAdvert = '✏ Отредактировать и отправить повторно'
+    readonly writeToModerator = 'Написать модератору'
+    readonly buttonLinkWeb = '🌎 Посмотреть на сайте'
+    readonly buttonLinkTelegram = '➡️ Перейти к публикации'
+    readonly writeToModeratorError = 'Не удалось отправить ваше сообщение\nПопробуйте еще раз'
+    readonly writeToModeratorSuccess = 'Сообщение успешно отправлено'
+    readonly finalOptionalAnswerIsNull = '<i>Не указано</i>'
 }

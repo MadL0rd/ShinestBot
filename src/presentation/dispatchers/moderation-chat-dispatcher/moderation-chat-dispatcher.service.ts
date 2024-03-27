@@ -11,13 +11,11 @@ import { getLanguageFor } from 'src/utils/getLanguageForUser'
 import { SurveyFormatter } from 'src/utils/survey-formatter'
 import { PublicationDocument } from 'src/business-logic/publication-storage/schemas/publication.schema'
 import { MediaGroup } from 'node_modules/telegraf/typings/telegram-types'
-import {
-    SurveyCacheHelpers,
-    SurveyUsageHelpers,
-} from 'src/business-logic/bot-content/schemas/models/bot-content.survey'
+import { SurveyUsageHelpers } from 'src/business-logic/bot-content/schemas/models/bot-content.survey'
 import { UniqueMessage } from 'src/business-logic/bot-content/schemas/models/bot-content.unique-message'
 import { PublicationStatus } from 'src/business-logic/publication-storage/enums/publication-status.enum'
 import { InjectBot } from 'nestjs-telegraf'
+import { BotContent } from 'src/business-logic/bot-content/schemas/bot-content.schema'
 
 @Injectable()
 export class ModerationChatDispatcherService {
@@ -48,7 +46,7 @@ export class ModerationChatDispatcherService {
         ) {
             const publicationId = messageText.split('\n')[1]?.split(':')[1]?.trimmed
             if (!publicationId) {
-                logger.log(`Cannot parse realEstateAdvertId`)
+                logger.log(`Cannot parse publication Id`)
                 return
             }
             let publication = await this.publicationStorageService.findById(publicationId)
@@ -155,7 +153,7 @@ export class ModerationChatDispatcherService {
             threadMessageId
         )
         if (!publication) {
-            logger.log(`Cannot find realEstateAdvert with thread message id ${threadMessageId}`)
+            logger.log(`Cannot find publication with thread message id ${threadMessageId}`)
         } else {
             // TODO: добавить проверку на модера сюда
             const botContent = await this.botContentService.getContent(
@@ -172,11 +170,15 @@ export class ModerationChatDispatcherService {
                         return
 
                     case botContent.uniqueMessage.moderation.messageCommandReject:
-                        await this.handleAdvertReject(publication, ctx, botContent.uniqueMessage)
+                        await this.handlePublicationReject(
+                            publication,
+                            ctx,
+                            botContent.uniqueMessage
+                        )
                         return
 
                     case botContent.uniqueMessage.moderation.messageCommandNotRelevant:
-                        await this.handleAdvertNotRelevant(
+                        await this.handlePublicationNotRelevant(
                             publication,
                             ctx,
                             botContent.uniqueMessage
@@ -185,7 +187,7 @@ export class ModerationChatDispatcherService {
                 }
             }
 
-            await this.sendAdminMessageTextForAdvert(publication)
+            await this.sendAdminMessageTextForPublication(publication)
             await this.replyAdminMessageToUser(ctx, publication.userTelegramId)
         }
     }
@@ -193,11 +195,11 @@ export class ModerationChatDispatcherService {
     // Private methods
     // =====================
 
-    private async updatePublication(
+    private async updatePublicationStatus(
         publicationDocument: PublicationDocument | null,
         status: PublicationStatus.Union,
         ctx: Context<Update>,
-        text: UniqueMessage
+        text: BotContent
     ) {
         if (!publicationDocument) return
         publicationDocument = await this.publicationStorageService.update(
@@ -209,50 +211,53 @@ export class ModerationChatDispatcherService {
 
         const inlineKeyboardAll: InlineKeyboardButton[][] = []
         const inlineKeyboardMainPublication: InlineKeyboardButton[][] = []
-        const telegramLink = advertFormatter.advertPublicationTelegramLink(publicationDocument)
+        if (!publicationDocument) return
+        const telegramLink = SurveyFormatter.publicationTelegramLink(publicationDocument)
         if (telegramLink) {
             inlineKeyboardAll.push([
-                Markup.button.url(text.userAdvertsButtonLinkTelegram, telegramLink),
+                Markup.button.url(
+                    text.uniqueMessage.userPublications.buttonLinkTelegram,
+                    telegramLink
+                ),
             ])
         }
 
-        const webPageUrl = advertFormatter.advertPublicationWebLink(publicationDocument)
-        if (webPageUrl) {
-            const webLinkButton = Markup.button.url(text.userAdvertsButtonLinkWeb, webPageUrl)
-            inlineKeyboardAll.push([webLinkButton])
-            inlineKeyboardMainPublication.push([webLinkButton])
-        }
-
         // Update status in moderation channel
-        if (publicationDocument.moderationChannelPostId) {
+        if (publicationDocument.moderationChannelPublicationId) {
             try {
                 const user = await this.userService.findOneByTelegramId(
                     publicationDocument.userTelegramId
                 )
+                if (!internalConstants.moderationChannelId || !user) return
                 await ctx.telegram.editMessageText(
                     internalConstants.moderationChannelId,
-                    publicationDocument.moderationChannelPostId,
+                    publicationDocument.moderationChannelPublicationId,
                     undefined,
-                    advertFormatter.moderationSynchronizedText(publicationDocument, text, user),
+                    SurveyFormatter.moderationSynchronizedText(
+                        publicationDocument,
+                        text.uniqueMessage,
+                        user
+                    ),
                     {
                         parse_mode: 'HTML',
-                        disable_web_page_preview: true,
+                        link_preview_options: { is_disabled: true },
                     }
                 )
             } catch {}
         }
 
         // Update status in main channel
-        if (publicationDocument.mainChannelPostId) {
+        if (publicationDocument.mainChannelPublicationId) {
             try {
+                if (!internalConstants.publicationMainChannelId) return
                 await ctx.telegram.editMessageText(
-                    internalConstants.advertsMainChannelId,
-                    publicationDocument.mainChannelPostId,
+                    internalConstants.publicationMainChannelId,
+                    publicationDocument.mainChannelPublicationId,
                     undefined,
-                    advertFormatter.postPublicationText(publicationDocument, text),
+                    SurveyFormatter.postPublicationText(publicationDocument, text.uniqueMessage),
                     {
                         parse_mode: 'HTML',
-                        disable_web_page_preview: true,
+                        link_preview_options: { is_disabled: true },
                         reply_markup: {
                             inline_keyboard: inlineKeyboardMainPublication,
                         },
@@ -262,10 +267,10 @@ export class ModerationChatDispatcherService {
 
             try {
                 await ctx.telegram.editMessageCaption(
-                    internalConstants.advertsMainChannelId,
-                    publicationDocument.mainChannelPostId,
+                    internalConstants.publicationMainChannelId,
+                    publicationDocument.mainChannelPublicationId,
                     undefined,
-                    advertFormatter.postPublicationText(publicationDocument, text),
+                    SurveyFormatter.postPublicationText(publicationDocument, text.uniqueMessage),
                     {
                         parse_mode: 'HTML',
                         reply_markup: {
@@ -279,68 +284,33 @@ export class ModerationChatDispatcherService {
         // Notify user
         let textForUser = ''
         switch (status) {
-            case RealEstateAdvertStatus.moderation:
+            case 'moderation':
                 return
 
-            case RealEstateAdvertStatus.rejected:
-                textForUser = text.moderationMessageTextRejected
+            case 'rejected':
+                textForUser = text.uniqueMessage.moderation.messageTextRejected
                 break
 
-            case RealEstateAdvertStatus.active:
-                textForUser = text.moderationMessageTextAccepted
+            case 'active':
+                textForUser = text.uniqueMessage.moderation.messageTextAccepted
                 break
 
-            case RealEstateAdvertStatus.notRelevant:
-                textForUser = text.moderationMessageTextNotRelevant
+            case 'notRelevant':
+                textForUser = text.uniqueMessage.moderation.messageTextNotRelevant
                 break
         }
-        const moderationMessageText = advertFormatter.makeUserMessageWithAdvertInfo(
+        const moderationMessageText = SurveyFormatter.makeUserMessageWithPublicationInfo(
             textForUser,
             publicationDocument,
-            text
+            text.uniqueMessage
         )
         await ctx.telegram.sendMessage(publicationDocument.userTelegramId, moderationMessageText, {
             parse_mode: 'HTML',
-            disable_web_page_preview: true,
+            link_preview_options: { is_disabled: true },
             reply_markup: {
                 inline_keyboard: inlineKeyboardAll,
             },
         })
-
-        // Send notifications for other users
-        if (status != RealEstateAdvertStatus.active) return
-        const notificationText = advertFormatter.makeUserMessageWithAdvertInfo(
-            text.moderationMessageTextNewSearchResult,
-            publicationDocument,
-            text
-        )
-
-        const allTelegramIds = await this.userService.findAllUserIdsWithActiveNotifications()
-        for (const id of allTelegramIds) {
-            const user = await this.userService.findOneById(id)
-
-            if (user.telegramId == publicationDocument.userTelegramId) continue
-            if (
-                !doesAdvertPassSearchFilters(publicationDocument, user.internalInfo.searchFilters)
-            ) {
-                continue
-            }
-
-            try {
-                await ctx.telegram.sendMessage(user.telegramId, notificationText, {
-                    parse_mode: 'HTML',
-                    disable_web_page_preview: true,
-                    reply_markup: {
-                        inline_keyboard: inlineKeyboardAll,
-                    },
-                })
-            } catch {
-                logger.error(
-                    `Failed to send message to user: ${user.telegramId} @${user.telegramInfo.username}`
-                )
-                this.userService.logToUserHistory(user, UserHistoryEvent.botIsBlockedDetected)
-            }
-        }
     }
 
     private async handlePublicationApprove(
@@ -380,10 +350,7 @@ export class ModerationChatDispatcherService {
             .flat()
             .map((media) => {
                 return {
-                    type:
-                        typeof media == SurveyCacheHelpers.answerTypeNames.video
-                            ? 'video'
-                            : 'photo',
+                    type: media.fileType,
                     media: media.telegramFileId,
                     parse_mode: 'HTML',
                     disable_web_page_preview: false,
@@ -404,14 +371,14 @@ export class ModerationChatDispatcherService {
             },
             botContent
         )
-        if (!internalConstants.advertsMainChannelId) {
-            logger.error('Cannot find advertsMainChannelId in internalConstants')
+        if (!internalConstants.publicationMainChannelId) {
+            logger.error('Cannot find publicationMainChannelId in internalConstants')
             return
         }
         if (mediaGroupArgs.length > 0) {
             mediaGroupArgs[0]['caption'] = mainChannelPostText
             const mainChannelMessages = await ctx.telegram.sendMediaGroup(
-                internalConstants.advertsMainChannelId,
+                internalConstants.publicationMainChannelId,
                 mediaGroupArgs
             )
             const mainChannelPostRaw = mainChannelMessages.filter(
@@ -424,7 +391,7 @@ export class ModerationChatDispatcherService {
             mainChannelPost = mainChannelPostRaw
         } else {
             mainChannelPost = await ctx.telegram.sendMessage(
-                internalConstants.advertsMainChannelId,
+                internalConstants.publicationMainChannelId,
                 mainChannelPostText,
                 {
                     parse_mode: 'HTML',
@@ -443,18 +410,20 @@ export class ModerationChatDispatcherService {
         )
 
         // TODO: Написать статус апдейтер
-        // const updater = new AdvertStatusUpdater(this.userService, this.realEstateAdvertService)
-        // await updater.update(publicationUpdated, RealEstateAdvertStatus.active, ctx, text)
+        await this.updatePublicationStatus(publicationUpdated, 'active', ctx, botContent)
 
         // Notify admin
         await this.sendSuccessMessageToCurrentThread(ctx)
     }
 
-    private async handleAdvertReject(
+    private async handlePublicationReject(
         publication: PublicationDocument,
         ctx: Context<Update>,
         text: UniqueMessage
     ) {
+        const botContent = await this.botContentService.getContent(
+            internalConstants.defaultLanguage
+        )
         const statusModeration: PublicationStatus.Union = 'moderation'
         if (publication.status != statusModeration || publication.mainChannelPublicationId) {
             await this.sendMessageToCurrentThread(
@@ -464,20 +433,22 @@ export class ModerationChatDispatcherService {
             return
         }
         // TODO: Написать апдейтер
-        // const updater = new AdvertStatusUpdater(this.userService, this.realEstateAdvertService)
-        // updater.update(realEstateAdvert, RealEstateAdvertStatus.rejected, ctx, text)
+        await this.updatePublicationStatus(publication, 'moderation', ctx, botContent)
 
         // Notify admin
         await this.sendSuccessMessageToCurrentThread(ctx)
     }
 
-    private async handleAdvertNotRelevant(
-        realEstateAdvert: PublicationDocument,
+    private async handlePublicationNotRelevant(
+        publication: PublicationDocument,
         ctx: Context<Update>,
         text: UniqueMessage
     ) {
+        const botContent = await this.botContentService.getContent(
+            internalConstants.defaultLanguage
+        )
         const publicationStatusActive: PublicationStatus.Union = 'active'
-        if (realEstateAdvert.status != publicationStatusActive) {
+        if (publication.status != publicationStatusActive) {
             await this.sendMessageToCurrentThread(
                 ctx,
                 'Установить статус "Не актуально" можно только если объявление было опубликовано и его текущий статус "Актуально"'
@@ -485,8 +456,7 @@ export class ModerationChatDispatcherService {
             return
         }
         // TODO: Написать апдейтер
-        // const updater = new AdvertStatusUpdater(this.userService, this.realEstateAdvertService)
-        // updater.update(realEstateAdvert, RealEstateAdvertStatus.notRelevant, ctx, text)
+        await this.updatePublicationStatus(publication, 'notRelevant', ctx, botContent)
 
         // Notify admin
         await this.sendSuccessMessageToCurrentThread(ctx)
@@ -535,7 +505,7 @@ export class ModerationChatDispatcherService {
         }
     }
 
-    private async sendAdminMessageTextForAdvert(
+    private async sendAdminMessageTextForPublication(
         publication: PublicationDocument
     ): Promise<string | null> {
         const userId = publication.userTelegramId
@@ -547,7 +517,7 @@ export class ModerationChatDispatcherService {
         }
         const userLanguage = getLanguageFor(user)
         const botContent = await this.botContentService.getContent(userLanguage)
-        const adminMessageText = SurveyFormatter.makeUserMessageWithAdvertInfo(
+        const adminMessageText = SurveyFormatter.makeUserMessageWithPublicationInfo(
             botContent.uniqueMessage.moderation.messageText,
             publication,
             botContent.uniqueMessage

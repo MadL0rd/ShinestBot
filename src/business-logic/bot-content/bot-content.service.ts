@@ -510,7 +510,8 @@ export class BotContentService implements OnModuleInit {
                     questionText: rowItem.questionText,
                     publicTitle: rowItem.publicTitle,
                     filters: filters,
-                    addAnswerToTelegramPublication: false,
+                    addAnswerToTelegramPublication:
+                        rowItem.showInPublicationTelegram == this.cachedTrueValue,
                     ...answerType,
                 }
                 return result

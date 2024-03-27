@@ -21,8 +21,8 @@ enum EnvKeys {
     fileStorageChatId = 'FILE_STORAGE_CHAT_ID',
     moderationChannelId = 'MODERATION_CHANNEL_ID',
     moderationChatId = 'MODERATION_CHAT_ID',
-    advertsMainChannelId = 'ADVERTS_MAIN_CHANNEL_ID',
-    advertsMainChannelName = 'ADVERTS_MAIN_CHANNEL_NAME',
+    publicationMainChannelId = 'PUBLICATION_MAIN_CHANNEL_ID',
+    publicationMainChannelName = 'PUBLICATION_MAIN_CHANNEL_NAME',
     errorsChatId = 'ERRORS_CHAT_ID',
 
     // GPT
@@ -91,17 +91,17 @@ class InternalConstants {
     get fileStorageChatId(): number {
         return this.getEnvNumber(EnvKeys.fileStorageChatId)
     }
-    get moderationChannelId(): number | null {
+    get moderationChannelId(): number {
         return this.getEnvNumber(EnvKeys.moderationChannelId)
     }
-    get moderationChatId(): number | null {
+    get moderationChatId(): number {
         return this.getEnvNumber(EnvKeys.moderationChatId)
     }
-    get advertsMainChannelId(): number | null {
-        return this.getEnvNumber(EnvKeys.advertsMainChannelId)
+    get publicationMainChannelId(): number {
+        return this.getEnvNumber(EnvKeys.publicationMainChannelId)
     }
-    get advertsMainChannelName(): string | null {
-        return this.getEnvString(EnvKeys.advertsMainChannelName)
+    get publicationMainChannelName(): string {
+        return this.getEnvString(EnvKeys.publicationMainChannelName)
     }
     get errorsChatId(): number {
         return this.getEnvNumber(EnvKeys.errorsChatId)

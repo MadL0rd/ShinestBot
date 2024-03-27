@@ -11,6 +11,7 @@ import {
     Publication,
     PublicationDocument,
 } from 'src/business-logic/publication-storage/schemas/publication.schema'
+import { User } from 'src/business-logic/user/schemas/user.schema'
 
 export namespace SurveyFormatter {
     export function generateTextFromPassedAnswers(
@@ -36,7 +37,7 @@ export namespace SurveyFormatter {
         const prefix =
             internalConstants.loadingServiceChatMessagePrefix + publication._id.toString()
 
-        const advertModerationText = generateTextFromPassedAnswers(
+        const publicationModerationText = generateTextFromPassedAnswers(
             {
                 contentLanguage: publication.language,
                 passedAnswers: publication.answers,
@@ -44,62 +45,125 @@ export namespace SurveyFormatter {
             botContent
         )
 
-        return `${prefix}\n\n${advertModerationText}`
+        return `${prefix}\n\n${publicationModerationText}`
     }
 
-    export function makeUserMessageWithAdvertInfo(
+    export function moderationSynchronizedText(
+        publication: PublicationDocument,
+        text: UniqueMessage,
+        author: User
+    ): string {
+        let PublicationText = ''
+        for (let i = 0; i < publication.answers.length; i++) {
+            const answer = publication.answers[i]
+            const answerValue =
+                SurveyUsageHelpers.getAnswerStringValue(answer, text) ??
+                text.userPublications.finalOptionalAnswerIsNull
+            PublicationText += `${i + 1}.\t${answer.question.publicTitle}: <b>${answerValue}</b>`
+            PublicationText += '\n'
+        }
+        let statusString = publicationStatusString(publication.status, text)
+        statusString = `${statusString} #${publication.status}`
+        const mainText = `${PublicationText}`
+
+        let prefix = `<b>id ${publication._id.toString()}</b>\n`
+        prefix += `Автор: ID ${author.telegramId}`
+        if (author.telegramInfo.username) {
+            prefix += ` @${author.telegramInfo.username}`
+        }
+        prefix += '\n\n'
+        prefix += statusString
+        const tgLink = publicationTelegramLink(publication)
+        if (tgLink) {
+            prefix += `\n\n<a href="${tgLink}">Ссылка на пост</a>`
+        }
+
+        return `${prefix}\n\n${mainText}`
+    }
+
+    export function makeUserMessageWithPublicationInfo(
         originalText: string,
-        advert: PublicationDocument,
+        publication: PublicationDocument,
         text: UniqueMessage
     ): string {
-        const tgAdvertLink = advertPublicationTelegramLink(advert)
-        if (tgAdvertLink) {
+        const tgPublicationLink = publicationTelegramLink(publication)
+        if (tgPublicationLink) {
             originalText = originalText.replace(
                 text.moderation.messagePostLinkPlaceholder,
-                tgAdvertLink
+                tgPublicationLink
             )
         }
         return originalText
-            .replace(text.moderation.messageAdvertIdPlaceholder, advert._id.toString())
+            .replace(text.moderation.messageAdvertIdPlaceholder, publication._id.toString())
             .replace(
                 text.moderation.messagePostDatePlaceholder,
-                moment(advert.creationDate).utcOffset('Europe/Moscow').format('DD.MM.yyyy HH:mm')
+                moment(publication.creationDate)
+                    .utcOffset('Europe/Moscow')
+                    .format('DD.MM.yyyy HH:mm')
             )
             .replace(
                 text.moderation.messagePostStatusPlaceholder,
-                advertStatusString(advert.status, text)
+                publicationStatusString(publication.status, text)
             )
     }
 
-    function advertStatusString(status: PublicationStatus.Union, text?: UniqueMessage): string {
-        if (text) {
-            switch (status) {
-                case 'moderation':
-                    return text.moderation.publicationStatusModeration
-                case 'rejected':
-                    return text.moderation.publicationStatusRejected
-                case 'active':
-                    return text.moderation.publicationStatusActive
-                case 'notRelevant':
-                    return text.moderation.publicationStatusNotRelevant
-            }
-        } else {
-            switch (status) {
-                case 'moderation':
-                    return '📝 Проверка'
-                case 'rejected':
-                    return '🚫 Отклонено'
-                case 'active':
-                    return '✅ Актуально'
-                case 'notRelevant':
-                    return '❌ Не актуально'
-            }
+    export function getPublicationTagsString(publication: PublicationDocument): string {
+        return publication.answers
+            .compactMap((answer) => {
+                if (answer.type != 'options' || !answer.question.useIdAsPublicationTag) {
+                    return null
+                }
+                return `#${answer.selectedOptionId}`
+            })
+            .join(' ')
+    }
+
+    /**
+     * Text for public post in main channel
+     */
+    export function postPublicationText(
+        publication: PublicationDocument,
+        text: UniqueMessage
+    ): string {
+        let publicationText = ''
+
+        for (let i = 0; i < publication.answers.length; i++) {
+            const answer = publication.answers[i]
+            if (answer.question.addAnswerToTelegramPublication == false) continue
+
+            const answerStringValue = SurveyUsageHelpers.getAnswerStringValue(answer, text)
+            if (!answerStringValue || SurveyUsageHelpers.isMediaType(answer.question.type)) continue
+
+            publicationText += `${answer.question.publicTitle}: <b>${answerStringValue}</b>\n`
+        }
+
+        const publicationTagsText = getPublicationTagsString(publication)
+        const statusString = publicationStatusString(publication.status, text)
+
+        const prefix = `<b>${statusString}</b>\n`
+
+        return `${prefix}\n${publicationText}\n${publicationTagsText}`
+    }
+
+    export function publicationStatusString(
+        status: PublicationStatus.Union,
+        text: UniqueMessage
+    ): string {
+        switch (status) {
+            case 'moderation':
+                return text.moderation.publicationStatusModeration
+            case 'rejected':
+                return text.moderation.publicationStatusRejected
+            case 'active':
+                return text.moderation.publicationStatusActive
+            case 'notRelevant':
+                return text.moderation.publicationStatusNotRelevant
         }
     }
 
-    function advertPublicationTelegramLink(publication: Publication): string | null {
+    export function publicationTelegramLink(publication: Publication): string | null {
         if (publication.mainChannelPublicationId) {
-            return `https://t.me/${internalConstants.advertsMainChannelName}/${publication.mainChannelPublicationId}`
+            return `https://t.me/${internalConstants.publicationMainChannelName}/${publication.mainChannelPublicationId}`
         }
         return null
     }
