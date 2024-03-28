@@ -8,21 +8,35 @@ import { UserService } from 'src/business-logic/user/user.service'
 import { BotContent } from 'src/business-logic/bot-content/schemas/bot-content.schema'
 import { User } from 'src/business-logic/user/schemas/user.schema'
 import { internalConstants } from 'src/app/app.internal-constants'
+import { getLanguageFor } from 'src/utils/getLanguageForUser'
+import { BotContentService } from 'src/business-logic/bot-content/bot-content.service'
+import { SceneEntrance } from 'src/presentation/scenes/models/scene-entrance.interface'
+import { SurveyFormatter } from 'src/utils/survey-formatter'
 
 @Injectable()
 export class SurveyContextDefaultService implements ISurveyContextProvider {
     readonly type: 'default'
 
-    constructor(private readonly userService: UserService) {}
+    constructor(
+        private readonly userService: UserService,
+        private readonly botContentService: BotContentService
+    ) {}
 
-    async getSurvey(botContent: BotContent): Promise<Survey.Model> {
+    // =====================
+    // Public methods
+    // =====================
+
+    async getSurvey(user: User): Promise<Survey.Model> {
+        const botContent = await this.getBotContentFor(user)
         return botContent.survey
     }
-    async getAnswersCache(botContent: BotContent, user: User): Promise<Survey.PassedAnswersCache> {
+
+    async getAnswersCache(user: User): Promise<Survey.PassedAnswersCache> {
+        const botContent = await this.getBotContentFor(user)
         const cache = this.getCacheWithoutLocalization(user)
         if (cache.contentLanguage == botContent.language) return cache
 
-        const survey = await this.getSurvey(botContent)
+        const survey = await this.getSurvey(user)
         const cacheLocalized: Survey.PassedAnswersCache = {
             contentLanguage: botContent.language,
             passedAnswers: cache.passedAnswers.compactMap((answer) => {
@@ -39,11 +53,8 @@ export class SurveyContextDefaultService implements ISurveyContextProvider {
         return cacheLocalized
     }
 
-    async getAnswersCacheStable(
-        botContent: BotContent,
-        user: User
-    ): Promise<Survey.PassedAnswersCache> {
-        const cache = await this.getAnswersCache(botContent, user)
+    async getAnswersCacheStable(user: User): Promise<Survey.PassedAnswersCache> {
+        const cache = await this.getAnswersCache(user)
 
         // Remove answers with unsupported options
         cache.passedAnswers = cache.passedAnswers.filter((answer) => {
@@ -62,7 +73,7 @@ export class SurveyContextDefaultService implements ISurveyContextProvider {
 
         const filteredAnswers: Survey.PassedAnswer[] = []
         const answers = cache.passedAnswers
-        const source = await this.getSurvey(botContent)
+        const source = await this.getSurvey(user)
 
         // If survey is not completed
         if (SurveyUsageHelpers.findNextQuestion(source, answers)) cache
@@ -107,6 +118,46 @@ export class SurveyContextDefaultService implements ISurveyContextProvider {
         const cache = this.getCacheWithoutLocalization(user)
         cache.passedAnswers.push(answer)
         await this.setAnswersCache(user, cache)
+    }
+
+    async completeSurveyAndGetNextScene(
+        user: User
+    ): Promise<SceneEntrance.SomeSceneDto | undefined> {
+        // TODO: move this code to publication service
+        //
+        // const botContent = await this.getBotContentFor(user)
+        // const answersCache = await this.getAnswersCacheStable(user)
+
+        // const publication = await this.publicationStorageService.create({
+        //     userTelegramId: user.telegramId,
+        //     creationDate: new Date(),
+        //     language: answersCache.contentLanguage,
+        //     answers: answersCache.passedAnswers,
+        //     status: 'moderation',
+        // })
+        // const moderationChannelId = internalConstants.moderationChannelId
+        // const answersText = SurveyFormatter.moderationPreSynchronizedText(publication, botContent)
+        // const moderationChannelMessage = await ctx.telegram.sendMessage(
+        //     moderationChannelId,
+        //     answersText,
+        //     {
+        //         parse_mode: 'HTML',
+        //     }
+        // )
+        // await this.publicationStorageService.update(publication._id.toString(), {
+        //     moderationChannelPublicationId: moderationChannelMessage.message_id,
+        // })
+
+        return undefined
+    }
+
+    // =====================
+    // Private methods
+    // =====================
+
+    private async getBotContentFor(user: User): Promise<BotContent> {
+        const userLanguage = getLanguageFor(user)
+        return await this.botContentService.getContent(userLanguage)
     }
 
     private getCacheWithoutLocalization(user: User): Survey.PassedAnswersCache {

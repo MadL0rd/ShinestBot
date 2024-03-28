@@ -95,10 +95,6 @@ export class ModerationChatDispatcherService {
             }
             const language = internalConstants.defaultLanguage
             const botContent = await this.botContentService.getContent(language)
-            if (!internalConstants.moderationChannelId) {
-                logger.error(`Wrong moderationChannelId in env`)
-                return
-            }
             const editedText = SurveyFormatter.generateTextFromPassedAnswers(
                 {
                     contentLanguage: publication.language,
@@ -142,11 +138,7 @@ export class ModerationChatDispatcherService {
             return
         }
 
-        if (!ctx.message) {
-            logger.error('Cannot find preveous message')
-            return
-        }
-        const threadMessageId = ctx.message.message_thread_id
+        const threadMessageId = ctx.message?.message_thread_id
         if (!threadMessageId) return
 
         const publication = await this.publicationStorageService.findByRepliedMessageThreadId(
@@ -154,42 +146,34 @@ export class ModerationChatDispatcherService {
         )
         if (!publication) {
             logger.log(`Cannot find publication with thread message id ${threadMessageId}`)
-        } else {
-            // TODO: добавить проверку на модера сюда
-            const botContent = await this.botContentService.getContent(
-                internalConstants.defaultLanguage
-            )
-            if (messageText) {
-                switch (messageText) {
-                    case botContent.uniqueMessage.moderation.messageCommandApprove:
-                        await this.handlePublicationApprove(
-                            publication,
-                            ctx,
-                            botContent.uniqueMessage
-                        )
-                        return
-
-                    case botContent.uniqueMessage.moderation.messageCommandReject:
-                        await this.handlePublicationReject(
-                            publication,
-                            ctx,
-                            botContent.uniqueMessage
-                        )
-                        return
-
-                    case botContent.uniqueMessage.moderation.messageCommandNotRelevant:
-                        await this.handlePublicationNotRelevant(
-                            publication,
-                            ctx,
-                            botContent.uniqueMessage
-                        )
-                        return
-                }
-            }
-
-            await this.sendAdminMessageTextForPublication(publication)
-            await this.replyAdminMessageToUser(ctx, publication.userTelegramId)
+            return
         }
+        // TODO: добавить проверку на модера сюда
+        const botContent = await this.botContentService.getContent(
+            internalConstants.defaultLanguage
+        )
+        if (messageText) {
+            switch (messageText) {
+                case botContent.uniqueMessage.moderation.messageCommandApprove:
+                    await this.handlePublicationApprove(publication, ctx, botContent.uniqueMessage)
+                    return
+
+                case botContent.uniqueMessage.moderation.messageCommandReject:
+                    await this.handlePublicationReject(publication, ctx, botContent.uniqueMessage)
+                    return
+
+                case botContent.uniqueMessage.moderation.messageCommandNotRelevant:
+                    await this.handlePublicationNotRelevant(
+                        publication,
+                        ctx,
+                        botContent.uniqueMessage
+                    )
+                    return
+            }
+        }
+
+        await this.sendAdminMessageTextForPublication(publication)
+        await this.replyAdminMessageToUser(ctx, publication.userTelegramId)
     }
     // =====================
     // Private methods

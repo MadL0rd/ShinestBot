@@ -69,7 +69,7 @@ export class SurveyScene extends Scene<ISceneData, SceneEnterDataType> {
         }
 
         const provider = this.dataProviderFactory.getSurveyContextProvider(data.providerType)
-        const cache = await provider.getAnswersCache(this.content, this.user)
+        const cache = await provider.getAnswersCache(this.user)
         if (data.allowContinueQuestion && cache.passedAnswers.isNotEmpty) {
             return this.completion.complete({
                 sceneName: 'surveyContinue',
@@ -77,7 +77,7 @@ export class SurveyScene extends Scene<ISceneData, SceneEnterDataType> {
             })
         }
 
-        const surveySource = await provider.getSurvey(this.content)
+        const surveySource = await provider.getSurvey(this.user)
         const nextQuestion = SurveyUsageHelpers.findNextQuestion(surveySource, cache.passedAnswers)
         if (!nextQuestion) {
             return this.completion.complete({
