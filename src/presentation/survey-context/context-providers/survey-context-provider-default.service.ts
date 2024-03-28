@@ -11,7 +11,7 @@ import { internalConstants } from 'src/app/app.internal-constants'
 import { getLanguageFor } from 'src/utils/getLanguageForUser'
 import { BotContentService } from 'src/business-logic/bot-content/bot-content.service'
 import { SceneEntrance } from 'src/presentation/scenes/models/scene-entrance.interface'
-import { SurveyFormatter } from 'src/utils/survey-formatter'
+import { ModeratedPublicationsService } from 'src/presentation/publication-management/moderated-publications/moderated-publications.service'
 
 @Injectable()
 export class SurveyContextDefaultService implements ISurveyContextProvider {
@@ -19,7 +19,8 @@ export class SurveyContextDefaultService implements ISurveyContextProvider {
 
     constructor(
         private readonly userService: UserService,
-        private readonly botContentService: BotContentService
+        private readonly botContentService: BotContentService,
+        private readonly publicationService: ModeratedPublicationsService
     ) {}
 
     // =====================
@@ -123,30 +124,14 @@ export class SurveyContextDefaultService implements ISurveyContextProvider {
     async completeSurveyAndGetNextScene(
         user: User
     ): Promise<SceneEntrance.SomeSceneDto | undefined> {
-        // TODO: move this code to publication service
-        //
-        // const botContent = await this.getBotContentFor(user)
-        // const answersCache = await this.getAnswersCacheStable(user)
-
-        // const publication = await this.publicationStorageService.create({
-        //     userTelegramId: user.telegramId,
-        //     creationDate: new Date(),
-        //     language: answersCache.contentLanguage,
-        //     answers: answersCache.passedAnswers,
-        //     status: 'moderation',
-        // })
-        // const moderationChannelId = internalConstants.moderationChannelId
-        // const answersText = SurveyFormatter.moderationPreSynchronizedText(publication, botContent)
-        // const moderationChannelMessage = await ctx.telegram.sendMessage(
-        //     moderationChannelId,
-        //     answersText,
-        //     {
-        //         parse_mode: 'HTML',
-        //     }
-        // )
-        // await this.publicationStorageService.update(publication._id.toString(), {
-        //     moderationChannelPublicationId: moderationChannelMessage.message_id,
-        // })
+        const answersCache = await this.getAnswersCacheStable(user)
+        await this.publicationService.createPublicationAndSendToModeration({
+            userTelegramId: user.telegramId,
+            creationDate: new Date(),
+            language: answersCache.contentLanguage,
+            answers: answersCache.passedAnswers,
+            status: 'moderation',
+        })
 
         return undefined
     }

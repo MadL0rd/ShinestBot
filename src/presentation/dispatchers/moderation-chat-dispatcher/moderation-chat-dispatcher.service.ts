@@ -6,7 +6,6 @@ import { UserService } from 'src/business-logic/user/user.service'
 import { PublicationStorageService } from 'src/business-logic/publication-storage/publication-storage.service'
 import { internalConstants } from 'src/app/app.internal-constants'
 import { logger } from 'src/app/app.logger'
-import { setTimeout } from 'timers/promises'
 import { getLanguageFor } from 'src/utils/getLanguageForUser'
 import { SurveyFormatter } from 'src/utils/survey-formatter'
 import { PublicationDocument } from 'src/business-logic/publication-storage/schemas/publication.schema'
@@ -15,7 +14,7 @@ import { SurveyUsageHelpers } from 'src/business-logic/bot-content/schemas/model
 import { UniqueMessage } from 'src/business-logic/bot-content/schemas/models/bot-content.unique-message'
 import { PublicationStatus } from 'src/business-logic/publication-storage/enums/publication-status.enum'
 import { InjectBot } from 'nestjs-telegraf'
-import { BotContent } from 'src/business-logic/bot-content/schemas/bot-content.schema'
+import { ModeratedPublicationsService } from 'src/presentation/publication-management/moderated-publications/moderated-publications.service'
 
 @Injectable()
 export class ModerationChatDispatcherService {
@@ -27,6 +26,7 @@ export class ModerationChatDispatcherService {
         private readonly botContentService: BotContentService,
         private readonly userService: UserService,
         private readonly publicationStorageService: PublicationStorageService,
+        private readonly moderatedPublicationService: ModeratedPublicationsService,
         @InjectBot() private readonly bot: Telegraf
     ) {}
 
@@ -35,7 +35,7 @@ export class ModerationChatDispatcherService {
     // =====================
 
     async handleUserMessage(ctx: Context<Update>): Promise<void> {
-        const message = ctx.message as Message.TextMessage
+        const message = ctx.message && 'text' in ctx.message ? ctx.message : undefined
         const messageText = message?.text
 
         // Store Publication moderationChatServiceMessageId if needed
@@ -44,97 +44,7 @@ export class ModerationChatDispatcherService {
             messageText.startsWith(internalConstants.loadingServiceChatMessagePrefix) &&
             ctx.from?.first_name == 'Telegram'
         ) {
-            const publicationId = messageText.split('\n')[1]?.split(':')[1]?.trimmed
-            if (!publicationId) {
-                logger.log(`Cannot parse publication Id`)
-                return
-            }
-            let publication = await this.publicationStorageService.findById(publicationId)
-            if (!publication) {
-                logger.log(`Cannot find publication with id ${publicationId}`)
-                return
-            }
-
-            publication = await this.publicationStorageService.update(publicationId, {
-                moderationChatThreadMessageId: ctx.message?.message_id,
-            })
-
-            // =====================
-            //
-            // This bunch of code need to synchonize concurrent telegram messages receive evevnts
-            // 1. Scene pushes publication to database
-            // 2. Scene sends message to moderation chat
-            // - This dispatcher can handle service message before scene receive the sended message object
-            // So we will wait for scene to set moderationChannelPublicationId
-            //
-            // Maybe we will refactor this later
-            //
-            let timeoutCount = 0
-            const timeoutMaxCount = 10
-            while (!publication?.moderationChannelPublicationId) {
-                if (timeoutCount >= timeoutMaxCount) {
-                    logger.error(
-                        `Cannot find publication.moderationChannelPublicationId with id${publicationId}`
-                    )
-                    return
-                }
-                logger.log(
-                    `Timeout cause cannot find publication.moderationChannelPublicationId whith id ${publicationId}`
-                )
-                await setTimeout(3000)
-                publication = await this.publicationStorageService.findById(publicationId)
-                timeoutCount++
-            }
-            //
-            // =====================
-
-            const user = await this.userService.findOneByTelegramId(publication.userTelegramId)
-            if (!user) {
-                logger.log(`Cannot find user with id ${publication.userTelegramId}`)
-                return
-            }
-            const language = internalConstants.defaultLanguage
-            const botContent = await this.botContentService.getContent(language)
-            const editedText = SurveyFormatter.generateTextFromPassedAnswers(
-                {
-                    contentLanguage: publication.language,
-                    passedAnswers: publication.answers,
-                },
-                botContent
-            )
-            await ctx.telegram.editMessageText(
-                internalConstants.moderationChannelId,
-                publication.moderationChannelPublicationId,
-                undefined,
-                editedText,
-                {
-                    parse_mode: 'HTML',
-                    link_preview_options: { is_disabled: true },
-                }
-            )
-            await this.sendPublicationsMediaToModerationThread(ctx, publication)
-
-            let moderationCommandsText = `Актуальные на данный момент комманды:\n`
-            moderationCommandsText += [
-                botContent.uniqueMessage.moderation.messageCommandApprove,
-                botContent.uniqueMessage.moderation.messageCommandReject,
-                botContent.uniqueMessage.moderation.messageCommandNotRelevant,
-            ]
-                .map((command) => `- ${command}`)
-                .join('\n')
-
-            if (!ctx.chat) {
-                logger.error('Cannot find moderation chat')
-                return
-            }
-            if (!ctx.message) {
-                logger.error('Cannot find preveous message moderation chat')
-                return
-            }
-            await ctx.telegram.sendMessage(ctx.chat.id, moderationCommandsText, {
-                reply_parameters: { message_id: ctx.message.message_id },
-                parse_mode: 'HTML',
-            })
+            await this.moderatedPublicationService.syncronizeModerationMessage(message)
             return
         }
 
@@ -155,7 +65,7 @@ export class ModerationChatDispatcherService {
         if (messageText) {
             switch (messageText) {
                 case botContent.uniqueMessage.moderation.messageCommandApprove:
-                    await this.handlePublicationApprove(publication, ctx, botContent.uniqueMessage)
+                    await this.handlePublicationApprove(publication, ctx)
                     return
 
                 case botContent.uniqueMessage.moderation.messageCommandReject:
@@ -163,11 +73,7 @@ export class ModerationChatDispatcherService {
                     return
 
                 case botContent.uniqueMessage.moderation.messageCommandNotRelevant:
-                    await this.handlePublicationNotRelevant(
-                        publication,
-                        ctx,
-                        botContent.uniqueMessage
-                    )
+                    await this.handlePublicationNotRelevant(publication, ctx)
                     return
             }
         }
@@ -179,129 +85,7 @@ export class ModerationChatDispatcherService {
     // Private methods
     // =====================
 
-    private async updatePublicationStatus(
-        publicationDocument: PublicationDocument | null,
-        status: PublicationStatus.Union,
-        ctx: Context<Update>,
-        text: BotContent
-    ) {
-        if (!publicationDocument) return
-        publicationDocument = await this.publicationStorageService.update(
-            publicationDocument._id.toString(),
-            {
-                status: status,
-            }
-        )
-
-        const inlineKeyboardAll: InlineKeyboardButton[][] = []
-        const inlineKeyboardMainPublication: InlineKeyboardButton[][] = []
-        if (!publicationDocument) return
-        const telegramLink = SurveyFormatter.publicationTelegramLink(publicationDocument)
-        if (telegramLink) {
-            inlineKeyboardAll.push([
-                Markup.button.url(
-                    text.uniqueMessage.userPublications.buttonLinkTelegram,
-                    telegramLink
-                ),
-            ])
-        }
-
-        // Update status in moderation channel
-        if (publicationDocument.moderationChannelPublicationId) {
-            try {
-                const user = await this.userService.findOneByTelegramId(
-                    publicationDocument.userTelegramId
-                )
-                if (!internalConstants.moderationChannelId || !user) return
-                await ctx.telegram.editMessageText(
-                    internalConstants.moderationChannelId,
-                    publicationDocument.moderationChannelPublicationId,
-                    undefined,
-                    SurveyFormatter.moderationSynchronizedText(
-                        publicationDocument,
-                        text.uniqueMessage,
-                        user
-                    ),
-                    {
-                        parse_mode: 'HTML',
-                        link_preview_options: { is_disabled: true },
-                    }
-                )
-            } catch {}
-        }
-
-        // Update status in main channel
-        if (publicationDocument.mainChannelPublicationId) {
-            try {
-                if (!internalConstants.publicationMainChannelId) return
-                await ctx.telegram.editMessageText(
-                    internalConstants.publicationMainChannelId,
-                    publicationDocument.mainChannelPublicationId,
-                    undefined,
-                    SurveyFormatter.postPublicationText(publicationDocument, text.uniqueMessage),
-                    {
-                        parse_mode: 'HTML',
-                        link_preview_options: { is_disabled: true },
-                        reply_markup: {
-                            inline_keyboard: inlineKeyboardMainPublication,
-                        },
-                    }
-                )
-            } catch {}
-
-            try {
-                await ctx.telegram.editMessageCaption(
-                    internalConstants.publicationMainChannelId,
-                    publicationDocument.mainChannelPublicationId,
-                    undefined,
-                    SurveyFormatter.postPublicationText(publicationDocument, text.uniqueMessage),
-                    {
-                        parse_mode: 'HTML',
-                        reply_markup: {
-                            inline_keyboard: inlineKeyboardMainPublication,
-                        },
-                    }
-                )
-            } catch {}
-        }
-
-        // Notify user
-        let textForUser = ''
-        switch (status) {
-            case 'moderation':
-                return
-
-            case 'rejected':
-                textForUser = text.uniqueMessage.moderation.messageTextRejected
-                break
-
-            case 'active':
-                textForUser = text.uniqueMessage.moderation.messageTextAccepted
-                break
-
-            case 'notRelevant':
-                textForUser = text.uniqueMessage.moderation.messageTextNotRelevant
-                break
-        }
-        const moderationMessageText = SurveyFormatter.makeUserMessageWithPublicationInfo(
-            textForUser,
-            publicationDocument,
-            text.uniqueMessage
-        )
-        await ctx.telegram.sendMessage(publicationDocument.userTelegramId, moderationMessageText, {
-            parse_mode: 'HTML',
-            link_preview_options: { is_disabled: true },
-            reply_markup: {
-                inline_keyboard: inlineKeyboardAll,
-            },
-        })
-    }
-
-    private async handlePublicationApprove(
-        publication: PublicationDocument,
-        ctx: Context<Update>,
-        text: UniqueMessage
-    ) {
+    private async handlePublicationApprove(publication: PublicationDocument, ctx: Context<Update>) {
         const publicationStatusModeration: PublicationStatus.Union = 'moderation'
         if (publication.status != publicationStatusModeration) {
             await this.sendMessageToCurrentThread(
@@ -393,8 +177,8 @@ export class ModerationChatDispatcherService {
             }
         )
 
-        // TODO: Написать статус апдейтер
-        await this.updatePublicationStatus(publicationUpdated, 'active', ctx, botContent)
+        const publicationId = publication._id.toString()
+        await this.moderatedPublicationService.updatePublicationStatus(publicationId, 'active')
 
         // Notify admin
         await this.sendSuccessMessageToCurrentThread(ctx)
@@ -405,9 +189,6 @@ export class ModerationChatDispatcherService {
         ctx: Context<Update>,
         text: UniqueMessage
     ) {
-        const botContent = await this.botContentService.getContent(
-            internalConstants.defaultLanguage
-        )
         const statusModeration: PublicationStatus.Union = 'moderation'
         if (publication.status != statusModeration || publication.mainChannelPublicationId) {
             await this.sendMessageToCurrentThread(
@@ -416,8 +197,9 @@ export class ModerationChatDispatcherService {
             )
             return
         }
-        // TODO: Написать апдейтер
-        await this.updatePublicationStatus(publication, 'moderation', ctx, botContent)
+
+        const publicationId = publication._id.toString()
+        await this.moderatedPublicationService.updatePublicationStatus(publicationId, 'moderation')
 
         // Notify admin
         await this.sendSuccessMessageToCurrentThread(ctx)
@@ -425,12 +207,8 @@ export class ModerationChatDispatcherService {
 
     private async handlePublicationNotRelevant(
         publication: PublicationDocument,
-        ctx: Context<Update>,
-        text: UniqueMessage
+        ctx: Context<Update>
     ) {
-        const botContent = await this.botContentService.getContent(
-            internalConstants.defaultLanguage
-        )
         const publicationStatusActive: PublicationStatus.Union = 'active'
         if (publication.status != publicationStatusActive) {
             await this.sendMessageToCurrentThread(
@@ -439,8 +217,9 @@ export class ModerationChatDispatcherService {
             )
             return
         }
-        // TODO: Написать апдейтер
-        await this.updatePublicationStatus(publication, 'notRelevant', ctx, botContent)
+
+        const publicationId = publication._id.toString()
+        await this.moderatedPublicationService.updatePublicationStatus(publicationId, 'notRelevant')
 
         // Notify admin
         await this.sendSuccessMessageToCurrentThread(ctx)
@@ -512,6 +291,10 @@ export class ModerationChatDispatcherService {
         return ''
     }
 
+    // =====================
+    // Private methods
+    // =====================
+
     private async sendSuccessMessageToCurrentThread(ctx: Context<Update>) {
         await this.sendMessageToCurrentThread(ctx, 'Операция выполнена успешно')
     }
@@ -529,41 +312,5 @@ export class ModerationChatDispatcherService {
             reply_parameters: { message_id: ctx.message.message_thread_id },
             parse_mode: 'HTML',
         })
-    }
-
-    private async sendPublicationsMediaToModerationThread(
-        ctx: Context<Update>,
-        publication: PublicationDocument
-    ) {
-        for (const answer of publication.answers) {
-            if (
-                ('media' in answer && !answer.media) ||
-                ('media' in answer && answer.media.length == 0)
-            )
-                continue
-            if ('media' in answer) {
-                const mediaGroupArgs: MediaGroup = answer.media?.map((media) => {
-                    return {
-                        type: media.fileType,
-                        media: media.telegramFileId,
-                        parse_mode: 'HTML',
-                    }
-                })
-
-                let caption = answer.question.publicTitle
-                caption += '\n\n<i>Будет отображаться в публикации: <b>'
-                caption += answer.question.addAnswerToTelegramPublication ? 'Да' : 'Нет'
-                caption += '</b></i>'
-                mediaGroupArgs[0]['caption'] = caption
-
-                if (ctx.chat && ctx.message) {
-                    await ctx.telegram.sendMediaGroup(ctx.chat.id, mediaGroupArgs, {
-                        reply_parameters: { message_id: ctx.message.message_id },
-                    })
-                } else {
-                    logger.error('Cannot send publicationsmedia to chat')
-                }
-            }
-        }
     }
 }

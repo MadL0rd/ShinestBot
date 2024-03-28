@@ -7,6 +7,7 @@ import { TelegrafModule } from 'nestjs-telegraf'
 import { ScenesModule } from '../scenes/scenes.module'
 import { ModerationChatDispatcherService } from './moderation-chat-dispatcher/moderation-chat-dispatcher.service'
 import { PublicationStorageModule } from 'src/business-logic/publication-storage/publication-storage.module'
+import { PublicationManagementModule } from '../publication-management/publication-management.module'
 
 @Module({
     imports: [
@@ -16,6 +17,7 @@ import { PublicationStorageModule } from 'src/business-logic/publication-storage
         TelegrafModule,
         ScenesModule,
         PublicationStorageModule,
+        PublicationManagementModule,
     ],
     providers: [PrivateDialogDispatcherService, ModerationChatDispatcherService],
     exports: [PrivateDialogDispatcherService, ModerationChatDispatcherService],
