@@ -13,21 +13,21 @@ import {
     Survey,
     SurveyUsageHelpers,
 } from 'src/business-logic/bot-content/schemas/models/bot-content.survey'
-import { SurveyDataProviderType } from 'src/presentation/survey-data-provider/models/survey-data-provider.interface'
-import { SurveyDataProviderFactoryService } from 'src/presentation/survey-data-provider/survey-provider-factory/survey-provider-factory.service'
+import { SurveyContextProviderType } from 'src/presentation/survey-context/abstract/survey-context-provider.interface'
+import { SurveyContextProviderFactoryService } from 'src/presentation/survey-context/survey-context-provider-factory/survey-context-provider-factory.service'
 
 // =====================
 // Scene data classes
 // =====================
 export class SurveyQuestionMediaSceneEntranceDto implements SceneEntrance.Dto {
     readonly sceneName = 'surveyQuestionMedia'
-    readonly provider: SurveyDataProviderType.Union
+    readonly providerType: SurveyContextProviderType.Union
     readonly question: Survey.QuestionMedia
     readonly isQuestionFirst: boolean
 }
 type SceneEnterDataType = SurveyQuestionMediaSceneEntranceDto
 interface ISceneData {
-    readonly provider: SurveyDataProviderType.Union
+    readonly providerType: SurveyContextProviderType.Union
     readonly question: Survey.QuestionMedia
     readonly isQuestionFirst: boolean
     mediaGroupBuffer: Survey.TelegramFileData[]
@@ -56,7 +56,7 @@ export class SurveyQuestionMediaScene extends Scene<ISceneData, SceneEnterDataTy
 
     constructor(
         protected readonly userService: UserService,
-        private readonly dataProviderFactory: SurveyDataProviderFactoryService
+        private readonly dataProviderFactory: SurveyContextProviderFactoryService
     ) {
         super()
     }
@@ -80,7 +80,7 @@ export class SurveyQuestionMediaScene extends Scene<ISceneData, SceneEnterDataTy
         }
 
         const sceneData: ISceneData = {
-            provider: data.provider,
+            providerType: data.providerType,
             question: data.question,
             isQuestionFirst: data.isQuestionFirst,
             mediaGroupBuffer: [],
@@ -98,13 +98,13 @@ export class SurveyQuestionMediaScene extends Scene<ISceneData, SceneEnterDataTy
 
         // Restoring data and checking for corruption.
         const data = this.restoreData(dataRaw)
-        if (!data || !data.provider || !data.question) {
+        if (!data || !data.providerType || !data.question) {
             logger.error('Start data corrupted')
             return this.completion.complete()
         }
 
         // Retrieving the appropriate provider based on the data.
-        const provider = this.dataProviderFactory.getSurveyProvider(data.provider)
+        const provider = this.dataProviderFactory.getSurveyContextProvider(data.providerType)
 
         // Handling various user inputs based on message text.
         if (ctx.message && 'text' in ctx.message) {
@@ -115,7 +115,7 @@ export class SurveyQuestionMediaScene extends Scene<ISceneData, SceneEnterDataTy
                     await provider.pushAnswerToCache(this.user, answer)
                     return this.completion.complete({
                         sceneName: 'survey',
-                        provider: data.provider,
+                        providerType: data.providerType,
                         allowContinueQuestion: false,
                     })
                 }
@@ -124,7 +124,7 @@ export class SurveyQuestionMediaScene extends Scene<ISceneData, SceneEnterDataTy
                     await provider.popAnswerFromCache(this.user)
                     return this.completion.complete({
                         sceneName: 'survey',
-                        provider: data.provider,
+                        providerType: data.providerType,
                         allowContinueQuestion: false,
                     })
                 }
@@ -165,7 +165,7 @@ export class SurveyQuestionMediaScene extends Scene<ISceneData, SceneEnterDataTy
                     } as Survey.PassedAnswer)
                     return this.completion.complete({
                         sceneName: 'survey',
-                        provider: data.provider,
+                        providerType: data.providerType,
                         allowContinueQuestion: false,
                     })
                 }

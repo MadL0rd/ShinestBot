@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { ISurveyDataProvider } from '../models/survey-data-provider.interface'
+import { ISurveyContextProvider } from '../abstract/survey-context-provider.interface'
 import {
     Survey,
     SurveyUsageHelpers,
@@ -10,7 +10,7 @@ import { User } from 'src/business-logic/user/schemas/user.schema'
 import { internalConstants } from 'src/app/app.internal-constants'
 
 @Injectable()
-export class SurveyProviderDefaultService implements ISurveyDataProvider {
+export class SurveyContextDefaultService implements ISurveyContextProvider {
     readonly type: 'default'
 
     constructor(private readonly userService: UserService) {}

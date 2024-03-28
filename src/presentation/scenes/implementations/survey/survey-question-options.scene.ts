@@ -9,22 +9,22 @@ import { SceneHandlerCompletion } from '../../models/scene.interface'
 import { Scene } from '../../models/scene.abstract'
 import { SceneUsagePermissionsValidator } from '../../models/scene-usage-permissions-validator'
 import { InjectableSceneConstructor } from '../../scene-factory/scene-injections-provider.service'
-import { SurveyDataProviderType } from 'src/presentation/survey-data-provider/models/survey-data-provider.interface'
+import { SurveyContextProviderType } from 'src/presentation/survey-context/abstract/survey-context-provider.interface'
 import { Survey } from 'src/business-logic/bot-content/schemas/models/bot-content.survey'
-import { SurveyDataProviderFactoryService } from 'src/presentation/survey-data-provider/survey-provider-factory/survey-provider-factory.service'
+import { SurveyContextProviderFactoryService } from 'src/presentation/survey-context/survey-context-provider-factory/survey-context-provider-factory.service'
 
 // =====================
 // Scene data classes
 // =====================
 export class SurveyQuestionOptionsSceneEntranceDto implements SceneEntrance.Dto {
     readonly sceneName = 'surveyQuestionOptions'
-    readonly provider: SurveyDataProviderType.Union
+    readonly providerType: SurveyContextProviderType.Union
     readonly question: Survey.QuestionWithOptions
     readonly isQuestionFirst: boolean
 }
 type SceneEnterDataType = SurveyQuestionOptionsSceneEntranceDto
 interface ISceneData {
-    readonly provider: SurveyDataProviderType.Union
+    readonly providerType: SurveyContextProviderType.Union
     readonly question: Survey.QuestionWithOptions
 }
 
@@ -48,7 +48,7 @@ export class SurveyQuestionOptionsScene extends Scene<ISceneData, SceneEnterData
 
     constructor(
         protected readonly userService: UserService,
-        private readonly dataProviderFactory: SurveyDataProviderFactoryService
+        private readonly dataProviderFactory: SurveyContextProviderFactoryService
     ) {
         super()
     }
@@ -91,11 +91,11 @@ export class SurveyQuestionOptionsScene extends Scene<ISceneData, SceneEnterData
         )
 
         const data = this.restoreData(dataRaw)
-        if (!data || !data.provider || !data.question) {
+        if (!data || !data.providerType || !data.question) {
             logger.error('Start data corrupted')
             return this.completion.complete()
         }
-        const provider = this.dataProviderFactory.getSurveyProvider(data.provider)
+        const provider = this.dataProviderFactory.getSurveyContextProvider(data.providerType)
 
         const message = ctx.message
         if (!message || !('text' in message)) return this.completion.canNotHandle(data)
@@ -110,7 +110,7 @@ export class SurveyQuestionOptionsScene extends Scene<ISceneData, SceneEnterData
                 })
                 return this.completion.complete({
                     sceneName: 'survey',
-                    provider: data.provider,
+                    providerType: data.providerType,
                     allowContinueQuestion: false,
                 })
 
@@ -118,7 +118,7 @@ export class SurveyQuestionOptionsScene extends Scene<ISceneData, SceneEnterData
                 await provider.popAnswerFromCache(this.user)
                 return this.completion.complete({
                     sceneName: 'survey',
-                    provider: data.provider,
+                    providerType: data.providerType,
                     allowContinueQuestion: false,
                 })
         }
@@ -133,7 +133,7 @@ export class SurveyQuestionOptionsScene extends Scene<ISceneData, SceneEnterData
         })
         return this.completion.complete({
             sceneName: 'survey',
-            provider: data.provider,
+            providerType: data.providerType,
             allowContinueQuestion: false,
         })
     }

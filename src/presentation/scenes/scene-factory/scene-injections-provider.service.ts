@@ -5,7 +5,7 @@ import { BotContentService } from 'src/business-logic/bot-content/bot-content.se
 import { Telegraf } from 'telegraf'
 import { logger } from 'src/app/app.logger'
 import { StatisticService } from 'src/business-logic/user/statistic.service'
-import { SurveyDataProviderFactoryService } from 'src/presentation/survey-data-provider/survey-provider-factory/survey-provider-factory.service'
+import { SurveyContextProviderFactoryService } from 'src/presentation/survey-context/survey-context-provider-factory/survey-context-provider-factory.service'
 import { PublicationStorageService } from 'src/business-logic/publication-storage/publication-storage.service'
 
 interface Type<T> {
@@ -32,7 +32,7 @@ export class SceneInjectionsProviderService {
     constructor(
         protected readonly userService: UserService,
         protected readonly botContentService: BotContentService,
-        protected readonly surveyDataProviderFactory: SurveyDataProviderFactoryService,
+        protected readonly surveyDataProviderFactory: SurveyContextProviderFactoryService,
         protected readonly statisticService: StatisticService,
         protected readonly publicationStorageService: PublicationStorageService,
         @InjectBot() private readonly bot: Telegraf

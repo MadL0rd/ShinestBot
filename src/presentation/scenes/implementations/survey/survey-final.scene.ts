@@ -9,8 +9,8 @@ import { SceneHandlerCompletion } from '../../models/scene.interface'
 import { Scene } from '../../models/scene.abstract'
 import { SceneUsagePermissionsValidator } from '../../models/scene-usage-permissions-validator'
 import { InjectableSceneConstructor } from '../../scene-factory/scene-injections-provider.service'
-import { SurveyDataProviderType } from 'src/presentation/survey-data-provider/models/survey-data-provider.interface'
-import { SurveyDataProviderFactoryService } from 'src/presentation/survey-data-provider/survey-provider-factory/survey-provider-factory.service'
+import { SurveyContextProviderType } from 'src/presentation/survey-context/abstract/survey-context-provider.interface'
+import { SurveyContextProviderFactoryService } from 'src/presentation/survey-context/survey-context-provider-factory/survey-context-provider-factory.service'
 import { SurveyFormatter } from 'src/utils/survey-formatter'
 import { PublicationStorageService } from 'src/business-logic/publication-storage/publication-storage.service'
 import { BotContentService } from 'src/business-logic/bot-content/bot-content.service'
@@ -21,11 +21,11 @@ import { internalConstants } from 'src/app/app.internal-constants'
 // =====================
 export class SurveyFinalSceneEntranceDto implements SceneEntrance.Dto {
     readonly sceneName = 'surveyFinal'
-    readonly provider: SurveyDataProviderType.Union
+    readonly providerType: SurveyContextProviderType.Union
 }
 type SceneEnterDataType = SurveyFinalSceneEntranceDto
 interface ISceneData {
-    readonly provider: SurveyDataProviderType.Union
+    readonly providerType: SurveyContextProviderType.Union
 }
 
 // =====================
@@ -48,7 +48,7 @@ export class SurveyFinalScene extends Scene<ISceneData, SceneEnterDataType> {
 
     constructor(
         protected readonly userService: UserService,
-        private readonly dataProviderFactory: SurveyDataProviderFactoryService,
+        private readonly dataProviderFactory: SurveyContextProviderFactoryService,
         private readonly publicationStorageService: PublicationStorageService,
         private readonly botContentService: BotContentService
     ) {
@@ -72,7 +72,7 @@ export class SurveyFinalScene extends Scene<ISceneData, SceneEnterDataType> {
             logger.error('Scene start data corrupted')
             return this.completion.complete()
         }
-        const provider = this.dataProviderFactory.getSurveyProvider(data.provider)
+        const provider = this.dataProviderFactory.getSurveyContextProvider(data.providerType)
         const cache = await provider.getAnswersCacheStable(this.content, this.user)
 
         const answersText = SurveyFormatter.generateTextFromPassedAnswers(cache, this.content)
@@ -87,7 +87,7 @@ export class SurveyFinalScene extends Scene<ISceneData, SceneEnterDataType> {
         )
 
         return this.completion.inProgress({
-            provider: data.provider,
+            providerType: data.providerType,
         })
     }
 
@@ -97,16 +97,15 @@ export class SurveyFinalScene extends Scene<ISceneData, SceneEnterDataType> {
         )
 
         const data = this.restoreData(dataRaw)
-        if (!data || !data.provider) {
+        if (!data || !data.providerType) {
             logger.error('Start data corrupted')
             return this.completion.complete()
         }
-        // THIS IS REAL PROVIDER
-        const provider = this.dataProviderFactory.getSurveyProvider(data.provider)
+        const provider = this.dataProviderFactory.getSurveyContextProvider(data.providerType)
 
         const message = ctx.message
         if (!message || !('text' in message))
-            return this.completion.canNotHandle({ provider: data.provider })
+            return this.completion.canNotHandle({ providerType: data.providerType })
 
         switch (message.text) {
             case this.text.surveyFinal.buttonDone:
@@ -157,12 +156,12 @@ export class SurveyFinalScene extends Scene<ISceneData, SceneEnterDataType> {
             await provider.setAnswersCache(this.user, cache)
             return this.completion.complete({
                 sceneName: 'survey',
-                provider: data.provider,
+                providerType: data.providerType,
                 allowContinueQuestion: false,
             })
         }
 
-        return this.completion.canNotHandle({ provider: data.provider })
+        return this.completion.canNotHandle({ providerType: data.providerType })
     }
 
     async handleCallback(

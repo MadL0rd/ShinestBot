@@ -9,12 +9,12 @@ import { SceneHandlerCompletion } from '../../models/scene.interface'
 import { Scene } from '../../models/scene.abstract'
 import { SceneUsagePermissionsValidator } from '../../models/scene-usage-permissions-validator'
 import { InjectableSceneConstructor } from '../../scene-factory/scene-injections-provider.service'
-import { SurveyDataProviderType } from 'src/presentation/survey-data-provider/models/survey-data-provider.interface'
+import { SurveyContextProviderType } from 'src/presentation/survey-context/abstract/survey-context-provider.interface'
 import {
     Survey,
     SurveyUsageHelpers,
 } from 'src/business-logic/bot-content/schemas/models/bot-content.survey'
-import { SurveyDataProviderFactoryService } from 'src/presentation/survey-data-provider/survey-provider-factory/survey-provider-factory.service'
+import { SurveyContextProviderFactoryService } from 'src/presentation/survey-context/survey-context-provider-factory/survey-context-provider-factory.service'
 import { removeKeyboard } from 'telegraf/markup'
 
 // =====================
@@ -22,13 +22,13 @@ import { removeKeyboard } from 'telegraf/markup'
 // =====================
 export class SurveyQuestionStringNumericSceneEntranceDto implements SceneEntrance.Dto {
     readonly sceneName = 'surveyQuestionStringNumeric'
-    readonly provider: SurveyDataProviderType.Union
+    readonly providerType: SurveyContextProviderType.Union
     readonly question: Survey.QuestionString | Survey.QuestionNumeric
     readonly isQuestionFirst: boolean
 }
 type SceneEnterDataType = SurveyQuestionStringNumericSceneEntranceDto
 interface ISceneData {
-    readonly provider: SurveyDataProviderType.Union
+    readonly providerType: SurveyContextProviderType.Union
     readonly question: Survey.QuestionString | Survey.QuestionNumeric
 }
 
@@ -59,7 +59,7 @@ export class SurveyQuestionStringNumericScene extends Scene<ISceneData, SceneEnt
 
     constructor(
         protected readonly userService: UserService,
-        private readonly dataProviderFactory: SurveyDataProviderFactoryService
+        private readonly dataProviderFactory: SurveyContextProviderFactoryService
     ) {
         super()
     }
@@ -84,7 +84,7 @@ export class SurveyQuestionStringNumericScene extends Scene<ISceneData, SceneEnt
 
         if (!data.question.isRequired || !data.isQuestionFirst) {
             const inlineButtonData: CallbackDataType = {
-                p: SurveyDataProviderType.getId(data.provider),
+                p: SurveyContextProviderType.getId(data.providerType),
                 a: data.question.id,
             }
             await ctx.replyWithHTML(this.text.survey.texMessageAditionaltInlineMenu, {
@@ -121,11 +121,11 @@ export class SurveyQuestionStringNumericScene extends Scene<ISceneData, SceneEnt
             `${this.name} scene handleMessage. User: ${this.user.telegramInfo.id} ${this.user.telegramInfo.username}`
         )
         const data = this.restoreData(dataRaw)
-        if (!data || !data.provider || !data.question) {
+        if (!data || !data.providerType || !data.question) {
             logger.error('Start data corrupted')
             return this.completion.complete()
         }
-        const provider = this.dataProviderFactory.getSurveyProvider(data.provider)
+        const provider = this.dataProviderFactory.getSurveyContextProvider(data.providerType)
 
         const message = ctx.message
         if (!message || !('text' in message)) return this.completion.canNotHandle(data)
@@ -146,7 +146,7 @@ export class SurveyQuestionStringNumericScene extends Scene<ISceneData, SceneEnt
                 })
                 return this.completion.complete({
                     sceneName: 'survey',
-                    provider: data.provider,
+                    providerType: data.providerType,
                     allowContinueQuestion: false,
                 })
             case 'string':
@@ -157,7 +157,7 @@ export class SurveyQuestionStringNumericScene extends Scene<ISceneData, SceneEnt
                 })
                 return this.completion.complete({
                     sceneName: 'survey',
-                    provider: data.provider,
+                    providerType: data.providerType,
                     allowContinueQuestion: false,
                 })
         }
@@ -185,10 +185,10 @@ export class SurveyQuestionStringNumericScene extends Scene<ISceneData, SceneEnt
         }
         const inlineButtonData = data.data as CallbackDataType
 
-        const providerType = SurveyDataProviderType.getById(inlineButtonData.p)
+        const providerType = SurveyContextProviderType.getById(inlineButtonData.p)
         if (!providerType) return this.completion.canNotHandleUnsafe()
 
-        const provider = this.dataProviderFactory.getSurveyProvider(providerType)
+        const provider = this.dataProviderFactory.getSurveyContextProvider(providerType)
         if (!provider) return this.completion.canNotHandleUnsafe()
 
         const answerId = inlineButtonData.a
@@ -205,7 +205,7 @@ export class SurveyQuestionStringNumericScene extends Scene<ISceneData, SceneEnt
                 )
                 return this.completion.complete({
                     sceneName: 'survey',
-                    provider: providerType,
+                    providerType: providerType,
                     allowContinueQuestion: false,
                 })
 
@@ -215,7 +215,7 @@ export class SurveyQuestionStringNumericScene extends Scene<ISceneData, SceneEnt
                 await ctx.replyWithHTML(this.text.survey.textAditionaltInlineMenuSkipEventLog)
                 return this.completion.complete({
                     sceneName: 'survey',
-                    provider: providerType,
+                    providerType: providerType,
                     allowContinueQuestion: false,
                 })
             default:
