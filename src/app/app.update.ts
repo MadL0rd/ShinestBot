@@ -132,11 +132,10 @@ export class AppUpdate {
     @On(['callback_query'])
     @RuntimeExeptionGuard
     async onInlineButton(ctx: Context<Update.CallbackQueryUpdate>) {
+        const callbackQueryString = JSON.stringify(ctx.callbackQuery, null, 2)
         logger.log(
-            `User ${ctx.from?.id} ${ctx.from?.first_name} pressed the inline button ${ctx.callbackQuery}"`
+            `User ${ctx.from?.id} ${ctx.from?.first_name} pressed the inline button ${callbackQueryString}"`
         )
-        logger.log(ctx.callbackQuery)
-
         if (ctx.chat?.type === 'private') {
             // Message from private chat with user
             await this.privateDialogDispatcher.handleUserCallback(ctx)

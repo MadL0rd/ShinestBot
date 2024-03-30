@@ -5,9 +5,16 @@ import { UserModule } from 'src/business-logic/user/user.module'
 import { SceneInjectionsProviderService } from './scene-factory/scene-injections-provider.service'
 import { SurveyContextProviderModule } from '../survey-context/survey-context.module'
 import { PublicationStorageModule } from 'src/business-logic/publication-storage/publication-storage.module'
+import { PublicationManagementModule } from '../publication-management/publication-management.module'
 
 @Module({
-    imports: [BotContentModule, UserModule, SurveyContextProviderModule, PublicationStorageModule],
+    imports: [
+        BotContentModule,
+        UserModule,
+        SurveyContextProviderModule,
+        PublicationStorageModule,
+        PublicationManagementModule,
+    ],
     providers: [SceneFactoryService, SceneInjectionsProviderService],
     exports: [SceneFactoryService],
 })

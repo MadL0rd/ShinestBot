@@ -125,13 +125,17 @@ export class SurveyContextDefaultService implements ISurveyContextProvider {
         user: User
     ): Promise<SceneEntrance.SomeSceneDto | undefined> {
         const answersCache = await this.getAnswersCacheStable(user)
-        await this.publicationService.createPublicationAndSendToModeration({
+        const publication = await this.publicationService.createPublicationAndSendToModeration({
             userTelegramId: user.telegramId,
             creationDate: new Date(),
             language: answersCache.contentLanguage,
             answers: answersCache.passedAnswers,
             status: 'moderation',
         })
+
+        user.internalInfo.publications.push(publication._id.toString())
+        await this.userService.update(user)
+        await this.clearAnswersCache(user)
 
         return undefined
     }

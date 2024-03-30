@@ -199,7 +199,7 @@ export class ModerationChatDispatcherService {
         }
 
         const publicationId = publication._id.toString()
-        await this.moderatedPublicationService.updatePublicationStatus(publicationId, 'moderation')
+        await this.moderatedPublicationService.updatePublicationStatus(publicationId, 'rejected')
 
         // Notify admin
         await this.sendSuccessMessageToCurrentThread(ctx)

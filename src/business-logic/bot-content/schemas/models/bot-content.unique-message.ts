@@ -36,6 +36,7 @@ export class MainMenu {
     readonly buttonRepoLink = '📂 Репозиторий'
     readonly buttonLanguageSettings = '🌎 Выбрать другой язык'
     readonly buttonSurvey = '📝 Пройти опрос'
+    readonly userPublications = '📰 Управление публикациями'
 }
 
 export class AdminMenu {

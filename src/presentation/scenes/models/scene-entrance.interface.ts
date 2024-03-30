@@ -12,6 +12,7 @@ import { SurveyFinalSceneEntranceDto } from 'src/presentation/scenes/implementat
 import { SurveyQuestionOptionsSceneEntranceDto } from 'src/presentation/scenes/implementations/survey/survey-question-options.scene'
 import { SurveyQuestionStringNumericSceneEntranceDto } from '../implementations/survey/survey-question-string-numeric.scene'
 import { SurveyQuestionMediaSceneEntranceDto } from 'src/presentation/scenes/implementations/survey/survey-question-media.scene'
+import { UserPublicationsSceneEntranceDto } from 'src/presentation/scenes/implementations/user-publications.scene'
 /** New scene entrance dto import placeholder */
 
 export namespace SceneEntrance {
@@ -42,5 +43,6 @@ export namespace SceneEntrance {
         | SurveyQuestionOptionsSceneEntranceDto
         | SurveyQuestionStringNumericSceneEntranceDto
         | SurveyQuestionMediaSceneEntranceDto
+        | UserPublicationsSceneEntranceDto
     /** New scene entrance dto placeholder */
 }

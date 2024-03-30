@@ -60,6 +60,7 @@ export class PrivateDialogDispatcherService {
                 registrationDate: new Date(),
                 permissions: [],
                 notificationsSchedule: {},
+                publications: [],
             },
         })
 
@@ -373,6 +374,7 @@ export class PrivateDialogDispatcherService {
                 registrationDate: new Date(),
                 permissions: [],
                 notificationsSchedule: {},
+                publications: [],
             },
         })
         const userActivePermissions = getActiveUserPermissionNames(user)

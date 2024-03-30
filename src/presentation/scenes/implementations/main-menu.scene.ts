@@ -80,6 +80,9 @@ export class MainMenuScene extends Scene<ISceneData, SceneEnterDataType> {
             case this.text.mainMenu.buttonAdminMenu:
                 return this.completion.complete({ sceneName: 'adminMenu' })
 
+            case this.text.mainMenu.userPublications:
+                return this.completion.complete({ sceneName: 'userPublications' })
+
             case this.text.mainMenu.buttonSurvey:
                 return this.completion.complete({
                     sceneName: 'survey',
@@ -120,6 +123,7 @@ export class MainMenuScene extends Scene<ISceneData, SceneEnterDataType> {
                 this.text.mainMenu.buttonRepoLink,
                 this.text.mainMenu.buttonSurvey,
                 this.text.mainMenu.buttonLanguageSettings,
+                this.text.mainMenu.userPublications,
                 ownerOrAdmin ? this.text.mainMenu.buttonAdminMenu : null,
             ].compact
         )
