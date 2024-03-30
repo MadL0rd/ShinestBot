@@ -1,5 +1,8 @@
 import { Injectable } from '@nestjs/common'
-import { ISurveyContextProvider } from '../abstract/survey-context-provider.interface'
+import {
+    ISurveyContextProvider,
+    ValidationResult,
+} from '../abstract/survey-context-provider.interface'
 import {
     Survey,
     SurveyUsageHelpers,
@@ -26,6 +29,10 @@ export class SurveyContextDefaultService implements ISurveyContextProvider {
     // =====================
     // Public methods
     // =====================
+
+    async validateUserCanStartSurvey(user: User): Promise<ValidationResult> {
+        return { canStartSurvey: true }
+    }
 
     async getSurvey(user: User): Promise<Survey.Model> {
         const botContent = await this.getBotContentFor(user)
@@ -109,10 +116,11 @@ export class SurveyContextDefaultService implements ISurveyContextProvider {
         await this.setAnswersCache(user, undefined)
     }
 
-    async popAnswerFromCache(user: User): Promise<void> {
+    async popAnswerFromCache(user: User): Promise<Survey.PassedAnswer | undefined> {
         const cache = this.getCacheWithoutLocalization(user)
-        cache.passedAnswers.pop()
+        const popedAnswer = cache.passedAnswers.pop()
         await this.setAnswersCache(user, cache)
+        return popedAnswer
     }
 
     async pushAnswerToCache(user: User, answer: Survey.PassedAnswer): Promise<void> {

@@ -69,6 +69,15 @@ export class SurveyScene extends Scene<ISceneData, SceneEnterDataType> {
         }
 
         const provider = this.dataProviderFactory.getSurveyContextProvider(data.providerType)
+
+        const validationResult = await provider.validateUserCanStartSurvey(this.user)
+        if (validationResult.canStartSurvey == false) {
+            if (validationResult.message) {
+                await ctx.replyWithHTML(validationResult.message)
+            }
+            return this.completion.complete(validationResult.nextScene)
+        }
+
         const cache = await provider.getAnswersCache(this.user)
         if (data.allowContinueQuestion && cache.passedAnswers.isNotEmpty) {
             return this.completion.complete({

@@ -15,14 +15,27 @@ export namespace SurveyContextProviderType {
     }
 }
 
+type ValidationResultSuccess = {
+    canStartSurvey: true
+}
+
+type ValidationResultDenied = {
+    canStartSurvey: false
+    nextScene?: SceneEntrance.SomeSceneDto
+    message?: string
+}
+
+export type ValidationResult = ValidationResultSuccess | ValidationResultDenied
+
 export interface ISurveyContextProvider {
     type: SurveyContextProviderType.Union
+    validateUserCanStartSurvey(user: User): Promise<ValidationResult>
     getSurvey(user: User): Promise<Survey.Model>
     getAnswersCache(user: User): Promise<Survey.PassedAnswersCache>
     getAnswersCacheStable(user: User): Promise<Survey.PassedAnswersCache>
     setAnswersCache(user: User, cache: Survey.PassedAnswersCache | undefined): Promise<void>
     clearAnswersCache(user: User): Promise<void>
     pushAnswerToCache(user: User, answer: Survey.PassedAnswer): Promise<void>
-    popAnswerFromCache(user: User): Promise<void>
+    popAnswerFromCache(user: User): Promise<Survey.PassedAnswer | undefined>
     completeSurveyAndGetNextScene(user: User): Promise<SceneEntrance.SomeSceneDto | undefined>
 }
