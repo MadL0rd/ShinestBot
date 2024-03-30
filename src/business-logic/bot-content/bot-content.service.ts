@@ -99,7 +99,7 @@ export class BotContentService implements OnModuleInit {
     }
 
     async cacheLocalization() {
-        this.localizationService.cacheLocalization()
+        await this.localizationService.cacheLocalization()
     }
 
     // =====================
