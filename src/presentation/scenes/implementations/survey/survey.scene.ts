@@ -9,8 +9,8 @@ import { SceneHandlerCompletion } from '../../models/scene.interface'
 import { Scene } from '../../models/scene.abstract'
 import { SceneUsagePermissionsValidator } from '../../models/scene-usage-permissions-validator'
 import { InjectableSceneConstructor } from '../../scene-factory/scene-injections-provider.service'
-import { SurveyDataProviderType } from 'src/presentation/survey-data-provider/models/survey-data-provider.interface'
-import { SurveyDataProviderFactoryService } from 'src/presentation/survey-data-provider/survey-provider-factory/survey-provider-factory.service'
+import { SurveyContextProviderType } from 'src/presentation/survey-context/abstract/survey-context-provider.interface'
+import { SurveyContextProviderFactoryService } from 'src/presentation/survey-context/survey-context-provider-factory/survey-context-provider-factory.service'
 import { SurveyUsageHelpers } from 'src/business-logic/bot-content/schemas/models/bot-content.survey'
 
 // =====================
@@ -18,12 +18,12 @@ import { SurveyUsageHelpers } from 'src/business-logic/bot-content/schemas/model
 // =====================
 export class SurveySceneEntranceDto implements SceneEntrance.Dto {
     readonly sceneName = 'survey'
-    readonly provider: SurveyDataProviderType.Union
+    readonly providerType: SurveyContextProviderType.Union
     readonly allowContinueQuestion: boolean
 }
 type SceneEnterDataType = SurveySceneEntranceDto
 interface ISceneData {
-    readonly provider: SurveyDataProviderType.Union
+    readonly providerType: SurveyContextProviderType.Union
 }
 
 // =====================
@@ -46,7 +46,7 @@ export class SurveyScene extends Scene<ISceneData, SceneEnterDataType> {
 
     constructor(
         protected readonly userService: UserService,
-        private readonly dataProviderFactory: SurveyDataProviderFactoryService
+        private readonly dataProviderFactory: SurveyContextProviderFactoryService
     ) {
         super()
     }
@@ -62,27 +62,27 @@ export class SurveyScene extends Scene<ISceneData, SceneEnterDataType> {
         logger.log(
             `${this.name} scene handleEnterScene. User: ${this.user.telegramInfo.id} ${this.user.telegramInfo.username}`
         )
-        await this.logToUserHistory(this.historyEvent.startSceneSurvey, data?.provider)
+        await this.logToUserHistory(this.historyEvent.startSceneSurvey, data?.providerType)
         if (!data) {
             logger.error('Scene start data corrupted')
             return this.completion.complete()
         }
 
-        const provider = this.dataProviderFactory.getSurveyProvider(data.provider)
-        const cache = await provider.getAnswersCache(this.content, this.user)
+        const provider = this.dataProviderFactory.getSurveyContextProvider(data.providerType)
+        const cache = await provider.getAnswersCache(this.user)
         if (data.allowContinueQuestion && cache.passedAnswers.isNotEmpty) {
             return this.completion.complete({
                 sceneName: 'surveyContinue',
-                provider: data.provider,
+                providerType: data.providerType,
             })
         }
 
-        const surveySource = await provider.getSurvey(this.content)
+        const surveySource = await provider.getSurvey(this.user)
         const nextQuestion = SurveyUsageHelpers.findNextQuestion(surveySource, cache.passedAnswers)
         if (!nextQuestion) {
             return this.completion.complete({
                 sceneName: 'surveyFinal',
-                provider: data.provider,
+                providerType: data.providerType,
             })
         }
 
@@ -91,7 +91,7 @@ export class SurveyScene extends Scene<ISceneData, SceneEnterDataType> {
             case 'options':
                 return this.completion.complete({
                     sceneName: 'surveyQuestionOptions',
-                    provider: data.provider,
+                    providerType: data.providerType,
                     question: nextQuestion,
                     isQuestionFirst: isQuestionFirst,
                 })
@@ -99,7 +99,7 @@ export class SurveyScene extends Scene<ISceneData, SceneEnterDataType> {
             case 'string':
                 return this.completion.complete({
                     sceneName: 'surveyQuestionStringNumeric',
-                    provider: data.provider,
+                    providerType: data.providerType,
                     question: nextQuestion,
                     isQuestionFirst: isQuestionFirst,
                 })
@@ -108,7 +108,7 @@ export class SurveyScene extends Scene<ISceneData, SceneEnterDataType> {
             case 'mediaGroup':
                 return this.completion.complete({
                     sceneName: 'surveyQuestionMedia',
-                    provider: data.provider,
+                    providerType: data.providerType,
                     question: nextQuestion,
                     isQuestionFirst: isQuestionFirst,
                 })

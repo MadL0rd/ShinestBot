@@ -71,7 +71,9 @@ export class BotContentService implements OnModuleInit {
         }
         const contentPage = await this.findOneBy(language)
         if (!contentPage) {
-            if (language == internalConstants.defaultLanguage) throw Error('No content')
+            if (language == internalConstants.defaultLanguage) {
+                throw Error(`No bot content with language ${language}`)
+            }
             return await this.getContent(internalConstants.defaultLanguage)
         }
 

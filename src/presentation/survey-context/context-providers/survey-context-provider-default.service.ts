@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { ISurveyDataProvider } from '../models/survey-data-provider.interface'
+import { ISurveyContextProvider } from '../abstract/survey-context-provider.interface'
 import {
     Survey,
     SurveyUsageHelpers,
@@ -8,21 +8,36 @@ import { UserService } from 'src/business-logic/user/user.service'
 import { BotContent } from 'src/business-logic/bot-content/schemas/bot-content.schema'
 import { User } from 'src/business-logic/user/schemas/user.schema'
 import { internalConstants } from 'src/app/app.internal-constants'
+import { getLanguageFor } from 'src/utils/getLanguageForUser'
+import { BotContentService } from 'src/business-logic/bot-content/bot-content.service'
+import { SceneEntrance } from 'src/presentation/scenes/models/scene-entrance.interface'
+import { ModeratedPublicationsService } from 'src/presentation/publication-management/moderated-publications/moderated-publications.service'
 
 @Injectable()
-export class SurveyProviderDefaultService implements ISurveyDataProvider {
+export class SurveyContextDefaultService implements ISurveyContextProvider {
     readonly type: 'default'
 
-    constructor(private readonly userService: UserService) {}
+    constructor(
+        private readonly userService: UserService,
+        private readonly botContentService: BotContentService,
+        private readonly publicationService: ModeratedPublicationsService
+    ) {}
 
-    async getSurvey(botContent: BotContent): Promise<Survey.Model> {
+    // =====================
+    // Public methods
+    // =====================
+
+    async getSurvey(user: User): Promise<Survey.Model> {
+        const botContent = await this.getBotContentFor(user)
         return botContent.survey
     }
-    async getAnswersCache(botContent: BotContent, user: User): Promise<Survey.PassedAnswersCache> {
+
+    async getAnswersCache(user: User): Promise<Survey.PassedAnswersCache> {
+        const botContent = await this.getBotContentFor(user)
         const cache = this.getCacheWithoutLocalization(user)
         if (cache.contentLanguage == botContent.language) return cache
 
-        const survey = await this.getSurvey(botContent)
+        const survey = await this.getSurvey(user)
         const cacheLocalized: Survey.PassedAnswersCache = {
             contentLanguage: botContent.language,
             passedAnswers: cache.passedAnswers.compactMap((answer) => {
@@ -39,11 +54,8 @@ export class SurveyProviderDefaultService implements ISurveyDataProvider {
         return cacheLocalized
     }
 
-    async getAnswersCacheStable(
-        botContent: BotContent,
-        user: User
-    ): Promise<Survey.PassedAnswersCache> {
-        const cache = await this.getAnswersCache(botContent, user)
+    async getAnswersCacheStable(user: User): Promise<Survey.PassedAnswersCache> {
+        const cache = await this.getAnswersCache(user)
 
         // Remove answers with unsupported options
         cache.passedAnswers = cache.passedAnswers.filter((answer) => {
@@ -62,7 +74,7 @@ export class SurveyProviderDefaultService implements ISurveyDataProvider {
 
         const filteredAnswers: Survey.PassedAnswer[] = []
         const answers = cache.passedAnswers
-        const source = await this.getSurvey(botContent)
+        const source = await this.getSurvey(user)
 
         // If survey is not completed
         if (SurveyUsageHelpers.findNextQuestion(source, answers)) cache
@@ -107,6 +119,30 @@ export class SurveyProviderDefaultService implements ISurveyDataProvider {
         const cache = this.getCacheWithoutLocalization(user)
         cache.passedAnswers.push(answer)
         await this.setAnswersCache(user, cache)
+    }
+
+    async completeSurveyAndGetNextScene(
+        user: User
+    ): Promise<SceneEntrance.SomeSceneDto | undefined> {
+        const answersCache = await this.getAnswersCacheStable(user)
+        await this.publicationService.createPublicationAndSendToModeration({
+            userTelegramId: user.telegramId,
+            creationDate: new Date(),
+            language: answersCache.contentLanguage,
+            answers: answersCache.passedAnswers,
+            status: 'moderation',
+        })
+
+        return undefined
+    }
+
+    // =====================
+    // Private methods
+    // =====================
+
+    private async getBotContentFor(user: User): Promise<BotContent> {
+        const userLanguage = getLanguageFor(user)
+        return await this.botContentService.getContent(userLanguage)
     }
 
     private getCacheWithoutLocalization(user: User): Survey.PassedAnswersCache {
