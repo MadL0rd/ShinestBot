@@ -33,11 +33,10 @@ export class SceneInjectionsProviderService {
     constructor(
         protected readonly userService: UserService,
         protected readonly botContentService: BotContentService,
-        protected readonly surveyDataProviderFactory: SurveyContextProviderFactoryService,
+        protected readonly surveyContextProviderFactory: SurveyContextProviderFactoryService,
         protected readonly statisticService: StatisticService,
         protected readonly publicationStorageService: PublicationStorageService,
         protected readonly moderatedPublicationService: ModeratedPublicationsService,
-        protected readonly surveyContextProviderFactoryService: SurveyContextProviderFactoryService,
         @InjectBot() private readonly bot: Telegraf
     ) {
         const propertyNames = Object.keys(this).filter((prop) => prop != 'registry')
@@ -47,16 +46,21 @@ export class SceneInjectionsProviderService {
         if (propertyNames.length != tokens.length) {
             throw Error('SceneInjectionsProvider registry creation error')
         }
+
         propertyNames.forEach((propName, index) => {
             this.register(tokens[index].name, (this as any)[propName])
         })
     }
 
     private register(key: string, instance: any) {
-        if (!this.registry.has(key)) {
-            this.registry.set(key, instance)
-            logger.log(`Added ${key} to the scene registry.`)
+        if (this.registry.has(key)) {
+            throw Error(
+                `SceneInjectionsProvider registration error: key '${key}' already registered`
+            )
         }
+
+        this.registry.set(key, instance)
+        logger.log(`Added ${key} to the scene registry.`)
     }
 
     resolve<T>(target: Type<T>): T {

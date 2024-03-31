@@ -57,7 +57,7 @@ export class UserPublicationsScene extends Scene<ISceneData, SceneEnterDataType>
         protected readonly userService: UserService,
         private readonly publicationStorageService: PublicationStorageService,
         private readonly moderatedPublicationService: ModeratedPublicationsService,
-        private readonly surveyContextProviderFactoryService: SurveyContextProviderFactoryService
+        private readonly contextProviderFactory: SurveyContextProviderFactoryService
     ) {
         super()
     }
@@ -140,7 +140,7 @@ export class UserPublicationsScene extends Scene<ISceneData, SceneEnterDataType>
                     return this.completion.canNotHandle({})
                 }
                 const contextService =
-                    this.surveyContextProviderFactoryService.getSurveyContextProvider('default')
+                    this.contextProviderFactory.getSurveyContextProvider('default')
                 contextService.setAnswersCache(this.user, {
                     contentLanguage: publicationDocument.language,
                     passedAnswers: publicationDocument.answers,
