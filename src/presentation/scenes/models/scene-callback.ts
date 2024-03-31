@@ -11,6 +11,7 @@ export enum SceneCallbackAction {
     surveySkipQuestion = 1,
     surveyBackToPreviousQuestion = 2,
     publicationSetStatusNotRelevant = 3,
+    reusePublication = 4,
 }
 
 export interface SceneCallbackDataSegue {

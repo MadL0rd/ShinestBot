@@ -19,6 +19,7 @@ import { SurveyFormatter } from 'src/utils/survey-formatter'
 import { PublicationDocument } from 'src/business-logic/publication-storage/schemas/publication.schema'
 import { generateInlineButton } from 'src/presentation/utils/inline-button.utils'
 import { ModeratedPublicationsService } from 'src/presentation/publication-management/moderated-publications/moderated-publications.service'
+import { SurveyContextProviderFactoryService } from 'src/presentation/survey-context/survey-context-provider-factory/survey-context-provider-factory.service'
 
 // =====================
 // Scene data classes
@@ -55,7 +56,8 @@ export class UserPublicationsScene extends Scene<ISceneData, SceneEnterDataType>
     constructor(
         protected readonly userService: UserService,
         private readonly publicationStorageService: PublicationStorageService,
-        private readonly moderatedPublicationService: ModeratedPublicationsService
+        private readonly moderatedPublicationService: ModeratedPublicationsService,
+        private readonly surveyContextProviderFactoryService: SurveyContextProviderFactoryService
     ) {
         super()
     }
@@ -97,33 +99,62 @@ export class UserPublicationsScene extends Scene<ISceneData, SceneEnterDataType>
         ctx: Context<Update.CallbackQueryUpdate>,
         data: SceneCallbackData
     ): Promise<SceneHandlerCompletion> {
-        if (data.action != SceneCallbackAction.publicationSetStatusNotRelevant) {
-            return this.completion.canNotHandle({})
-        }
         const inlineButtonData = data.data as CallbackDataType
         if (!inlineButtonData.i) {
             return this.completion.canNotHandle({})
         }
         const publicationId = inlineButtonData.i
         const publicationDocument = await this.publicationStorageService.findById(publicationId)
-        if (
-            !publicationDocument ||
-            this.user.telegramId != publicationDocument.userTelegramId ||
-            (publicationDocument.status != 'active' && publicationDocument.status != 'moderation')
-        ) {
-            return this.completion.canNotHandle({})
-        }
-        await this.moderatedPublicationService.updatePublicationStatus(
-            publicationDocument._id.toString(),
-            'notRelevant'
-        )
-        const messageId = ctx.callbackQuery.message?.message_id
-        const chatId = ctx.callbackQuery.message?.chat.id
-        if (messageId && chatId) {
-            await ctx.telegram.editMessageReplyMarkup(chatId, messageId, undefined, undefined)
-        }
 
-        return this.completion.complete()
+        switch (data.action) {
+            case SceneCallbackAction.publicationSetStatusNotRelevant:
+                if (
+                    !publicationDocument ||
+                    this.user.telegramId != publicationDocument.userTelegramId ||
+                    (publicationDocument.status != 'active' &&
+                        publicationDocument.status != 'moderation')
+                ) {
+                    return this.completion.canNotHandle({})
+                }
+                await this.moderatedPublicationService.updatePublicationStatus(
+                    publicationDocument._id.toString(),
+                    'notRelevant'
+                )
+                const messageId = ctx.callbackQuery.message?.message_id
+                const chatId = ctx.callbackQuery.message?.chat.id
+                if (messageId && chatId) {
+                    await ctx.telegram.editMessageReplyMarkup(
+                        chatId,
+                        messageId,
+                        undefined,
+                        undefined
+                    )
+                }
+                return this.completion.complete()
+
+            case SceneCallbackAction.reusePublication:
+                if (
+                    !publicationDocument ||
+                    this.user.telegramId != publicationDocument.userTelegramId
+                ) {
+                    return this.completion.canNotHandle({})
+                }
+                const contextService =
+                    this.surveyContextProviderFactoryService.getSurveyContextProvider('default')
+                contextService.setAnswersCache(this.user, {
+                    contentLanguage: publicationDocument.language,
+                    passedAnswers: publicationDocument.answers,
+                })
+
+                return this.completion.complete({
+                    sceneName: 'survey',
+                    providerType: 'default',
+                    allowContinueQuestion: false,
+                })
+
+            default:
+                return this.completion.canNotHandle({})
+        }
     }
 
     // =====================
@@ -165,6 +196,18 @@ export class UserPublicationsScene extends Scene<ISceneData, SceneEnterDataType>
                     ),
                 ])
             }
+            const publicayionIdAsCallbackData: CallbackDataType = { i: publication._id.toString() }
+            inlineKeyboard.push([
+                generateInlineButton(
+                    {
+                        text: this.text.userPublications.buttonReuseAdvert,
+                        action: SceneCallbackAction.reusePublication,
+                        data: publicayionIdAsCallbackData,
+                    },
+                    'userPublications'
+                ),
+            ])
+
             const tgLink = SurveyFormatter.publicationTelegramLink(publication)
             if (tgLink) {
                 inlineKeyboard.push([

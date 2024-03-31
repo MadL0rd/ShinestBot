@@ -106,8 +106,10 @@ export class MainMenuScene extends Scene<ISceneData, SceneEnterDataType> {
                 if (!nextScene) return this.completion.canNotHandle({})
 
                 return this.completion.completeWithUnsafeSceneEntrance(nextScene)
+
+            default:
+                return this.completion.canNotHandle({})
         }
-        return this.completion.canNotHandle({})
     }
 
     // =====================

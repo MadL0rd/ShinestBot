@@ -37,6 +37,7 @@ export class SceneInjectionsProviderService {
         protected readonly statisticService: StatisticService,
         protected readonly publicationStorageService: PublicationStorageService,
         protected readonly moderatedPublicationService: ModeratedPublicationsService,
+        protected readonly surveyContextProviderFactoryService: SurveyContextProviderFactoryService,
         @InjectBot() private readonly bot: Telegraf
     ) {
         const propertyNames = Object.keys(this).filter((prop) => prop != 'registry')
