@@ -19,6 +19,10 @@ enum EnvKeys {
     // Bot configuration
     botToken = 'BOT_TOKEN',
     fileStorageChatId = 'FILE_STORAGE_CHAT_ID',
+    moderationChannelId = 'MODERATION_CHANNEL_ID',
+    moderationChatId = 'MODERATION_CHAT_ID',
+    publicationMainChannelId = 'PUBLICATION_MAIN_CHANNEL_ID',
+    publicationMainChannelName = 'PUBLICATION_MAIN_CHANNEL_NAME',
     errorsChatId = 'ERRORS_CHAT_ID',
 
     // GPT
@@ -86,6 +90,18 @@ class InternalConstants {
     }
     get fileStorageChatId(): number {
         return this.getEnvNumber(EnvKeys.fileStorageChatId)
+    }
+    get moderationChannelId(): number {
+        return this.getEnvNumber(EnvKeys.moderationChannelId)
+    }
+    get moderationChatId(): number {
+        return this.getEnvNumber(EnvKeys.moderationChatId)
+    }
+    get publicationMainChannelId(): number {
+        return this.getEnvNumber(EnvKeys.publicationMainChannelId)
+    }
+    get publicationMainChannelName(): string {
+        return this.getEnvString(EnvKeys.publicationMainChannelName)
     }
     get errorsChatId(): number {
         return this.getEnvNumber(EnvKeys.errorsChatId)

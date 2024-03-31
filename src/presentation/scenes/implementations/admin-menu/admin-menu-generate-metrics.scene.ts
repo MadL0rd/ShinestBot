@@ -33,7 +33,7 @@ export class AdminMenuGenerateMetricsScene extends Scene<ISceneData, SceneEnterD
     // Properties
     // =====================
 
-    readonly name: SceneName.union = 'adminMenuGenerateMetrics'
+    readonly name: SceneName.Union = 'adminMenuGenerateMetrics'
     protected get dataDefault(): ISceneData {
         return {} as ISceneData
     }

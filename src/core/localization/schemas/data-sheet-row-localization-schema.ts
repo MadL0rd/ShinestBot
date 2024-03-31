@@ -60,7 +60,8 @@ type RowFieldIdentifiableArray = {
      * Localized field with key format for localized string `${itemId} / ${fieldName} / ${arrayItemId}`
      * */
     readonly type: 'byIdAndFieldNameForArray'
-    readonly arrayItemsSeparator: '\n'
-    readonly arrayItemComponentsSeparator: '/'
-    readonly arrayItemIdIndex: 0
+    readonly itemsSeparator: '\n'
+    readonly itemComponentsSeparator: '/'
+    readonly itemIdIndex: 0
+    readonly needToBeLocalizedPrefix: '$'
 }

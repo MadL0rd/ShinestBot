@@ -1,7 +1,7 @@
 import { UserPermissionNames } from 'src/business-logic/user/enums/user-permission-names.enum'
 import { UserDocument } from 'src/business-logic/user/schemas/user.schema'
 
-export function getActiveUserPermissionNames(user: UserDocument): UserPermissionNames.union[] {
+export function getActiveUserPermissionNames(user: UserDocument): UserPermissionNames.Union[] {
     return (
         user.internalInfo?.permissions?.compactMap((permission) => {
             if (permission.expirationDate && permission.expirationDate < new Date()) return null

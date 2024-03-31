@@ -33,7 +33,7 @@ export class OnboardingScene extends Scene<ISceneData, SceneEnterDataType> {
     // Properties
     // =====================
 
-    readonly name: SceneName.union = 'onboarding'
+    readonly name: SceneName.Union = 'onboarding'
     protected get dataDefault(): ISceneData {
         return {} as ISceneData
     }

@@ -9,13 +9,20 @@ import { AdminMenuGenerateMetricsScene } from 'src/presentation/scenes/implement
 import { AdminMenuUsersManagementSceneScene } from 'src/presentation/scenes/implementations/admin-menu/admin-menu-users-management-scene.scene'
 import { AdminMenuMailingSceneScene } from 'src/presentation/scenes/implementations/admin-menu/admin-menu-mailing-scene.scene'
 import { LanguageSettingsSceneScene } from 'src/presentation/scenes/implementations/language-settings-scene.scene'
+import { SurveyScene } from 'src/presentation/scenes/implementations/survey/survey.scene'
+import { SurveyContinueScene } from 'src/presentation/scenes/implementations/survey/survey-continue.scene'
+import { SurveyFinalScene } from 'src/presentation/scenes/implementations/survey/survey-final.scene'
+import { SurveyQuestionOptionsScene } from 'src/presentation/scenes/implementations/survey/survey-question-options.scene'
+import { SurveyQuestionStringNumericScene } from 'src/presentation/scenes/implementations/survey/survey-question-string-numeric.scene'
+import { SurveyQuestionMediaScene } from 'src/presentation/scenes/implementations/survey/survey-question-media.scene'
+import { UserPublicationsScene } from 'src/presentation/scenes/implementations/user-publications.scene'
 /** New scene import placeholder */
 
 @Injectable()
 export class SceneFactoryService {
     constructor(private readonly injectionsProvider: SceneInjectionsProviderService) {}
 
-    createSceneWith(name: SceneName.union): IScene | null {
+    createSceneWith(name: SceneName.Union): IScene | null {
         switch (name) {
             case 'mainMenu':
                 return this.injectionsProvider.resolve(MainMenuScene)
@@ -31,6 +38,20 @@ export class SceneFactoryService {
                 return this.injectionsProvider.resolve(AdminMenuMailingSceneScene)
             case 'languageSettingsScene':
                 return this.injectionsProvider.resolve(LanguageSettingsSceneScene)
+            case 'survey':
+                return this.injectionsProvider.resolve(SurveyScene)
+            case 'surveyContinue':
+                return this.injectionsProvider.resolve(SurveyContinueScene)
+            case 'surveyFinal':
+                return this.injectionsProvider.resolve(SurveyFinalScene)
+            case 'surveyQuestionOptions':
+                return this.injectionsProvider.resolve(SurveyQuestionOptionsScene)
+            case 'surveyQuestionStringNumeric':
+                return this.injectionsProvider.resolve(SurveyQuestionStringNumericScene)
+            case 'surveyQuestionMedia':
+                return this.injectionsProvider.resolve(SurveyQuestionMediaScene)
+            case 'userPublications':
+                return this.injectionsProvider.resolve(UserPublicationsScene)
             /** New scene generation placeholder */
         }
         return null

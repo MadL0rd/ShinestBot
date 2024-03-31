@@ -30,8 +30,8 @@ export class PrivateDialogDispatcherService {
     // Properties
     // =====================
 
-    private readonly startSceneName: SceneName.union = 'onboarding'
-    private readonly defaultSceneName: SceneName.union = 'mainMenu'
+    private readonly startSceneName: SceneName.Union = 'onboarding'
+    private readonly defaultSceneName: SceneName.Union = 'mainMenu'
 
     constructor(
         private readonly botContentService: BotContentService,
@@ -60,6 +60,7 @@ export class PrivateDialogDispatcherService {
                 registrationDate: new Date(),
                 permissions: [],
                 notificationsSchedule: {},
+                publications: [],
             },
         })
 
@@ -141,7 +142,7 @@ export class PrivateDialogDispatcherService {
         // =====================
         // Start next scene if needed
         // =====================
-        let nextSceneName: SceneName.union | null =
+        let nextSceneName: SceneName.Union | null =
             sceneNameFromCommandSegue ?? this.getNextSceneNameFromCompletion(sceneCompletion)
         let sceneEnterData = sceneNameFromCommandSegue
             ? undefined
@@ -248,7 +249,7 @@ export class PrivateDialogDispatcherService {
             }
         }
 
-        let nextSceneName: SceneName.union | null = SceneName.castToInstance(
+        let nextSceneName: SceneName.Union | null = SceneName.castToInstance(
             sceneCompletion?.nextSceneIfCompleted?.sceneName
         )
         let nextScene: IScene | null = null
@@ -297,7 +298,7 @@ export class PrivateDialogDispatcherService {
     // Private methods
     // =====================
 
-    private getSceneNameFromTextCommandSegue(command?: string): SceneName.union | null {
+    private getSceneNameFromTextCommandSegue(command?: string): SceneName.Union | null {
         switch (command) {
             case '/back_to_menu':
                 return this.defaultSceneName
@@ -308,7 +309,7 @@ export class PrivateDialogDispatcherService {
 
     private getNextSceneNameFromCompletion(
         sceneCompletion: SceneHandlerCompletion | null
-    ): SceneName.union | null {
+    ): SceneName.Union | null {
         if (sceneCompletion) {
             if (sceneCompletion.inProgress === false) {
                 // Exit from current scene
@@ -331,7 +332,7 @@ export class PrivateDialogDispatcherService {
     }
 
     private createSceneWith(
-        name: SceneName.union | null,
+        name: SceneName.Union | null,
         userContext: SceneUserContext
     ): IScene | null {
         if (!name) return null
@@ -373,6 +374,7 @@ export class PrivateDialogDispatcherService {
                 registrationDate: new Date(),
                 permissions: [],
                 notificationsSchedule: {},
+                publications: [],
             },
         })
         const userActivePermissions = getActiveUserPermissionNames(user)

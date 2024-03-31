@@ -5,14 +5,14 @@ import { PermissionsValidationResult } from './scene.interface'
 export namespace SceneUsagePermissionsValidator {
     export interface IPermissionsValidator {
         validateUseScenePermissions(
-            userActivePermissions: UserPermissionNames.union[],
+            userActivePermissions: UserPermissionNames.Union[],
             text: UniqueMessage
         ): PermissionsValidationResult
     }
 
     export class CanUseIfNotBanned implements IPermissionsValidator {
         validateUseScenePermissions(
-            userActivePermissions: UserPermissionNames.union[],
+            userActivePermissions: UserPermissionNames.Union[],
             text: UniqueMessage
         ): PermissionsValidationResult {
             if (userActivePermissions === null || userActivePermissions.length === 0) {
@@ -30,7 +30,7 @@ export namespace SceneUsagePermissionsValidator {
 
     export class OwnerOrAdminOnly implements IPermissionsValidator {
         validateUseScenePermissions(
-            userActivePermissions: UserPermissionNames.union[],
+            userActivePermissions: UserPermissionNames.Union[],
             text: UniqueMessage
         ): PermissionsValidationResult {
             const ownerOrAdmin =
