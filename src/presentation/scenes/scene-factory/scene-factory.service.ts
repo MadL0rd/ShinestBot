@@ -32,11 +32,11 @@ export class SceneFactoryService {
                 return this.injectionsProvider.resolve(AdminMenuScene)
             case 'adminMenuGenerateMetrics':
                 return this.injectionsProvider.resolve(AdminMenuGenerateMetricsScene)
-            case 'adminMenuUsersManagementScene':
+            case 'adminMenuUsersManagement':
                 return this.injectionsProvider.resolve(AdminMenuUsersManagementSceneScene)
-            case 'adminMenuMailingScene':
+            case 'adminMenuMailing':
                 return this.injectionsProvider.resolve(AdminMenuMailingSceneScene)
-            case 'languageSettingsScene':
+            case 'languageSettings':
                 return this.injectionsProvider.resolve(LanguageSettingsSceneScene)
             case 'survey':
                 return this.injectionsProvider.resolve(SurveyScene)

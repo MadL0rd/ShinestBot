@@ -18,7 +18,7 @@ import { getActiveUserPermissionNames } from 'src/utils/getActiveUserPermissions
 // Scene data classes
 // =====================
 export class AdminMenuUsersManagementSceneSceneEntranceDto implements SceneEntrance.Dto {
-    readonly sceneName = 'adminMenuUsersManagementScene'
+    readonly sceneName = 'adminMenuUsersManagement'
 }
 type SceneEnterDataType = AdminMenuUsersManagementSceneSceneEntranceDto
 interface ISceneData {
@@ -36,7 +36,7 @@ export class AdminMenuUsersManagementSceneScene extends Scene<ISceneData, SceneE
     // Properties
     // =====================
 
-    readonly name: SceneName.Union = 'adminMenuUsersManagementScene'
+    readonly name: SceneName.Union = 'adminMenuUsersManagement'
     protected get dataDefault(): ISceneData {
         return {} as ISceneData
     }

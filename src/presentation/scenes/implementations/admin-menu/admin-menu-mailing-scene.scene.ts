@@ -16,7 +16,7 @@ import { UserHistoryEvent } from 'src/business-logic/user/enums/user-history-eve
 // Scene data classes
 // =====================
 export class AdminMenuMailingSceneSceneEntranceDto implements SceneEntrance.Dto {
-    readonly sceneName = 'adminMenuMailingScene'
+    readonly sceneName = 'adminMenuMailing'
 }
 type SceneEnterDataType = AdminMenuMailingSceneSceneEntranceDto
 interface ISceneData {
@@ -33,7 +33,7 @@ export class AdminMenuMailingSceneScene extends Scene<ISceneData, SceneEnterData
     // Properties
     // =====================
 
-    readonly name: SceneName.Union = 'adminMenuMailingScene'
+    readonly name: SceneName.Union = 'adminMenuMailing'
     protected get dataDefault(): ISceneData {
         return {} as ISceneData
     }
