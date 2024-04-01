@@ -172,6 +172,7 @@ export class UserPublicationsScene extends Scene<ISceneData, SceneEnterDataType>
 
         if (publications.length == 0) {
             await ctx.replyWithHTML(this.text.userPublications.textEmpty, this.getDefaultKeyboard())
+            return
         }
 
         await ctx.replyWithHTML(this.text.userPublications.text, {
