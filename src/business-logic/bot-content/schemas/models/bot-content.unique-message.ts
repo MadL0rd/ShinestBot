@@ -147,14 +147,17 @@ export class Moderation {
     readonly messagePostStatusPlaceholder = 'advertStatusPlaceholder'
     /** Плейсхолдер */
     readonly messagePostDatePlaceholder = 'advertCreationDatePlaceholder'
+    readonly publicationStatusCreated = '🧾 Создана'
     readonly publicationStatusModeration = '📝 Проверка'
     readonly publicationStatusRejected = '🚫 Отклонено'
     readonly publicationStatusActive = '✅ Актуально'
     readonly publicationStatusNotRelevant = '❌ Не актуально'
+    readonly publicationTextLink = '[Ссылка на публикацию](postLinkPlaceholder)'
     readonly messageText = '📩 *Сообщение от команды ShinestBot*\n\nID публикации: *advertIdPlaceholder*\nДата подачи заявки: advertCreationDatePlaceholder'
-    readonly messageTextAccepted = '🎉 *Поздравляем* 🎉\nВаше объявление было опубликовано\n\nID: *advertIdPlaceholder*\nДата подачи заявки: advertCreationDatePlaceholder\n\n[Ссылка на публикацию](postLinkPlaceholder)'
+    readonly messageTextModeration = 'Ваше объявление было отправлено на модерацию\n\nID: *advertIdPlaceholder*\nДата подачи заявки: advertCreationDatePlaceholder\n'
+    readonly messageTextAccepted = '🎉 *Поздравляем* 🎉\nВаше объявление было опубликовано\n\nID: *advertIdPlaceholder*\nДата подачи заявки: advertCreationDatePlaceholder\n'
     readonly messageTextRejected = '🚫 *Внимание* 🚫\nВаше объявление было Отклонено\n\nID: *advertIdPlaceholder*\nДата подачи заявки: advertCreationDatePlaceholder'
-    readonly messageTextNotRelevant = '⚠️ *Внимание* ⚠️\nВаше объявление было отмечено как неактуальное\n\nID: *advertIdPlaceholder*\nДата подачи заявки: advertCreationDatePlaceholder\n\n[Ссылка на публикацию](postLinkPlaceholder)'
+    readonly messageTextNotRelevant = '⚠️ *Внимание* ⚠️\nВаше объявление было отмечено как неактуальное\n\nID: *advertIdPlaceholder*\nДата подачи заявки: advertCreationDatePlaceholder'
     readonly moderationMessageTextNewSearchResult = '✅ *Внимание* ✅\nПоявилось новая публикация, подходящая под ваши фильтры'
 }
 

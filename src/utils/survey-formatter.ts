@@ -88,10 +88,13 @@ export namespace SurveyFormatter {
     ): string {
         const tgPublicationLink = publicationTelegramLink(publication)
         if (tgPublicationLink) {
-            originalText = originalText.replace(
-                text.moderation.messagePostLinkPlaceholder,
-                tgPublicationLink
-            )
+            originalText =
+                originalText +
+                '\n\n' +
+                text.moderation.publicationTextLink.replace(
+                    text.moderation.messagePostLinkPlaceholder,
+                    tgPublicationLink
+                )
         }
         return originalText
             .replace(text.moderation.messageAdvertIdPlaceholder, publication._id.toString())
@@ -158,6 +161,8 @@ export namespace SurveyFormatter {
                 return text.moderation.publicationStatusActive
             case 'notRelevant':
                 return text.moderation.publicationStatusNotRelevant
+            case 'created':
+                return text.moderation.publicationStatusCreated
         }
     }
 

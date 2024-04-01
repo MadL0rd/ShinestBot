@@ -32,6 +32,7 @@ export class ModeratedPublicationsService {
         createDto: PublicationCreateDto
     ): Promise<PublicationDocument> {
         const botContent = await this.botContentService.getContent(createDto.language)
+        createDto.status = 'created'
         const publication = await this.publicationStorageService.create(createDto)
 
         const moderationChannelId = internalConstants.moderationChannelId
@@ -134,6 +135,9 @@ export class ModeratedPublicationsService {
             reply_parameters: { message_id: message.message_id },
             parse_mode: 'HTML',
         })
+
+        await this.updatePublicationStatus(publicationId, 'moderation')
+
         return
     }
 
@@ -241,8 +245,12 @@ export class ModeratedPublicationsService {
         // Notify user
         let textForUser = ''
         switch (status) {
-            case 'moderation':
+            case 'created':
                 return
+
+            case 'moderation':
+                textForUser = text.moderation.messageTextModeration
+                break
 
             case 'rejected':
                 textForUser = text.moderation.messageTextRejected

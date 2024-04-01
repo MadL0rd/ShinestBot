@@ -1,6 +1,6 @@
 export namespace PublicationStatus {
     export type Union = (typeof allCases)[number]
-    export const allCases = ['moderation', 'rejected', 'active', 'notRelevant'] as const
+    export const allCases = ['created', 'moderation', 'rejected', 'active', 'notRelevant'] as const
 
     export function includes(value: string | Union): boolean {
         return allCases.includes(value)
