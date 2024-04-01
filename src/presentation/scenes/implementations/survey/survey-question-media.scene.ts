@@ -273,12 +273,19 @@ export class SurveyQuestionMediaScene extends Scene<ISceneData, SceneEnterDataTy
         telegramFileId: string,
         fileType: 'photo' | 'video'
     ): Promise<Survey.TelegramFileData | undefined> {
-        if (telegramFileId) {
-            const fileUrl = await ctx.telegram.getFileLink(telegramFileId)
-            const fileUrlStr = fileUrl.toString()
-            return { telegramFileId: telegramFileId, telegramUrl: fileUrlStr, fileType: fileType }
+        if (!telegramFileId) return undefined
+
+        let fileUrl: URL | undefined = undefined
+        try {
+            fileUrl = await ctx.telegram.getFileLink(telegramFileId)
+        } catch (error) {
+            const userInfoString = JSON.stringify(ctx.from)
+            logger.error(
+                `Can not get file link fro file with\ntype: ${fileType}\nid: ${telegramFileId}\nUser: ${userInfoString}`
+            )
         }
-        return undefined
+        const fileUrlStr = fileUrl?.toString()
+        return { telegramFileId: telegramFileId, telegramUrl: fileUrlStr, fileType: fileType }
     }
 
     private getMediaFromContext(ctx: Context): Survey.TelegramFileData[] {
