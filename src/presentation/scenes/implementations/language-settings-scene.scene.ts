@@ -16,10 +16,13 @@ import { LanguageCode } from 'src/utils/languages-info/getLanguageName'
 // Scene data classes
 // =====================
 export class LanguageSettingsSceneSceneEntranceDto implements SceneEntrance.Dto {
-    readonly sceneName = 'languageSettingsScene'
+    readonly sceneName = 'languageSettings'
+    readonly nextScene?: SceneEntrance.SomeSceneDto
 }
 type SceneEnterDataType = LanguageSettingsSceneSceneEntranceDto
-interface ISceneData {}
+interface ISceneData {
+    readonly nextScene?: SceneEntrance.SomeSceneDto
+}
 
 // =====================
 // Scene main class
@@ -31,7 +34,7 @@ export class LanguageSettingsSceneScene extends Scene<ISceneData, SceneEnterData
     // Properties
     // =====================
 
-    readonly name: SceneName.Union = 'languageSettingsScene'
+    readonly name: SceneName.Union = 'languageSettings'
     protected get dataDefault(): ISceneData {
         return {} as ISceneData
     }
@@ -67,13 +70,16 @@ export class LanguageSettingsSceneScene extends Scene<ISceneData, SceneEnterData
             super.keyboardMarkupWithAutoLayoutFor(languagesButtons, true)
         )
 
-        return this.completion.inProgress({})
+        return this.completion.inProgress({ nextScene: data?.nextScene })
     }
 
     async handleMessage(ctx: Context, dataRaw: object): Promise<SceneHandlerCompletion> {
         logger.log(
             `${this.name} scene handleMessage. User: ${this.user.telegramInfo.id} ${this.user.telegramInfo.username}`
         )
+
+        const data = dataRaw as ISceneData | undefined
+
         const message = ctx.message
         if (!message || !('text' in message)) return this.completion.canNotHandle({})
 
@@ -85,7 +91,7 @@ export class LanguageSettingsSceneScene extends Scene<ISceneData, SceneEnterData
 
         this.user.internalInfo.language = selectedLanguage
         await this.userService.update(this.user)
-        return this.completion.complete()
+        return this.completion.complete(data?.nextScene)
     }
 
     async handleCallback(

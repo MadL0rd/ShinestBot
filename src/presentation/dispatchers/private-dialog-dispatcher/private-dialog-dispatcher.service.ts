@@ -23,6 +23,7 @@ import {
 } from 'src/presentation/scenes/models/scene.interface'
 import { SceneFactoryService } from 'src/presentation/scenes/scene-factory/scene-factory.service'
 import { BotContent } from 'src/business-logic/bot-content/schemas/bot-content.schema'
+import { SceneEntrance } from 'src/presentation/scenes/models/scene-entrance.interface'
 
 @Injectable()
 export class PrivateDialogDispatcherService {
@@ -30,7 +31,10 @@ export class PrivateDialogDispatcherService {
     // Properties
     // =====================
 
-    private readonly startSceneName: SceneName.Union = 'onboarding'
+    private readonly startScene: SceneEntrance.SomeSceneDto = {
+        sceneName: 'languageSettings',
+        nextScene: { sceneName: 'onboarding' },
+    }
     private readonly defaultSceneName: SceneName.Union = 'mainMenu'
 
     constructor(
@@ -68,12 +72,12 @@ export class PrivateDialogDispatcherService {
 
         const userContext = await this.generateSceneUserContext(ctx.from)
 
-        const startScene = this.createSceneWith(this.startSceneName, userContext)
+        const startScene = this.createSceneWith(this.startScene.sceneName, userContext)
         if (!startScene) {
             logger.error(`Start scene creation failed!\nUser: ${JSON.stringify(ctx.from)}`)
             return
         }
-        const sceneCompletion = await startScene.handleEnterScene(ctx)
+        const sceneCompletion = await startScene.handleEnterScene(ctx, this.startScene)
 
         // Save scene state
         await this.userService.update({
