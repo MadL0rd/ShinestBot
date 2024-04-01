@@ -141,7 +141,7 @@ export class UserPublicationsScene extends Scene<ISceneData, SceneEnterDataType>
                 }
                 const contextService =
                     this.contextProviderFactory.getSurveyContextProvider('default')
-                contextService.setAnswersCache(this.user, {
+                await contextService.setAnswersCache(this.user, {
                     contentLanguage: publicationDocument.language,
                     passedAnswers: publicationDocument.answers,
                 })
