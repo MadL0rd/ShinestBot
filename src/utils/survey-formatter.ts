@@ -62,23 +62,23 @@ export namespace SurveyFormatter {
             PublicationText += `${i + 1}.\t${answer.question.publicTitle}: <b>${answerValue}</b>`
             PublicationText += '\n'
         }
-        let statusString = publicationStatusString(publication.status, text)
-        statusString = `${statusString} #${publication.status}`
-        const mainText = `${PublicationText}`
 
         let prefix = `<b>id ${publication._id.toString()}</b>\n`
         prefix += `Автор: ID ${author.telegramId}`
-        if (author.telegramInfo.username) {
-            prefix += ` @${author.telegramInfo.username}`
-        }
+        if (author.telegramInfo.username) prefix += ` @${author.telegramInfo.username}`
+
+        let statusString = publicationStatusString(publication.status, text)
+        statusString = `${statusString} #${publication.status}`
+        const mainText = `${PublicationText}`
         prefix += '\n\n'
         prefix += statusString
-        const tgLink = publicationTelegramLink(publication)
-        if (tgLink) {
-            prefix += `\n\n<a href="${tgLink}">Ссылка на пост</a>`
-        }
 
-        return `${prefix}\n\n${mainText}`
+        const tgLink = publicationTelegramLink(publication)
+        if (tgLink) prefix += `\n\n<a href="${tgLink}">Ссылка на пост</a>`
+
+        const publicationTagsText = getPublicationTagsString(publication)
+
+        return `${prefix}\n\n${mainText}\n${publicationTagsText}`
     }
 
     export function makeUserMessageWithPublicationInfo(
