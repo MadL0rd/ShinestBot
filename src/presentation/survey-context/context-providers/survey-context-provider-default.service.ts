@@ -139,6 +139,7 @@ export class SurveyContextDefaultService implements ISurveyContextProvider {
             language: answersCache.contentLanguage,
             answers: answersCache.passedAnswers,
             status: 'moderation',
+            placementHistory: [],
         })
 
         user.internalInfo.publications.push(publication._id.toString())

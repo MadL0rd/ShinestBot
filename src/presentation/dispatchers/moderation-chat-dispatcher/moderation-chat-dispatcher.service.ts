@@ -11,8 +11,6 @@ import { SurveyFormatter } from 'src/utils/survey-formatter'
 import { PublicationDocument } from 'src/business-logic/publication-storage/schemas/publication.schema'
 import { MediaGroup } from 'node_modules/telegraf/typings/telegram-types'
 import { SurveyUsageHelpers } from 'src/business-logic/bot-content/schemas/models/bot-content.survey'
-import { UniqueMessage } from 'src/business-logic/bot-content/schemas/models/bot-content.unique-message'
-import { PublicationStatus } from 'src/business-logic/publication-storage/enums/publication-status.enum'
 import { InjectBot } from 'nestjs-telegraf'
 import { ModeratedPublicationsService } from 'src/presentation/publication-management/moderated-publications/moderated-publications.service'
 
@@ -64,18 +62,23 @@ export class ModerationChatDispatcherService {
         )
         if (messageText) {
             switch (messageText) {
-                case botContent.uniqueMessage.moderation.messageCommandApprove:
+                case botContent.uniqueMessage.moderationCommand.approve:
                     await this.handlePublicationApprove(publication, ctx)
                     return
 
-                case botContent.uniqueMessage.moderation.messageCommandReject:
-                    await this.handlePublicationReject(publication, ctx, botContent.uniqueMessage)
+                case botContent.uniqueMessage.moderationCommand.reject:
+                    await this.handlePublicationReject(publication, ctx)
                     return
 
-                case botContent.uniqueMessage.moderation.messageCommandNotRelevant:
+                case botContent.uniqueMessage.moderationCommand.notRelevant:
                     await this.handlePublicationNotRelevant(publication, ctx)
                     return
             }
+        }
+
+        if (messageText?.split(' ').first == botContent.uniqueMessage.moderationCommand.place) {
+            await this.handlePlacePublication(publication, ctx)
+            return
         }
 
         await this.sendAdminMessageTextForPublication(publication)
@@ -85,20 +88,21 @@ export class ModerationChatDispatcherService {
     // Private methods
     // =====================
 
-    private async handlePublicationApprove(publication: PublicationDocument, ctx: Context<Update>) {
-        const publicationStatusModeration: PublicationStatus.Union = 'moderation'
-        if (publication.status != publicationStatusModeration) {
+    private async handlePlacePublication(publication: PublicationDocument, ctx: Context<Update>) {
+        if (publication.status != 'active') {
             await this.sendMessageToCurrentThread(
                 ctx,
-                'Опубликовать объявление можно только если заявка находится на рассмотрении'
+                'Опубликовать объявление можно только если заявка обобрена'
             )
             return
         }
-        let publicationUpdated = await this.publicationStorageService.findById(
-            publication._id.toString()
-        )
-        if (!publicationUpdated) {
-            logger.error(`Cannot find publication by id: ${publication._id.toString()}`)
+        const message = ctx.message as Message.TextMessage
+        const channelIdList = message.text.split(' ').slice(1)
+        if (channelIdList.isEmpty) {
+            await this.sendMessageToCurrentThread(
+                ctx,
+                'Не удалось распознать id канала для публикации'
+            )
             return
         }
 
@@ -106,7 +110,7 @@ export class ModerationChatDispatcherService {
         const inlineKeyboardMainPublication: InlineKeyboardButton[][] = []
 
         // Try to find media
-        const mediaGroupArgs: MediaGroup = publicationUpdated.answers
+        const mediaGroupArgs: MediaGroup = publication.answers
             .filter(
                 (answer) =>
                     answer.question.addAnswerToTelegramPublication &&
@@ -132,65 +136,77 @@ export class ModerationChatDispatcherService {
         const botContent = await this.botContentService.getContent(
             internalConstants.defaultLanguage
         )
-        const mainChannelPostText = SurveyFormatter.generateTextFromPassedAnswers(
-            {
-                contentLanguage: internalConstants.defaultLanguage,
-                passedAnswers: publicationUpdated.answers,
-            },
-            botContent
+        const publicationText = SurveyFormatter.publicationPublicText(
+            publication,
+            botContent.uniqueMessage
         )
-        if (!internalConstants.publicationMainChannelId) {
-            logger.error('Cannot find publicationMainChannelId in internalConstants')
+
+        for (const channelId of channelIdList) {
+            try {
+                if (mediaGroupArgs.length > 0) {
+                    mediaGroupArgs[0]['caption'] = publicationText
+                    const mainChannelMessages = await ctx.telegram.sendMediaGroup(
+                        channelId,
+                        mediaGroupArgs
+                    )
+                    // When telegram sends media group, every media will became separete message
+                    // And only one of them will have a caption, witch will be a message text
+                    // We should save id of them to edit message in future
+                    const mainChannelPostRaw = mainChannelMessages.find(
+                        (message) => message.caption
+                    )
+                    if (!mainChannelPostRaw) {
+                        logger.error('Cannot find mainChannelPostRaw')
+                        return
+                    }
+                    mainChannelPost = mainChannelPostRaw
+                } else {
+                    mainChannelPost = await ctx.telegram.sendMessage(channelId, publicationText, {
+                        parse_mode: 'HTML',
+                        reply_markup: {
+                            inline_keyboard: inlineKeyboardMainPublication,
+                        },
+                    })
+                }
+                publication.placementHistory.push({
+                    type: 'telegram',
+                    channelId: mainChannelPost.chat.id,
+                    messageId: mainChannelPost.message_id,
+                })
+            } catch {
+                await this.sendMessageToCurrentThread(
+                    ctx,
+                    `Не удалось отправить сообщение в чат ${channelId}`
+                )
+            }
+        }
+
+        await this.publicationStorageService.update(publication._id.toString(), {
+            placementHistory: publication.placementHistory,
+        })
+    }
+
+    private async handlePublicationApprove(
+        publicationRaw: PublicationDocument,
+        ctx: Context<Update>
+    ) {
+        if (publicationRaw.status != 'moderation') {
+            await this.sendMessageToCurrentThread(
+                ctx,
+                'Обобрить объявление можно только если заявка находится на рассмотрении'
+            )
             return
         }
-        if (mediaGroupArgs.length > 0) {
-            mediaGroupArgs[0]['caption'] = mainChannelPostText
-            const mainChannelMessages = await ctx.telegram.sendMediaGroup(
-                internalConstants.publicationMainChannelId,
-                mediaGroupArgs
-            )
-            const mainChannelPostRaw = mainChannelMessages.filter(
-                (message) => message.caption
-            ).first
-            if (!mainChannelPostRaw) {
-                logger.error('Cannot find mainChannelPostRaw')
-                return
-            }
-            mainChannelPost = mainChannelPostRaw
-        } else {
-            mainChannelPost = await ctx.telegram.sendMessage(
-                internalConstants.publicationMainChannelId,
-                mainChannelPostText,
-                {
-                    parse_mode: 'HTML',
-                    reply_markup: {
-                        inline_keyboard: inlineKeyboardMainPublication,
-                    },
-                }
-            )
-        }
 
-        publicationUpdated = await this.publicationStorageService.update(
-            publicationUpdated._id.toString(),
-            {
-                mainChannelPublicationId: mainChannelPost.message_id,
-            }
-        )
-
-        const publicationId = publication._id.toString()
+        const publicationId = publicationRaw._id.toString()
         await this.moderatedPublicationService.updatePublicationStatus(publicationId, 'active')
 
         // Notify admin
         await this.sendSuccessMessageToCurrentThread(ctx)
     }
 
-    private async handlePublicationReject(
-        publication: PublicationDocument,
-        ctx: Context<Update>,
-        text: UniqueMessage
-    ) {
-        const statusModeration: PublicationStatus.Union = 'moderation'
-        if (publication.status != statusModeration || publication.mainChannelPublicationId) {
+    private async handlePublicationReject(publication: PublicationDocument, ctx: Context<Update>) {
+        if (publication.status != 'moderation' || publication.placementHistory) {
             await this.sendMessageToCurrentThread(
                 ctx,
                 'Установить статус "Отклонено" можно только если заявка находится на рассмотрении'
@@ -209,8 +225,7 @@ export class ModerationChatDispatcherService {
         publication: PublicationDocument,
         ctx: Context<Update>
     ) {
-        const publicationStatusActive: PublicationStatus.Union = 'active'
-        if (publication.status != publicationStatusActive) {
+        if (publication.status != 'active') {
             await this.sendMessageToCurrentThread(
                 ctx,
                 'Установить статус "Не актуально" можно только если объявление было опубликовано и его текущий статус "Актуально"'

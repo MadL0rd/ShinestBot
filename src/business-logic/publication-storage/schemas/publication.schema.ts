@@ -27,8 +27,16 @@ export class Publication {
     moderationChannelPublicationId?: number
 
     @Prop()
-    mainChannelPublicationId?: number
+    placementHistory: Placement[]
 }
+
+type PlacementTelegram = {
+    type: 'telegram'
+    channelId: number
+    messageId: number
+}
+
+type Placement = PlacementTelegram
 
 export const PublicationSchema = SchemaFactory.createForClass(Publication)
 export type PublicationDocument = HydratedDocument<Publication>

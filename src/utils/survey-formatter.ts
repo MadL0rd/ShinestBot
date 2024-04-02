@@ -124,7 +124,7 @@ export namespace SurveyFormatter {
     /**
      * Text for public post in main channel
      */
-    export function postPublicationText(
+    export function publicationPublicText(
         publication: PublicationDocument,
         text: UniqueMessage
     ): string {
@@ -167,8 +167,8 @@ export namespace SurveyFormatter {
     }
 
     export function publicationTelegramLink(publication: Publication): string | null {
-        if (publication.mainChannelPublicationId) {
-            return `https://t.me/${internalConstants.publicationMainChannelName}/${publication.mainChannelPublicationId}`
+        if (publication.placementHistory) {
+            return `https://t.me/${internalConstants.publicationMainChannelName}/${publication.placementHistory}`
         }
         return null
     }

@@ -123,11 +123,7 @@ export class ModeratedPublicationsService {
         await this.sendPublicationsMediaToModerationThread(publication)
 
         let moderationCommandsText = `Актуальные на данный момент комманды:\n`
-        moderationCommandsText += [
-            botContent.uniqueMessage.moderation.messageCommandApprove,
-            botContent.uniqueMessage.moderation.messageCommandReject,
-            botContent.uniqueMessage.moderation.messageCommandNotRelevant,
-        ]
+        moderationCommandsText += Object.values(botContent.uniqueMessage.moderationCommand)
             .map((command) => `- ${command}`)
             .join('\n')
 
@@ -156,17 +152,11 @@ export class ModeratedPublicationsService {
         const botContent = await this.botContentService.getContent(publicationDocument.language)
         const text = botContent.uniqueMessage
 
-        const inlineKeyboardAll: InlineKeyboardButton[][] = []
         const inlineKeyboardMainPublication: InlineKeyboardButton[][] = []
         if (!publicationDocument) return
-        const telegramLink = SurveyFormatter.publicationTelegramLink(publicationDocument)
-        if (telegramLink) {
-            inlineKeyboardAll.push([
-                Markup.button.url(text.userPublications.buttonLinkTelegram, telegramLink),
-            ])
-        }
 
         // Update status in moderation channel
+        // TODO: Добавить ссылки на публикации в канале модераторов
         if (publicationDocument.moderationChannelPublicationId) {
             try {
                 const user = await this.userService.findOneByTelegramId(
@@ -192,52 +182,54 @@ export class ModeratedPublicationsService {
         }
 
         // Update status in main channel
-        if (publicationDocument.mainChannelPublicationId) {
+        if (publicationDocument.placementHistory) {
             const publicationContainsMedia = publicationDocument.answers.some(
                 (answer) =>
                     SurveyUsageHelpers.isMediaType(answer.type) &&
                     'media' in answer &&
                     answer.media.isNotEmpty
             )
-            if (publicationContainsMedia) {
-                try {
-                    await this.bot.telegram.editMessageCaption(
-                        internalConstants.publicationMainChannelId,
-                        publicationDocument.mainChannelPublicationId,
-                        undefined,
-                        SurveyFormatter.postPublicationText(publicationDocument, text),
-                        {
-                            parse_mode: 'HTML',
-                            reply_markup: {
-                                inline_keyboard: inlineKeyboardMainPublication,
-                            },
-                        }
-                    )
-                } catch (error) {
-                    logger.error(
-                        `Fail to update publication status in main channel \nPublication id: '${publicationDocumentId}'`
-                    )
-                }
-            } else {
-                try {
-                    if (!internalConstants.publicationMainChannelId) return
-                    await this.bot.telegram.editMessageText(
-                        internalConstants.publicationMainChannelId,
-                        publicationDocument.mainChannelPublicationId,
-                        undefined,
-                        SurveyFormatter.postPublicationText(publicationDocument, text),
-                        {
-                            parse_mode: 'HTML',
-                            link_preview_options: { is_disabled: true },
-                            reply_markup: {
-                                inline_keyboard: inlineKeyboardMainPublication,
-                            },
-                        }
-                    )
-                } catch (error) {
-                    logger.error(
-                        `Fail to update publication status in main channel \nPublication id: '${publicationDocumentId}'`
-                    )
+            for (const placement of publicationDocument.placementHistory) {
+                if (publicationContainsMedia) {
+                    try {
+                        await this.bot.telegram.editMessageCaption(
+                            placement.channelId,
+                            placement.messageId,
+                            undefined,
+                            SurveyFormatter.publicationPublicText(publicationDocument, text),
+                            {
+                                parse_mode: 'HTML',
+                                reply_markup: {
+                                    inline_keyboard: inlineKeyboardMainPublication,
+                                },
+                            }
+                        )
+                    } catch (error) {
+                        logger.error(
+                            `Fail to update publication status in main channel \nPublication id: '${publicationDocumentId}'`
+                        )
+                    }
+                } else {
+                    try {
+                        if (!internalConstants.publicationMainChannelId) return
+                        await this.bot.telegram.editMessageText(
+                            placement.channelId,
+                            placement.messageId,
+                            undefined,
+                            SurveyFormatter.publicationPublicText(publicationDocument, text),
+                            {
+                                parse_mode: 'HTML',
+                                link_preview_options: { is_disabled: true },
+                                reply_markup: {
+                                    inline_keyboard: inlineKeyboardMainPublication,
+                                },
+                            }
+                        )
+                    } catch (error) {
+                        logger.error(
+                            `Fail to update publication status in main channel \nPublication id: '${publicationDocumentId}'`
+                        )
+                    }
                 }
             }
         }
@@ -275,9 +267,6 @@ export class ModeratedPublicationsService {
             {
                 parse_mode: 'HTML',
                 link_preview_options: { is_disabled: true },
-                reply_markup: {
-                    inline_keyboard: inlineKeyboardAll,
-                },
             }
         )
     }
