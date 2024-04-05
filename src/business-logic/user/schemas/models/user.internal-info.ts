@@ -8,7 +8,14 @@ export class UserInternalInfo {
     permissions: UserPermission[]
     notificationsSchedule: UserNotificationsSchedule
     surveyAnswersCache?: Survey.PassedAnswersCache
+    publicationEditingCache?: Survey.PassedAnswersCache
     publications: string[]
+    adminsOnly: AdminOnlyInfo
+}
+
+export class AdminOnlyInfo {
+    modifyingPublicationIdPrepared?: string
+    modifyingPublicationIdCurrent?: string
 }
 
 export class UserPermission {

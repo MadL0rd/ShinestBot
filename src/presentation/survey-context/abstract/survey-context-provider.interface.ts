@@ -3,7 +3,7 @@ import { User } from 'src/business-logic/user/schemas/user.schema'
 import { SceneEntrance } from 'src/presentation/scenes/models/scene-entrance.interface'
 
 export namespace SurveyContextProviderType {
-    export const allCases = ['default'] as const
+    export const allCases = ['default', 'moderationEditing'] as const
     export type Union = (typeof allCases)[number]
 
     export function getId(sceneName: Union): number {

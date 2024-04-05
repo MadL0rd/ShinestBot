@@ -16,6 +16,7 @@ export class UniqueMessage {
     readonly moderationCommand = new ModerationCommand()
     readonly moderation = new Moderation()
     readonly userPublications = new UserPublications()
+    readonly moderationEditing = new ModerationEditing()
 }
 
 export class Common {
@@ -38,6 +39,7 @@ export class MainMenu {
     readonly buttonLanguageSettings = '🌎 Выбрать другой язык'
     readonly buttonSurvey = '📝 Пройти опрос'
     readonly userPublications = '📰 Управление публикациями'
+    readonly editPublicationAsAdmin = '📰 Редактирование заявки'
 }
 
 export class AdminMenu {
@@ -140,6 +142,8 @@ export class ModerationCommand {
     readonly reject = 'Отклонить'
     /** Команда для чата модерации */
     readonly notRelevant = 'Не актуально'
+    /** Команда для чата модерации */
+    readonly edit = 'Редактировать'
 }
 
 export class Moderation {
@@ -153,6 +157,8 @@ export class Moderation {
     readonly messagePostStatusPlaceholder = 'advertStatusPlaceholder'
     /** Плейсхолдер */
     readonly messagePostDatePlaceholder = 'advertCreationDatePlaceholder'
+    /** Плейсхолдер */
+    readonly messagePostIdPlaceholder = 'postIdPlaceholder'
     readonly publicationStatusCreated = '🧾 Создана'
     readonly publicationStatusModeration = '📝 Проверка'
     readonly publicationStatusRejected = '🚫 Отклонено'
@@ -161,7 +167,7 @@ export class Moderation {
     readonly publicationTextLink = '[Ссылка на публикацию](postLinkPlaceholder)'
     readonly messageText = '📩 *Сообщение от команды ShinestBot*\n\nID публикации: *advertIdPlaceholder*\nДата подачи заявки: advertCreationDatePlaceholder'
     readonly messageTextModeration = 'Ваше объявление было успешно отправлено на модерацию\n\nID: *advertIdPlaceholder*\nДата подачи заявки: advertCreationDatePlaceholder\n'
-    readonly messageTextAccepted = '🎉 *Поздравляем* 🎉\nВаше объявление было опубликовано\n\nID: *advertIdPlaceholder*\nДата подачи заявки: advertCreationDatePlaceholder\n'
+    readonly messageTextAccepted = '🎉 *Поздравляем* 🎉\nВаше объявление было принято\n\nID: *advertIdPlaceholder*\nДата подачи заявки: advertCreationDatePlaceholder'
     readonly messageTextRejected = '🚫 *Внимание* 🚫\nВаше объявление было Отклонено\n\nID: *advertIdPlaceholder*\nДата подачи заявки: advertCreationDatePlaceholder'
     readonly messageTextNotRelevant = '⚠️ *Внимание* ⚠️\nВаше объявление было отмечено как неактуальное\n\nID: *advertIdPlaceholder*\nДата подачи заявки: advertCreationDatePlaceholder'
     readonly moderationMessageTextNewSearchResult = '✅ *Внимание* ✅\nПоявилось новая публикация, подходящая под ваши фильтры'
@@ -181,4 +187,10 @@ export class UserPublications {
     readonly writeToModeratorError = 'Не удалось отправить ваше сообщение\nПопробуйте еще раз'
     readonly writeToModeratorSuccess = 'Сообщение успешно отправлено'
     readonly finalOptionalAnswerIsNull = '<i>Не указано</i>'
+}
+
+export class ModerationEditing {
+    readonly text = 'Приступить к редактированию заявки?\nid: <b>postIdPlaceholder</b>'
+    readonly textEmpty = 'Укажите id завки, которую хотите редактировать'
+    readonly buttonStartEditing = 'Приступить '
 }

@@ -15,6 +15,7 @@ export namespace SceneName {
         'surveyQuestionStringNumeric',
         'surveyQuestionMedia',
         'userPublications',
+        'moderationEditing',
         /** New scene name placeholder */
     ] as const
 

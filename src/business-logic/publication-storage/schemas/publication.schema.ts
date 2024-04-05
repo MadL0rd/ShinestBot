@@ -32,6 +32,7 @@ export class Publication {
 
 type PlacementTelegram = {
     type: 'telegram'
+    creationDate: Date
     channelId: number
     messageId: number
 }
