@@ -73,7 +73,7 @@ export namespace SurveyFormatter {
         prefix += '\n\n'
         prefix += statusString
 
-        const tgLink = publicationTelegramLink(publication)
+        const tgLink = publicationTelegramLinks(publication)
         if (tgLink) prefix += `\n\n<a href="${tgLink}">Ссылка на пост</a>`
 
         const publicationTagsText = getPublicationTagsString(publication)
@@ -86,17 +86,20 @@ export namespace SurveyFormatter {
         publication: PublicationDocument,
         text: UniqueMessage
     ): string {
-        const tgPublicationLink = publicationTelegramLink(publication)
-        if (tgPublicationLink) {
-            originalText =
-                originalText +
-                '\n\n' +
-                text.moderation.publicationTextLink.replace(
-                    text.moderation.messagePostLinkPlaceholder,
-                    tgPublicationLink
-                )
+        const tgPublicationLinkList = publicationTelegramLinks(publication)
+        let messageText = originalText + '\n'
+
+        if (tgPublicationLinkList?.isNotEmpty) {
+            for (const link of tgPublicationLinkList) {
+                messageText +=
+                    '\n' +
+                    text.moderation.publicationTextLink.replace(
+                        text.moderation.messagePostLinkPlaceholder,
+                        link
+                    )
+            }
         }
-        return originalText
+        return messageText
             .replace(text.moderation.messageAdvertIdPlaceholder, publication._id.toString())
             .replace(
                 text.moderation.messagePostDatePlaceholder,
@@ -166,9 +169,14 @@ export namespace SurveyFormatter {
         }
     }
 
-    export function publicationTelegramLink(publication: Publication): string | null {
+    export function publicationTelegramLinks(publication: Publication): string[] | null {
         if (publication.placementHistory) {
-            return `https://t.me/${internalConstants.publicationMainChannelName}/${publication.placementHistory}`
+            return publication.placementHistory.map(
+                (event) =>
+                    `https://t.me/c/${event.channelId.toString().replace('-100', '')}/${
+                        event.messageId
+                    }`
+            )
         }
         return null
     }

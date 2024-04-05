@@ -158,10 +158,10 @@ export class ModerationChatDispatcherService {
     }
 
     private async handlePlacePublication(publication: PublicationDocument, ctx: Context<Update>) {
-        if (publication.status != 'active') {
+        if (publication.status == 'rejected' || publication.status == 'notRelevant') {
             await this.sendMessageToCurrentThread(
                 ctx,
-                'Опубликовать объявление можно только если заявка обобрена'
+                'Нельзя опубликовать заявки, имеющие статус Отклонённая или Не актуально'
             )
             return
         }
@@ -251,7 +251,7 @@ export class ModerationChatDispatcherService {
             }
         }
 
-        await this.publicationStorageService.update(publication._id.toString(), {
+        await this.moderatedPublicationService.updatePublication(publication._id.toString(), {
             placementHistory: publication.placementHistory,
         })
     }

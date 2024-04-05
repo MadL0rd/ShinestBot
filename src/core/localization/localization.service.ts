@@ -262,6 +262,7 @@ export class LocalizationService {
 
                                 if (!localizedString) return fieldArrayItem.rawValue
                                 // TODO: use propSchema.arrayItemIdIndex while combine array items
+                                // If format is not `${id}${separator}${value}`
                                 return [
                                     `${fieldArrayItem.id}`,
                                     `${localizedString.localizedValues[language]}`,

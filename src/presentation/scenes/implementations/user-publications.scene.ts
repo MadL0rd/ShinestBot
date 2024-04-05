@@ -209,11 +209,13 @@ export class UserPublicationsScene extends Scene<ISceneData, SceneEnterDataType>
                 ),
             ])
 
-            const tgLink = SurveyFormatter.publicationTelegramLink(publication)
-            if (tgLink) {
-                inlineKeyboard.push([
-                    Markup.button.url(this.text.userPublications.buttonLinkTelegram, tgLink),
-                ])
+            const tgLinkList = SurveyFormatter.publicationTelegramLinks(publication)
+            if (tgLinkList) {
+                inlineKeyboard.push(
+                    tgLinkList.map((link) =>
+                        Markup.button.url(this.text.userPublications.buttonLinkTelegram, link)
+                    )
+                )
             }
 
             await ctx.replyWithHTML(publicationText, {

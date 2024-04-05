@@ -171,6 +171,7 @@ export class Moderation {
     readonly messageTextRejected = '🚫 *Внимание* 🚫\nВаше объявление было Отклонено\n\nID: *advertIdPlaceholder*\nДата подачи заявки: advertCreationDatePlaceholder'
     readonly messageTextNotRelevant = '⚠️ *Внимание* ⚠️\nВаше объявление было отмечено как неактуальное\n\nID: *advertIdPlaceholder*\nДата подачи заявки: advertCreationDatePlaceholder'
     readonly moderationMessageTextNewSearchResult = '✅ *Внимание* ✅\nПоявилось новая публикация, подходящая под ваши фильтры'
+    readonly moderationMessagePublicationEdited = '✅ *Внимание* ✅\n\nЗаявка была обновлена'
 }
 
 export class UserPublications {
@@ -191,6 +192,6 @@ export class UserPublications {
 
 export class ModerationEditing {
     readonly text = 'Приступить к редактированию заявки?\nid: <b>postIdPlaceholder</b>'
-    readonly textEmpty = 'Укажите id завки, которую хотите редактировать'
-    readonly buttonStartEditing = 'Приступить '
+    readonly textEmpty = 'В данный момент вы не редактируете ни одну заявку'
+    readonly buttonStartEditing = 'Приступить'
 }

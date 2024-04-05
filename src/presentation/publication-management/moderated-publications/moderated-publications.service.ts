@@ -153,8 +153,9 @@ export class ModeratedPublicationsService {
         const botContent = await this.botContentService.getContent(publicationDocument.language)
         const text = botContent.uniqueMessage
 
+        if (updateDto.placementHistory) return
+
         // Update status in moderation channel
-        // TODO: Добавить ссылки на публикации в канале модераторов
         if (publicationDocument.moderationChannelPublicationId) {
             try {
                 const user = await this.userService.findOneByTelegramId(
@@ -171,6 +172,34 @@ export class ModeratedPublicationsService {
                         link_preview_options: { is_disabled: true },
                     }
                 )
+
+                const inlineKeyboard: InlineKeyboardButton[][] = []
+                const tgLinkList = SurveyFormatter.publicationTelegramLinks(publicationDocument)
+
+                if (tgLinkList) {
+                    inlineKeyboard.push(
+                        tgLinkList.map((link) =>
+                            Markup.button.url(text.userPublications.buttonLinkTelegram, link)
+                        )
+                    )
+                }
+
+                if (
+                    publicationDocument.moderationChatThreadMessageId &&
+                    publicationDocument.status != 'moderation'
+                ) {
+                    await this.bot.telegram.sendMessage(
+                        internalConstants.moderationChatId,
+                        text.moderation.moderationMessagePublicationEdited.toString(),
+                        {
+                            reply_parameters: {
+                                message_id: publicationDocument.moderationChatThreadMessageId,
+                            },
+                            reply_markup: { inline_keyboard: inlineKeyboard },
+                            parse_mode: 'HTML',
+                        }
+                    )
+                }
             } catch (error) {
                 logger.error(
                     `Fail to update publication status in moderation channel \nPublication id: '${publicationDocumentId}'`,
