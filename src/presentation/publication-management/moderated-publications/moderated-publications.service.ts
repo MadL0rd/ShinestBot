@@ -137,12 +137,13 @@ export class ModeratedPublicationsService {
         return
     }
 
-    async updatePublicationStatus(publicationDocumentId: string, status: PublicationStatus.Union) {
+    async updatePublication(
+        publicationDocumentId: string,
+        updateDto: Partial<PublicationDocument>
+    ) {
         const publicationDocument = await this.publicationStorageService.update(
             publicationDocumentId,
-            {
-                status: status,
-            }
+            updateDto
         )
         if (!publicationDocument)
             throw Error(
@@ -151,9 +152,6 @@ export class ModeratedPublicationsService {
 
         const botContent = await this.botContentService.getContent(publicationDocument.language)
         const text = botContent.uniqueMessage
-
-        const inlineKeyboardMainPublication: InlineKeyboardButton[][] = []
-        if (!publicationDocument) return
 
         // Update status in moderation channel
         // TODO: Добавить ссылки на публикации в канале модераторов
@@ -182,6 +180,7 @@ export class ModeratedPublicationsService {
         }
 
         // Update status in main channel
+        const inlineKeyboardMainPublication: InlineKeyboardButton[][] = []
         if (publicationDocument.placementHistory) {
             const publicationContainsMedia = publicationDocument.answers.some(
                 (answer) =>
@@ -233,6 +232,22 @@ export class ModeratedPublicationsService {
                 }
             }
         }
+    }
+
+    async updatePublicationStatus(publicationDocumentId: string, status: PublicationStatus.Union) {
+        await this.updatePublication(publicationDocumentId, {
+            status: status,
+        })
+        const publicationDocument = await this.publicationStorageService.findById(
+            publicationDocumentId
+        )
+        if (!publicationDocument)
+            throw Error(
+                `Fail to update publication status: publication with id '${publicationDocumentId}' does not exists`
+            )
+
+        const botContent = await this.botContentService.getContent(publicationDocument.language)
+        const text = botContent.uniqueMessage
 
         // Notify user
         let textForUser = ''

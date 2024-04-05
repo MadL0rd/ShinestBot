@@ -13,6 +13,10 @@ import { MediaGroup } from 'node_modules/telegraf/typings/telegram-types'
 import { SurveyUsageHelpers } from 'src/business-logic/bot-content/schemas/models/bot-content.survey'
 import { InjectBot } from 'nestjs-telegraf'
 import { ModeratedPublicationsService } from 'src/presentation/publication-management/moderated-publications/moderated-publications.service'
+import { generateInlineButtonSegue } from 'src/presentation/utils/inline-button.utils'
+import { SceneCallbackAction } from 'src/presentation/scenes/models/scene-callback'
+import { getActiveUserPermissionNames } from 'src/utils/getActiveUserPermissions'
+import { User } from 'src/business-logic/user/schemas/user.schema'
 
 @Injectable()
 export class ModerationChatDispatcherService {
@@ -56,7 +60,22 @@ export class ModerationChatDispatcherService {
             logger.log(`Cannot find publication with thread message id ${threadMessageId}`)
             return
         }
-        // TODO: добавить проверку на модера сюда
+
+        const user = await this.userService.findOneByTelegramId(ctx.message.from.id)
+        const activeUserPermissionNames = user ? getActiveUserPermissionNames(user) : []
+        if (
+            !user ||
+            (!activeUserPermissionNames.includes('admin') &&
+                !activeUserPermissionNames.includes('owner'))
+        ) {
+            await this.sendMessageToCurrentThread(ctx, 'Access denied')
+            const userJsonString = JSON.stringify(ctx.from)
+            logger.error(
+                `В модераторском чате обраружен кто-то лишний. Решите вопрос!\n${userJsonString}`
+            )
+            return
+        }
+
         const botContent = await this.botContentService.getContent(
             internalConstants.defaultLanguage
         )
@@ -73,6 +92,10 @@ export class ModerationChatDispatcherService {
                 case botContent.uniqueMessage.moderationCommand.notRelevant:
                     await this.handlePublicationNotRelevant(publication, ctx)
                     return
+
+                case botContent.uniqueMessage.moderationCommand.edit:
+                    await this.handleEditPublication(user, publication, ctx)
+                    return
             }
         }
 
@@ -87,6 +110,52 @@ export class ModerationChatDispatcherService {
     // =====================
     // Private methods
     // =====================
+
+    private async handleEditPublication(
+        admin: User,
+        publication: PublicationDocument,
+        ctx: Context<Update>
+    ) {
+        // if (publication.status == 'notRelevant' || publication.status == 'rejected') {
+        //     await this.sendMessageToCurrentThread(
+        //         ctx,
+        //         "Нельзя перевести в режим ручного редактирования заявки со статусом 'Не актуально' или 'Отклонено'"
+        //     )
+        // }
+        if (!ctx.message) {
+            await this.sendMessageToCurrentThread(
+                ctx,
+                'Не найдено предыдущее сообщения для обработки'
+            )
+            return
+        }
+
+        admin.internalInfo.adminsOnly.modifyingPublicationIdPrepared = publication._id.toString()
+        await this.userService.update(admin)
+
+        const inlineKeyboard: InlineKeyboardButton[][] = []
+        inlineKeyboard.push([
+            generateInlineButtonSegue({
+                text: 'Редактировать заявку',
+                action: SceneCallbackAction.segueButton,
+                data: {
+                    segueSceneName: 'moderationEditing',
+                },
+            }),
+        ])
+        await ctx.telegram.sendMessage(
+            admin.telegramId,
+            `Вы перевели завяку <b>${publication.id}</b> в режим ручного редактирования. Что приступить, нажмите на кнопку ниже`,
+            {
+                parse_mode: 'HTML',
+                reply_markup: {
+                    inline_keyboard: inlineKeyboard,
+                },
+            }
+        )
+        // Notify admin
+        await this.sendSuccessMessageToCurrentThread(ctx)
+    }
 
     private async handlePlacePublication(publication: PublicationDocument, ctx: Context<Update>) {
         if (publication.status != 'active') {
@@ -171,6 +240,7 @@ export class ModerationChatDispatcherService {
                 publication.placementHistory.push({
                     type: 'telegram',
                     channelId: mainChannelPost.chat.id,
+                    creationDate: new Date(),
                     messageId: mainChannelPost.message_id,
                 })
             } catch {

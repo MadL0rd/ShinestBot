@@ -65,6 +65,7 @@ export class PrivateDialogDispatcherService {
                 permissions: [],
                 notificationsSchedule: {},
                 publications: [],
+                adminsOnly: {},
             },
         })
 
@@ -379,6 +380,7 @@ export class PrivateDialogDispatcherService {
                 permissions: [],
                 notificationsSchedule: {},
                 publications: [],
+                adminsOnly: {},
             },
         })
         const userActivePermissions = getActiveUserPermissionNames(user)
