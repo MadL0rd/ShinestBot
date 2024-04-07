@@ -6,7 +6,6 @@ import { UserService } from 'src/business-logic/user/user.service'
 import { PublicationStorageService } from 'src/business-logic/publication-storage/publication-storage.service'
 import { internalConstants } from 'src/app/app.internal-constants'
 import { logger } from 'src/app/app.logger'
-import { getLanguageFor } from 'src/utils/getLanguageForUser'
 import { SurveyFormatter } from 'src/utils/survey-formatter'
 import { PublicationDocument } from 'src/business-logic/publication-storage/schemas/publication.schema'
 import { MediaGroup } from 'node_modules/telegraf/typings/telegram-types'
@@ -15,8 +14,7 @@ import { InjectBot } from 'nestjs-telegraf'
 import { ModeratedPublicationsService } from 'src/presentation/publication-management/moderated-publications/moderated-publications.service'
 import { generateInlineButtonSegue } from 'src/presentation/utils/inline-button.utils'
 import { SceneCallbackAction } from 'src/presentation/scenes/models/scene-callback'
-import { getActiveUserPermissionNames } from 'src/utils/getActiveUserPermissions'
-import { UserProfile } from 'src/entities/user-profile/user-profile.entity'
+import { UserProfile } from 'src/entities/user-profile'
 
 @Injectable()
 export class ModerationChatDispatcherService {
@@ -62,11 +60,10 @@ export class ModerationChatDispatcherService {
         }
 
         const user = await this.userService.findOneByTelegramId(ctx.message.from.id)
-        const activeUserPermissionNames = user ? getActiveUserPermissionNames(user) : []
+        const activePermissionNames = user ? UserProfile.Helper.getActivePermissionNames(user) : []
         if (
             !user ||
-            (!activeUserPermissionNames.includes('admin') &&
-                !activeUserPermissionNames.includes('owner'))
+            (!activePermissionNames.includes('admin') && !activePermissionNames.includes('owner'))
         ) {
             await this.sendMessageToCurrentThread(ctx, 'Access denied')
             const userJsonString = JSON.stringify(ctx.from)
@@ -112,7 +109,7 @@ export class ModerationChatDispatcherService {
     // =====================
 
     private async handleEditPublication(
-        admin: UserProfile,
+        admin: UserProfile.BaseType,
         publication: PublicationDocument,
         ctx: Context<Update>
     ) {
@@ -361,7 +358,7 @@ export class ModerationChatDispatcherService {
             logger.error(`Cannot find user by id: ${userId} `)
             return null
         }
-        const userLanguage = getLanguageFor(user)
+        const userLanguage = UserProfile.Helper.getLanguageFor(user)
         const botContent = await this.botContentService.getContent(userLanguage)
         const adminMessageText = SurveyFormatter.makeUserMessageWithPublicationInfo(
             botContent.uniqueMessage.moderation.messageText,

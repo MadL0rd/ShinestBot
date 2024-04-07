@@ -5,25 +5,22 @@ import { CreateUserDto } from './dto/create-user.dto'
 import { UpdateUserDto } from './dto/update-user.dto'
 import { logger } from 'src/app/app.logger'
 import { UserHistoryEvent } from './enums/user-history-event.enum'
-import { UserInternalInfo } from '../../entities/user-profile/nested/user.internal-info'
-import { UserDocument, UserSchema } from './schemas/user.schema'
-import { UserHistoryRecord } from 'src/entities/user-profile/user-profile.entity'
+import { UserProfileDocument, UserProfileSchema } from './schemas/user.schema'
+import { UserProfile } from 'src/entities/user-profile'
 
 @Injectable()
 export class UserService {
-    constructor(@InjectModel(UserSchema.name) private userModel: Model<UserDocument>) {}
+    constructor(
+        @InjectModel(UserProfileSchema.name) private userModel: Model<UserProfileDocument>
+    ) {}
 
-    async createIfNeededAndGet(createUserDto: CreateUserDto): Promise<UserDocument> {
+    async createIfNeededAndGet(createUserDto: CreateUserDto): Promise<UserProfileDocument> {
         const existingUser = await this.findOneByTelegramId(createUserDto.telegramId)
         if (existingUser) {
             return existingUser
         }
 
         const createdUser = new this.userModel(createUserDto)
-        if (!createdUser.internalInfo) {
-            createdUser.internalInfo = new UserInternalInfo()
-        }
-        await createdUser.save()
         await this.logToUserHistory(
             createdUser,
             UserHistoryEvent.start,
@@ -33,7 +30,7 @@ export class UserService {
         return createdUser
     }
 
-    async update(updateUserDto: UpdateUserDto): Promise<UserDocument | null> {
+    async update(updateUserDto: UpdateUserDto): Promise<UserProfileDocument | null> {
         return this.userModel
             .findOneAndUpdate({ telegramId: updateUserDto.telegramId }, updateUserDto)
             .lean()
@@ -43,7 +40,7 @@ export class UserService {
     //=====
     // Get User document without user history
     //=====
-    async findOneByTelegramId(telegramId: number): Promise<UserDocument | null> {
+    async findOneByTelegramId(telegramId: number): Promise<UserProfileDocument | null> {
         return this.userModel
             .findOne({ telegramId: telegramId })
             .select({ userHistory: 0 })
@@ -51,7 +48,7 @@ export class UserService {
             .exec()
     }
 
-    async findOneById(id: string): Promise<UserDocument | null> {
+    async findOneById(id: string): Promise<UserProfileDocument | null> {
         try {
             const user = await this.userModel.findById(id).exec()
             return user
@@ -61,7 +58,7 @@ export class UserService {
         }
     }
 
-    async findByTelegramUsername(telegramUsername: string): Promise<UserDocument | null> {
+    async findByTelegramUsername(telegramUsername: string): Promise<UserProfileDocument | null> {
         if (telegramUsername.includes('@', 0)) {
             telegramUsername = telegramUsername.replace('@', '')
         }
@@ -83,14 +80,16 @@ export class UserService {
         return ids
     }
 
-    async findAll(): Promise<UserDocument[]> {
+    async findAll(): Promise<UserProfileDocument[]> {
         return this.userModel.find({}).select({ userHistory: 0 }).lean().exec()
     }
 
     //=====
     // Get user history from User document
     //=====
-    async findUserHistoryByTelegramId(telegramId: number): Promise<UserHistoryRecord[]> {
+    async findUserHistoryByTelegramId(
+        telegramId: number
+    ): Promise<UserProfile.UserHistoryRecord[]> {
         const result = await this.userModel
             .findOne({ telegramId: telegramId })
             .select({ userHistory: 1 })
@@ -100,11 +99,11 @@ export class UserService {
     }
 
     async logToUserHistory(
-        user: UserDocument,
+        user: UserProfileDocument,
         event: UserHistoryEvent,
         content?: object | string
     ): Promise<void> {
-        const historyStep: UserHistoryRecord = {
+        const historyStep: UserProfile.UserHistoryRecord = {
             timeStamp: new Date(),
             event: event,
             content: content,

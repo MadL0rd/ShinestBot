@@ -7,11 +7,11 @@ import { _UserProfileEntity as UserProfile } from './user-profile.entity'
 export namespace _UserProfileHelper {
     export function getActivePermissionNames(
         user: UserProfile.BaseType
-    ): UserProfile.InternalInfo.PermissionNames.Union[] {
+    ): UserProfile.PermissionNames.Union[] {
         return (
             user.internalInfo?.permissions?.compactMap((permission) => {
                 if (permission.expirationDate && permission.expirationDate < new Date()) return null
-                return UserProfile.InternalInfo.PermissionNames.castToInstance(
+                return UserProfile.PermissionNames.castToInstance(
                     permission.permissionName
                 )
             }) ?? []

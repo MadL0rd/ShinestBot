@@ -5,8 +5,6 @@ import { UserService } from 'src/business-logic/user/user.service'
 import { SceneName } from 'src/presentation/scenes/models/scene-name.enum'
 import { logger } from 'src/app/app.logger'
 import { UserHistoryEvent } from 'src/business-logic/user/enums/user-history-event.enum'
-import { getActiveUserPermissionNames } from 'src/utils/getActiveUserPermissions'
-import { getLanguageFor } from 'src/utils/getLanguageForUser'
 import { plainToClass } from 'class-transformer'
 import {
     Update,
@@ -24,6 +22,7 @@ import {
 import { SceneFactoryService } from 'src/presentation/scenes/scene-factory/scene-factory.service'
 import { BotContent } from 'src/business-logic/bot-content/schemas/bot-content.schema'
 import { SceneEntrance } from 'src/presentation/scenes/models/scene-entrance.interface'
+import { UserProfile } from 'src/entities/user-profile'
 
 @Injectable()
 export class PrivateDialogDispatcherService {
@@ -67,6 +66,11 @@ export class PrivateDialogDispatcherService {
                 publications: [],
                 adminsOnly: {},
             },
+            sceneData: {
+                sceneName: undefined,
+                data: undefined,
+            },
+            userHistory: [],
         })
 
         await this.userService.logToUserHistory(user, UserHistoryEvent.start, `${startParam}`)
@@ -382,10 +386,15 @@ export class PrivateDialogDispatcherService {
                 publications: [],
                 adminsOnly: {},
             },
+            sceneData: {
+                sceneName: undefined,
+                data: undefined,
+            },
+            userHistory: [],
         })
-        const userActivePermissions = getActiveUserPermissionNames(user)
+        const userActivePermissions = UserProfile.Helper.getActivePermissionNames(user)
 
-        const userLanguage = getLanguageFor(user)
+        const userLanguage = UserProfile.Helper.getLanguageFor(user)
         const botContent = await this.botContentService.getContent(userLanguage)
 
         return {

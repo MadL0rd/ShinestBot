@@ -3,8 +3,7 @@ import { BotContent } from 'src/business-logic/bot-content/schemas/bot-content.s
 import { MediaContent } from 'src/business-logic/bot-content/schemas/models/bot-content.media-content'
 import { UniqueMessage } from 'src/business-logic/bot-content/schemas/models/bot-content.unique-message'
 import { UserHistoryEvent } from 'src/business-logic/user/enums/user-history-event.enum'
-import { UserPermissionNames } from 'src/entities/user-profile/nested/user-permission-names.enum'
-import { UserDocument } from 'src/business-logic/user/schemas/user.schema'
+import { UserProfileDocument } from 'src/business-logic/user/schemas/user.schema'
 import { UserService } from 'src/business-logic/user/user.service'
 import { Context, Markup } from 'telegraf'
 import {
@@ -28,6 +27,7 @@ import {
 } from './scene.interface'
 import { SceneCallbackData } from './scene-callback'
 import { InlineButtonDto, generateInlineButton } from 'src/presentation/utils/inline-button.utils'
+import { UserProfile } from 'src/entities/user-profile'
 
 export abstract class Scene<SceneDataType extends object, SceneEnterDataType extends object>
     implements IScene
@@ -37,8 +37,8 @@ export abstract class Scene<SceneDataType extends object, SceneEnterDataType ext
     // =====================
     private _content: BotContent
     private _text: UniqueMessage
-    private _user: UserDocument
-    private _userActivePermissions: UserPermissionNames.Union[]
+    private _user: UserProfileDocument
+    private _userActivePermissions: UserProfile.PermissionNames.Union[]
 
     // =====================
     // Protected properties:
@@ -47,10 +47,10 @@ export abstract class Scene<SceneDataType extends object, SceneEnterDataType ext
     protected readonly completion = new SceneHandlerCompletionTemplates<SceneDataType>()
     protected readonly historyEvent = UserHistoryEvent
 
-    protected get user(): UserDocument {
+    protected get user(): UserProfileDocument {
         return this._user
     }
-    protected get userActivePermissions(): UserPermissionNames.Union[] {
+    protected get userActivePermissions(): UserProfile.PermissionNames.Union[] {
         return this._userActivePermissions
     }
     protected get content(): BotContent {

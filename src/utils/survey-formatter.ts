@@ -11,7 +11,7 @@ import {
     Publication,
     PublicationDocument,
 } from 'src/business-logic/publication-storage/schemas/publication.schema'
-import { UserProfile } from 'src/entities/user-profile/user-profile.entity'
+import { UserProfile } from 'src/entities/user-profile'
 
 export namespace SurveyFormatter {
     export function generateTextFromPassedAnswers(
@@ -51,7 +51,7 @@ export namespace SurveyFormatter {
     export function moderationSynchronizedText(
         publication: PublicationDocument,
         text: UniqueMessage,
-        author: UserProfile
+        author: UserProfile.BaseType
     ): string {
         let PublicationText = ''
         for (let i = 0; i < publication.answers.length; i++) {

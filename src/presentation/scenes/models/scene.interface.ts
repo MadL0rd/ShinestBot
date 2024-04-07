@@ -3,9 +3,9 @@ import { SceneName } from './scene-name.enum'
 import { Update } from 'telegraf/types'
 import { SceneCallbackData } from './scene-callback'
 import { BotContent } from 'src/business-logic/bot-content/schemas/bot-content.schema'
-import { UserPermissionNames } from 'src/entities/user-profile/nested/user-permission-names.enum'
 import { SceneEntrance } from './scene-entrance.interface'
-import { UserDocument } from 'src/business-logic/user/schemas/user.schema'
+import { UserProfileDocument } from 'src/business-logic/user/schemas/user.schema'
+import { UserProfile } from 'src/entities/user-profile'
 
 export interface IScene {
     readonly name: SceneName.Union
@@ -60,7 +60,7 @@ export interface PermissionsValidationResult {
  * Value of all remote content localized by user language
  */
 export interface SceneUserContext {
-    readonly user: UserDocument
-    readonly userActivePermissions: UserPermissionNames.Union[]
+    readonly user: UserProfileDocument
+    readonly userActivePermissions: UserProfile.PermissionNames.Union[]
     readonly botContent: BotContent
 }

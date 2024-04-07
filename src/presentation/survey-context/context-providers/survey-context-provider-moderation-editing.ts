@@ -9,14 +9,13 @@ import {
 } from 'src/business-logic/bot-content/schemas/models/bot-content.survey'
 import { UserService } from 'src/business-logic/user/user.service'
 import { BotContent } from 'src/business-logic/bot-content/schemas/bot-content.schema'
-import { UserProfile } from 'src/entities/user-profile/user-profile.entity'
 import { internalConstants } from 'src/app/app.internal-constants'
-import { getLanguageFor } from 'src/utils/getLanguageForUser'
 import { BotContentService } from 'src/business-logic/bot-content/bot-content.service'
 import { SceneEntrance } from 'src/presentation/scenes/models/scene-entrance.interface'
 import { ModeratedPublicationsService } from 'src/presentation/publication-management/moderated-publications/moderated-publications.service'
 import { PublicationStorageService } from 'src/business-logic/publication-storage/publication-storage.service'
 import { logger } from 'src/app/app.logger'
+import { UserProfile } from 'src/entities/user-profile'
 
 @Injectable()
 export class SurveyContextModerationEditingService implements ISurveyContextProvider {
@@ -33,7 +32,7 @@ export class SurveyContextModerationEditingService implements ISurveyContextProv
     // Public methods
     // =====================
 
-    async validateUserCanStartSurvey(user: UserProfile): Promise<ValidationResult> {
+    async validateUserCanStartSurvey(user: UserProfile.BaseType): Promise<ValidationResult> {
         const publicationDocumentId = user.internalInfo.adminsOnly.modifyingPublicationIdCurrent
         if (!publicationDocumentId) return { canStartSurvey: false }
 
@@ -45,12 +44,12 @@ export class SurveyContextModerationEditingService implements ISurveyContextProv
         return { canStartSurvey: true }
     }
 
-    async getSurvey(user: UserProfile): Promise<Survey.Model> {
+    async getSurvey(user: UserProfile.BaseType): Promise<Survey.Model> {
         const botContent = await this.getBotContentFor(user)
         return botContent.survey
     }
 
-    async getAnswersCache(user: UserProfile): Promise<Survey.PassedAnswersCache> {
+    async getAnswersCache(user: UserProfile.BaseType): Promise<Survey.PassedAnswersCache> {
         const botContent = await this.getBotContentFor(user)
         const cache = this.getCacheWithoutLocalization(user)
         if (cache.contentLanguage == botContent.language) return cache
@@ -72,7 +71,7 @@ export class SurveyContextModerationEditingService implements ISurveyContextProv
         return cacheLocalized
     }
 
-    async getAnswersCacheStable(user: UserProfile): Promise<Survey.PassedAnswersCache> {
+    async getAnswersCacheStable(user: UserProfile.BaseType): Promise<Survey.PassedAnswersCache> {
         const cache = await this.getAnswersCache(user)
 
         // Remove answers with unsupported options
@@ -118,30 +117,36 @@ export class SurveyContextModerationEditingService implements ISurveyContextProv
         return cache
     }
 
-    async setAnswersCache(user: UserProfile, cache: Survey.PassedAnswersCache | undefined): Promise<void> {
+    async setAnswersCache(
+        user: UserProfile.BaseType,
+        cache: Survey.PassedAnswersCache | undefined
+    ): Promise<void> {
         user.internalInfo.publicationEditingCache = cache
         await this.userService.update(user)
     }
 
-    async clearAnswersCache(user: UserProfile): Promise<void> {
+    async clearAnswersCache(user: UserProfile.BaseType): Promise<void> {
         await this.setAnswersCache(user, undefined)
     }
 
-    async popAnswerFromCache(user: UserProfile): Promise<Survey.PassedAnswer | undefined> {
+    async popAnswerFromCache(user: UserProfile.BaseType): Promise<Survey.PassedAnswer | undefined> {
         const cache = this.getCacheWithoutLocalization(user)
         const popedAnswer = cache.passedAnswers.pop()
         await this.setAnswersCache(user, cache)
         return popedAnswer
     }
 
-    async pushAnswerToCache(user: UserProfile, answer: Survey.PassedAnswer): Promise<void> {
+    async pushAnswerToCache(
+        user: UserProfile.BaseType,
+        answer: Survey.PassedAnswer
+    ): Promise<void> {
         const cache = this.getCacheWithoutLocalization(user)
         cache.passedAnswers.push(answer)
         await this.setAnswersCache(user, cache)
     }
 
     async completeSurveyAndGetNextScene(
-        user: UserProfile
+        user: UserProfile.BaseType
     ): Promise<SceneEntrance.SomeSceneDto | undefined> {
         const publicationDocumentId = user.internalInfo.adminsOnly?.modifyingPublicationIdCurrent
         if (!publicationDocumentId) {
@@ -169,12 +174,12 @@ export class SurveyContextModerationEditingService implements ISurveyContextProv
     // Private methods
     // =====================
 
-    private async getBotContentFor(user: UserProfile): Promise<BotContent> {
-        const userLanguage = getLanguageFor(user)
+    private async getBotContentFor(user: UserProfile.BaseType): Promise<BotContent> {
+        const userLanguage = UserProfile.Helper.getLanguageFor(user)
         return await this.botContentService.getContent(userLanguage)
     }
 
-    private getCacheWithoutLocalization(user: UserProfile): Survey.PassedAnswersCache {
+    private getCacheWithoutLocalization(user: UserProfile.BaseType): Survey.PassedAnswersCache {
         const cache: Survey.PassedAnswersCache = user.internalInfo.publicationEditingCache ?? {
             contentLanguage: user.internalInfo.language ?? internalConstants.defaultLanguage,
             passedAnswers: [],

@@ -3,6 +3,7 @@ import { UserHistoryEvent } from 'src/business-logic/user/enums/user-history-eve
 import { _UserProfileFormatter } from './user-profile.formatter'
 import { _UserProfileHelper } from './user-profile.helper'
 import { _UserProfileInternalInfo } from './nested/internal-info.entity'
+import { _UserProfilePermissionNames } from './nested/permission-names.enum'
 
 /**
  * Namespace for UserProfile entity related functionality.
@@ -21,6 +22,7 @@ export namespace _UserProfileEntity {
     }
 
     export import InternalInfo = _UserProfileInternalInfo
+    export import PermissionNames = _UserProfilePermissionNames
 
     export type TelegramInfo = {
         id: number
