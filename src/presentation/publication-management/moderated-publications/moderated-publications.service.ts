@@ -213,9 +213,7 @@ export class ModeratedPublicationsService {
         if (publicationDocument.placementHistory) {
             const publicationContainsMedia = publicationDocument.answers.some(
                 (answer) =>
-                    SurveyUsageHelpers.isMediaType(answer.type) &&
-                    'media' in answer &&
-                    answer.media.isNotEmpty
+                    SurveyUsageHelpers.isPassedAnswerMediaType(answer) && answer.media.isNotEmpty
             )
             for (const placement of publicationDocument.placementHistory) {
                 if (publicationContainsMedia) {

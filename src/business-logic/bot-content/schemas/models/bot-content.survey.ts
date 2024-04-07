@@ -84,13 +84,12 @@ export namespace Survey {
         readonly mediaMaxCount: number
     }
 
+    export type AnswerTypeMedia = AnswerTypeImage | AnswerTypeVideo | AnswerTypeMediaGroup
     export type AnswerType =
         | AnswerTypeWithOptions
         | AnswerTypeNumeric
         | AnswerTypeString
-        | AnswerTypeImage
-        | AnswerTypeVideo
-        | AnswerTypeMediaGroup
+        | AnswerTypeMedia
 
     export type AnswerTypeName = Survey.AnswerType['type']
 
@@ -181,8 +180,10 @@ export namespace SurveyCacheHelpers {
 }
 
 export namespace SurveyUsageHelpers {
-    export function isMediaType(answerType: Survey.AnswerTypeName): boolean {
-        switch (answerType) {
+    export function isPassedAnswerMediaType(
+        answer: Survey.PassedAnswer
+    ): answer is Survey.PassedAnswerMedia {
+        switch (answer.type) {
             case 'string':
             case 'options':
             case 'numeric':

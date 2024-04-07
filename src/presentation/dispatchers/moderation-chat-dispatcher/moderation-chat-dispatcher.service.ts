@@ -180,13 +180,11 @@ export class ModerationChatDispatcherService {
 
         // Try to find media
         const mediaGroupArgs: MediaGroup = publication.answers
-            .filter(
-                (answer) =>
-                    answer.question.addAnswerToTelegramPublication &&
-                    SurveyUsageHelpers.isMediaType(answer.type)
-            )
             .compactMap((answer) => {
-                return 'media' in answer ? answer.media : null
+                return answer.question.addAnswerToTelegramPublication &&
+                    SurveyUsageHelpers.isPassedAnswerMediaType(answer)
+                    ? answer.media
+                    : null
             })
             .flat()
             .map((media) => {

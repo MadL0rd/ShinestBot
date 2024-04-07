@@ -133,13 +133,11 @@ export namespace SurveyFormatter {
     ): string {
         let publicationText = ''
 
-        for (let i = 0; i < publication.answers.length; i++) {
-            const answer = publication.answers[i]
+        for (const answer of publication.answers) {
             if (answer.question.addAnswerToTelegramPublication == false) continue
+            if (SurveyUsageHelpers.isPassedAnswerMediaType(answer)) continue
 
             const answerStringValue = SurveyUsageHelpers.getAnswerStringValue(answer, text)
-            if (!answerStringValue || SurveyUsageHelpers.isMediaType(answer.question.type)) continue
-
             publicationText += `${answer.question.publicTitle}: <b>${answerStringValue}</b>\n`
         }
 
