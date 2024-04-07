@@ -6,12 +6,19 @@ import { UpdateUserDto } from './dto/update-user.dto'
 import { logger } from 'src/app/app.logger'
 import { UserHistoryEvent } from './enums/user-history-event.enum'
 import { UserProfileDocument, UserProfileSchema } from './schemas/user.schema'
-import { UserProfile } from 'src/entities/user-profile'
+import {
+    UserEventsHistorySchema,
+    UserEventsHistoryDocument,
+    UserHistoryEventModel,
+} from './schemas/user-history-event.schema'
+import { CreateUserEventsHistory } from './dto/create-user-events-history.dto'
 
 @Injectable()
 export class UserService {
     constructor(
-        @InjectModel(UserProfileSchema.name) private userModel: Model<UserProfileDocument>
+        @InjectModel(UserProfileSchema.name) private readonly userModel: Model<UserProfileDocument>,
+        @InjectModel(UserEventsHistorySchema.name)
+        private modelHistory: Model<UserEventsHistoryDocument>
     ) {}
 
     async createIfNeededAndGet(createUserDto: CreateUserDto): Promise<UserProfileDocument> {
@@ -21,11 +28,7 @@ export class UserService {
         }
 
         const createdUser = new this.userModel(createUserDto)
-        await this.logToUserHistory(
-            createdUser,
-            UserHistoryEvent.start,
-            'Начало сохранения истории пользователя'
-        )
+        await this.logToUserHistory(createdUser, { type: 'start', startParam: null })
         logger.log('Create user', createUserDto)
         return createdUser
     }
@@ -87,38 +90,48 @@ export class UserService {
     //=====
     // Get user history from User document
     //=====
+
+    async createUserEventsHistoryDocument(
+        dto: CreateUserEventsHistory
+    ): Promise<UserEventsHistoryDocument> {
+        return await this.modelHistory.create(dto)
+    }
+
+    async logToUserHistory<EventName extends UserHistoryEvent.EventTypeName>(
+        user: UserProfileDocument,
+        event: UserHistoryEvent.SomeEventType<EventName>
+    ): Promise<void> {
+        const eventModel: UserHistoryEventModel = { ...event, date: new Date() }
+
+        const existingRecord = await this.modelHistory
+            .findOne({ telegramId: user.telegramId })
+            .select({ telegramId: 1 })
+            .lean()
+            .exec()
+        if (!existingRecord) {
+            await this.createUserEventsHistoryDocument({
+                telegramId: user.telegramId,
+                userProfileId: user._id.toString(),
+                eventsHistory: [],
+            })
+        }
+
+        await this.modelHistory
+            .updateOne(
+                { telegramId: user.telegramId },
+                { $push: { eventsHistory: eventModel } },
+                { lean: true, new: true }
+            )
+            .exec()
+    }
+
     async findUserHistoryByTelegramId(
         telegramId: number
-    ): Promise<UserProfile.UserHistoryRecord[]> {
-        const result = await this.userModel
+    ): Promise<UserEventsHistoryDocument | null> {
+        return await this.modelHistory
             .findOne({ telegramId: telegramId })
             .select({ userHistory: 1 })
             .lean()
-            .exec()
-        return result?.userHistory ?? []
-    }
-
-    async logToUserHistory(
-        user: UserProfileDocument,
-        event: UserHistoryEvent,
-        content?: object | string
-    ): Promise<void> {
-        const historyStep: UserProfile.UserHistoryRecord = {
-            timeStamp: new Date(),
-            event: event,
-            content: content,
-        }
-        /*let existingHistory = await this.findUserHistoryByTelegramId(user.telegramId)
-        existingHistory ? existingHistory.push(historyStep) : (existingHistory = [historyStep])
-        user.userHistory = existingHistory
-        await user.save()*/
-
-        await this.userModel
-            .updateOne(
-                { telegramId: user.telegramId },
-                { $push: { userHistory: historyStep } },
-                { lean: true, new: true }
-            )
             .exec()
     }
 }

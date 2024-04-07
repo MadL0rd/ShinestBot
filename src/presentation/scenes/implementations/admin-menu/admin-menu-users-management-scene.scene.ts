@@ -58,7 +58,7 @@ export class AdminMenuUsersManagementSceneScene extends Scene<ISceneData, SceneE
         logger.log(
             `${this.name} scene handleEnterScene. User: ${this.user.telegramInfo.id} ${this.user.telegramInfo.username}`
         )
-        await this.logToUserHistory(this.historyEvent.startSceneAdminMenuUsersManagementScene)
+        await this.logToUserHistory({ type: 'startSceneAdminMenuUsersManagementScene' })
 
         await ctx.replyWithHTML(
             this.text.adminMenu.usersManagementTextFindUser,

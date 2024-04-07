@@ -16,9 +16,6 @@ export class UserProfileSchema implements UserProfile.BaseType {
 
     @Prop({ type: mongoose.Schema.Types.Mixed })
     internalInfo: UserProfile.InternalInfo.BaseType
-
-    @Prop()
-    userHistory: UserProfile.UserHistoryRecord[]
 }
 
 export type UserProfileDocument = MongoDocument<UserProfile.BaseType>

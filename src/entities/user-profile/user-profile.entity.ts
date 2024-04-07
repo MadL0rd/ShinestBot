@@ -18,7 +18,6 @@ export namespace _UserProfileEntity {
         telegramInfo: TelegramInfo
         sceneData: SceneData
         internalInfo: InternalInfo.BaseType
-        userHistory: UserHistoryRecord[]
     }
 
     export import InternalInfo = _UserProfileInternalInfo
@@ -36,11 +35,5 @@ export namespace _UserProfileEntity {
     export type SceneData = {
         sceneName?: string
         data?: object
-    }
-
-    export type UserHistoryRecord = {
-        timeStamp: Date
-        event: UserHistoryEvent
-        content?: object | string
     }
 }

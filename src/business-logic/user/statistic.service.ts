@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common'
-import { UserService } from './user.service'
 import { AgregationType } from './enums/agregation-type.enum'
 import { UserHistoryEvent } from './enums/user-history-event.enum'
 import { CreateStatisticTableDto } from './dto/create-statistic-table.dto'
 import * as XLSX from 'xlsx'
+import { UserService } from './user.service'
 
 @Injectable()
 export class StatisticService {
@@ -11,14 +11,14 @@ export class StatisticService {
 
     async createTable(beginningDate: Date, endingDate: Date): Promise<Buffer> {
         const wb = { Sheets: {}, SheetNames: [] }
-        const mainStatsArr = [
+        const mainStatsArr: CreateStatisticTableDto[] = [
             {
-                event: UserHistoryEvent.start,
+                event: 'start',
                 agregationType: AgregationType.sum,
                 tableTitle: 'Старт',
             },
             {
-                event: UserHistoryEvent.startSceneOnboarding,
+                event: 'startSceneOnboarding',
                 agregationType: AgregationType.sum,
                 tableTitle: 'Перешел в онбординг',
             },
@@ -93,7 +93,7 @@ export class StatisticService {
     private async prepareStatisticByEvent(
         beginningDate: Date,
         endingDate: Date,
-        event: UserHistoryEvent,
+        event: UserHistoryEvent.EventTypeName,
         agregationType: AgregationType,
         paragraphId = null
     ): Promise<Map<string, number>> {
@@ -103,29 +103,32 @@ export class StatisticService {
 
         for (const telegramId of userTgIds) {
             const userHistory = await this.userService.findUserHistoryByTelegramId(telegramId)
+            if (!userHistory) continue
 
-            let currentEvents
+            let currentEvents: typeof userHistory.eventsHistory = []
             if (paragraphId) {
-                currentEvents = userHistory.filter(
+                currentEvents = userHistory.eventsHistory.filter(
                     (record) =>
-                        record.timeStamp > beginningDate &&
-                        record.timeStamp < endingDate &&
-                        record.event === event &&
-                        record.content === paragraphId
-                )
-            } else {
-                currentEvents = userHistory.filter(
-                    (record) =>
-                        record.timeStamp > beginningDate &&
-                        record.timeStamp < endingDate &&
-                        record.event === event
+                        record.date > beginningDate &&
+                        record.date < endingDate &&
+                        record.type === event
+                    // &&
+                    // record.content === paragraphId
                 )
             }
+            // else {
+            //     currentEvents = userHistory.filter(
+            //         (record) =>
+            //             record.timeStamp > beginningDate &&
+            //             record.timeStamp < endingDate &&
+            //             record.event === event
+            //     )
+            // }
 
             switch (agregationType) {
                 case AgregationType.sum:
                     for (const currentEvent of currentEvents) {
-                        const currentDate = currentEvent.timeStamp.toLocaleDateString('en-GB')
+                        const currentDate = currentEvent.date.toLocaleDateString('en-GB')
 
                         let existingValue = statistics.get(currentDate) ?? 0
                         statistics.set(currentDate, ++existingValue)
@@ -133,13 +136,14 @@ export class StatisticService {
                     break
 
                 case AgregationType.average:
+                case AgregationType.list:
                     break
 
                 case AgregationType.uniqueUserActions:
                     const userStatistics = new Map<string, number>()
 
                     for (const currentEvent of currentEvents) {
-                        const currentDate = currentEvent.timeStamp.toLocaleDateString('en-GB')
+                        const currentDate = currentEvent.date.toLocaleDateString('en-GB')
 
                         userStatistics.set(currentDate, 1)
                     }
@@ -193,15 +197,17 @@ export class StatisticService {
         const paramsContent: string[][] = []
         for (const user of usersWithParams) {
             const userHistory = await this.userService.findUserHistoryByTelegramId(user.telegramId)
-            const startEvent = userHistory.find(
+            if (!userHistory) continue
+
+            const startEvent = userHistory.eventsHistory.find(
                 (record) =>
-                    record.timeStamp > beginningDate &&
-                    record.timeStamp < endingDate &&
-                    record.event === UserHistoryEvent.start
+                    record.date > beginningDate &&
+                    record.date < endingDate &&
+                    record.type === 'start'
             )
             if (startEvent) {
                 paramsContent.push([
-                    startEvent.timeStamp.toLocaleDateString('en-GB'),
+                    startEvent.date.toLocaleDateString('en-GB'),
                     user.telegramId.toString(),
                     user.internalInfo?.startParam ?? '',
                 ])

@@ -72,7 +72,7 @@ export class SurveyQuestionMediaScene extends Scene<ISceneData, SceneEnterDataTy
         logger.log(
             `${this.name} scene handleEnterScene. User: ${this.user.telegramInfo.id} ${this.user.telegramInfo.username}`
         )
-        await this.logToUserHistory(this.historyEvent.startSceneSurveyQuestionMedia)
+        await this.logToUserHistory({ type: 'startSceneSurveyQuestionMedia' })
 
         if (!data) {
             logger.error('Scene start data corrupted')

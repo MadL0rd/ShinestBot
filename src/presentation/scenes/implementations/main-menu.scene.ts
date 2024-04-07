@@ -56,7 +56,7 @@ export class MainMenuScene extends Scene<ISceneData, SceneEnterDataType> {
         logger.log(
             `${this.name} scene handleEnterScene. User: ${this.user.telegramInfo.id} ${this.user.telegramInfo.username}`
         )
-        await this.logToUserHistory(this.historyEvent.startSceneMainMenu)
+        await this.logToUserHistory({ type: 'startSceneMainMenu' })
 
         await ctx.replyWithHTML(this.text.mainMenu.text, this.menuMarkup())
 

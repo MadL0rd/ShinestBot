@@ -11,9 +11,7 @@ export namespace _UserProfileHelper {
         return (
             user.internalInfo?.permissions?.compactMap((permission) => {
                 if (permission.expirationDate && permission.expirationDate < new Date()) return null
-                return UserProfile.PermissionNames.castToInstance(
-                    permission.permissionName
-                )
+                return UserProfile.PermissionNames.castToInstance(permission.permissionName)
             }) ?? []
         )
     }

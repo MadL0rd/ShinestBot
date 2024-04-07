@@ -75,7 +75,7 @@ export class NotificationsService {
                     `Failed to send morning notification to user ${user.telegramInfo.username}`,
                     error
                 )
-                this.userService.logToUserHistory(user, UserHistoryEvent.botIsBlockedDetected)
+                this.userService.logToUserHistory(user, { type: 'botIsBlockedDetected' })
             }
         }
     }
@@ -133,7 +133,7 @@ export class NotificationsService {
                     `Failed to send evening notification to user ${user.telegramInfo.username}`,
                     error
                 )
-                this.userService.logToUserHistory(user, UserHistoryEvent.botIsBlockedDetected)
+                this.userService.logToUserHistory(user, { type: 'botIsBlockedDetected' })
             }
         }
     }

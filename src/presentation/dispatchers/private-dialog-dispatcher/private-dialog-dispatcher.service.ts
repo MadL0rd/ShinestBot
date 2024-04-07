@@ -4,7 +4,6 @@ import { BotContentService } from 'src/business-logic/bot-content/bot-content.se
 import { UserService } from 'src/business-logic/user/user.service'
 import { SceneName } from 'src/presentation/scenes/models/scene-name.enum'
 import { logger } from 'src/app/app.logger'
-import { UserHistoryEvent } from 'src/business-logic/user/enums/user-history-event.enum'
 import { plainToClass } from 'class-transformer'
 import {
     Update,
@@ -70,10 +69,9 @@ export class PrivateDialogDispatcherService {
                 sceneName: undefined,
                 data: undefined,
             },
-            userHistory: [],
         })
 
-        await this.userService.logToUserHistory(user, UserHistoryEvent.start, `${startParam}`)
+        await this.userService.logToUserHistory(user, { type: 'start', startParam: startParam })
 
         const userContext = await this.generateSceneUserContext(ctx.from)
 
@@ -110,11 +108,10 @@ export class PrivateDialogDispatcherService {
         let userContext = await this.generateSceneUserContext(ctx.from)
         const message = ctx.message as Message.TextMessage
 
-        await this.userService.logToUserHistory(
-            userContext.user,
-            UserHistoryEvent.sendMessage,
-            message?.text
-        )
+        await this.userService.logToUserHistory(userContext.user, {
+            type: 'sendMessage',
+            text: message?.text,
+        })
 
         // Check message text is segue command like /back_to_menu
         const sceneNameFromCommandSegue = this.getSceneNameFromTextCommandSegue(message?.text)
@@ -210,11 +207,10 @@ export class PrivateDialogDispatcherService {
         const dataQuery = ctx.callbackQuery as CallbackQuery.DataQuery | undefined
 
         let userContext = await this.generateSceneUserContext(ctx.from)
-        await this.userService.logToUserHistory(
-            userContext.user,
-            UserHistoryEvent.callbackButtonDidTapped,
-            dataQuery?.data ?? '*empty*'
-        )
+        await this.userService.logToUserHistory(userContext.user, {
+            type: 'callbackButtonDidTapped',
+            data: dataQuery?.data,
+        })
 
         let callbackData: SceneCallbackData | null = null
 
@@ -390,7 +386,6 @@ export class PrivateDialogDispatcherService {
                 sceneName: undefined,
                 data: undefined,
             },
-            userHistory: [],
         })
         const userActivePermissions = UserProfile.Helper.getActivePermissionNames(user)
 

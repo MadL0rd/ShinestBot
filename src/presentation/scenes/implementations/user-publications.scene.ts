@@ -73,7 +73,7 @@ export class UserPublicationsScene extends Scene<ISceneData, SceneEnterDataType>
         logger.log(
             `${this.name} scene handleEnterScene. User: ${this.user.telegramInfo.id} ${this.user.telegramInfo.username}`
         )
-        await this.logToUserHistory(this.historyEvent.startSceneUserPublications)
+        await this.logToUserHistory({ type: 'startSceneUserPublications' })
 
         await this.displayUserPublications(ctx)
         return this.completion.inProgress({})

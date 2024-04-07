@@ -58,7 +58,7 @@ export class AdminMenuScene extends Scene<ISceneData, SceneEnterDataType> {
         logger.log(
             `${this.name} scene handleEnterScene. User: ${this.user.telegramInfo.id} ${this.user.telegramInfo.username}`
         )
-        await this.logToUserHistory(this.historyEvent.startSceneAdminMenu)
+        await this.logToUserHistory({ type: 'startSceneAdminMenu' })
 
         await ctx.replyWithHTML(
             `${this.text.adminMenu.text}\n\nVersion: <b>${internalConstants.npmPackageVersion}</b>`,

@@ -60,7 +60,7 @@ export class SurveyContinueScene extends Scene<ISceneData, SceneEnterDataType> {
         logger.log(
             `${this.name} scene handleEnterScene. User: ${this.user.telegramInfo.id} ${this.user.telegramInfo.username}`
         )
-        await this.logToUserHistory(this.historyEvent.startSceneSurveyContinue)
+        await this.logToUserHistory({ type: 'startSceneSurveyContinue' })
 
         if (!data) {
             logger.error('Start data corrupted')
@@ -107,7 +107,9 @@ export class SurveyContinueScene extends Scene<ISceneData, SceneEnterDataType> {
                 })
 
             case this.text.surveyContinue.buttonBegining:
-                const provider = this.dataProviderFactory.getSurveyContextProvider(data.providerType)
+                const provider = this.dataProviderFactory.getSurveyContextProvider(
+                    data.providerType
+                )
                 await provider.clearAnswersCache(this.user)
                 return this.completion.complete({
                     sceneName: 'survey',

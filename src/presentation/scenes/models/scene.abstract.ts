@@ -152,8 +152,10 @@ export abstract class Scene<SceneDataType extends object, SceneEnterDataType ext
         return this.keyboardMarkupFor(keyboardWithAutoLayout)
     }
 
-    protected async logToUserHistory(event: UserHistoryEvent, content?: string): Promise<void> {
-        await this.userService.logToUserHistory(this.user, event, content)
+    protected async logToUserHistory<EventName extends UserHistoryEvent.EventTypeName>(
+        event: UserHistoryEvent.SomeEventType<EventName>
+    ) {
+        await this.userService.logToUserHistory(this.user, event)
     }
 
     protected async replyMediaContent(
