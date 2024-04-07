@@ -1,4 +1,4 @@
-export namespace UserPermissionNames {
+export namespace _UserProfilePermissionNames {
     export type Union = (typeof allCases)[number]
     export const allCases = ['owner', 'admin', 'banned'] as const
 
