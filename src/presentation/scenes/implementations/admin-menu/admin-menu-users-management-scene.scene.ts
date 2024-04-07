@@ -11,7 +11,7 @@ import { SceneUsagePermissionsValidator } from '../../models/scene-usage-permiss
 import { InjectableSceneConstructor } from '../../scene-factory/scene-injections-provider.service'
 import { UserDocument } from 'src/business-logic/user/schemas/user.schema'
 import { replaceMarkdownWithHtml } from 'src/utils/replaceMarkdownWithHtml'
-import { UserPermissionNames } from 'src/business-logic/user/enums/user-permission-names.enum'
+import { UserPermissionNames } from 'src/entities/user-profile/nested/user-permission-names.enum'
 import { getActiveUserPermissionNames } from 'src/utils/getActiveUserPermissions'
 
 // =====================

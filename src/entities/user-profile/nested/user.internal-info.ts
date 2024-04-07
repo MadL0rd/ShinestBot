@@ -1,5 +1,5 @@
 import { Survey } from 'src/business-logic/bot-content/schemas/models/bot-content.survey'
-import { UserPermissionNames } from '../../enums/user-permission-names.enum'
+import { UserPermissionNames } from './user-permission-names.enum'
 
 export class UserInternalInfo {
     startParam: string | null = null

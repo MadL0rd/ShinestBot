@@ -9,7 +9,7 @@ import {
 } from 'src/business-logic/bot-content/schemas/models/bot-content.survey'
 import { UserService } from 'src/business-logic/user/user.service'
 import { BotContent } from 'src/business-logic/bot-content/schemas/bot-content.schema'
-import { User } from 'src/business-logic/user/schemas/user.schema'
+import { UserProfile } from 'src/entities/user-profile/user-profile.entity'
 import { internalConstants } from 'src/app/app.internal-constants'
 import { getLanguageFor } from 'src/utils/getLanguageForUser'
 import { BotContentService } from 'src/business-logic/bot-content/bot-content.service'
@@ -30,16 +30,16 @@ export class SurveyContextDefaultService implements ISurveyContextProvider {
     // Public methods
     // =====================
 
-    async validateUserCanStartSurvey(user: User): Promise<ValidationResult> {
+    async validateUserCanStartSurvey(user: UserProfile): Promise<ValidationResult> {
         return { canStartSurvey: true }
     }
 
-    async getSurvey(user: User): Promise<Survey.Model> {
+    async getSurvey(user: UserProfile): Promise<Survey.Model> {
         const botContent = await this.getBotContentFor(user)
         return botContent.survey
     }
 
-    async getAnswersCache(user: User): Promise<Survey.PassedAnswersCache> {
+    async getAnswersCache(user: UserProfile): Promise<Survey.PassedAnswersCache> {
         const botContent = await this.getBotContentFor(user)
         const cache = this.getCacheWithoutLocalization(user)
         if (cache.contentLanguage == botContent.language) return cache
@@ -61,7 +61,7 @@ export class SurveyContextDefaultService implements ISurveyContextProvider {
         return cacheLocalized
     }
 
-    async getAnswersCacheStable(user: User): Promise<Survey.PassedAnswersCache> {
+    async getAnswersCacheStable(user: UserProfile): Promise<Survey.PassedAnswersCache> {
         const cache = await this.getAnswersCache(user)
 
         // Remove answers with unsupported options
@@ -107,30 +107,30 @@ export class SurveyContextDefaultService implements ISurveyContextProvider {
         return cache
     }
 
-    async setAnswersCache(user: User, cache: Survey.PassedAnswersCache | undefined): Promise<void> {
+    async setAnswersCache(user: UserProfile, cache: Survey.PassedAnswersCache | undefined): Promise<void> {
         user.internalInfo.surveyAnswersCache = cache
         await this.userService.update(user)
     }
 
-    async clearAnswersCache(user: User): Promise<void> {
+    async clearAnswersCache(user: UserProfile): Promise<void> {
         await this.setAnswersCache(user, undefined)
     }
 
-    async popAnswerFromCache(user: User): Promise<Survey.PassedAnswer | undefined> {
+    async popAnswerFromCache(user: UserProfile): Promise<Survey.PassedAnswer | undefined> {
         const cache = this.getCacheWithoutLocalization(user)
         const popedAnswer = cache.passedAnswers.pop()
         await this.setAnswersCache(user, cache)
         return popedAnswer
     }
 
-    async pushAnswerToCache(user: User, answer: Survey.PassedAnswer): Promise<void> {
+    async pushAnswerToCache(user: UserProfile, answer: Survey.PassedAnswer): Promise<void> {
         const cache = this.getCacheWithoutLocalization(user)
         cache.passedAnswers.push(answer)
         await this.setAnswersCache(user, cache)
     }
 
     async completeSurveyAndGetNextScene(
-        user: User
+        user: UserProfile
     ): Promise<SceneEntrance.SomeSceneDto | undefined> {
         const answersCache = await this.getAnswersCacheStable(user)
         const publication = await this.publicationService.createPublicationAndSendToModeration({
@@ -153,12 +153,12 @@ export class SurveyContextDefaultService implements ISurveyContextProvider {
     // Private methods
     // =====================
 
-    private async getBotContentFor(user: User): Promise<BotContent> {
+    private async getBotContentFor(user: UserProfile): Promise<BotContent> {
         const userLanguage = getLanguageFor(user)
         return await this.botContentService.getContent(userLanguage)
     }
 
-    private getCacheWithoutLocalization(user: User): Survey.PassedAnswersCache {
+    private getCacheWithoutLocalization(user: UserProfile): Survey.PassedAnswersCache {
         const cache: Survey.PassedAnswersCache = user.internalInfo.surveyAnswersCache ?? {
             contentLanguage: user.internalInfo.language ?? internalConstants.defaultLanguage,
             passedAnswers: [],

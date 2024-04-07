@@ -1,5 +1,5 @@
-import { UserInternalInfo } from '../schemas/models/user.internal-info'
-import { SceneData, TelegramInfo } from '../schemas/user.schema'
+import { UserInternalInfo } from '../../../entities/user-profile/nested/user.internal-info'
+import { SceneData, TelegramInfo } from '../../../entities/user-profile/user-profile.entity'
 
 export class CreateUserDto {
     readonly telegramId: number

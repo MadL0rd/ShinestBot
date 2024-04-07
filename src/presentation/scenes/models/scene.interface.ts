@@ -3,9 +3,9 @@ import { SceneName } from './scene-name.enum'
 import { Update } from 'telegraf/types'
 import { SceneCallbackData } from './scene-callback'
 import { BotContent } from 'src/business-logic/bot-content/schemas/bot-content.schema'
-import { UserPermissionNames } from 'src/business-logic/user/enums/user-permission-names.enum'
-import { UserDocument } from 'src/business-logic/user/schemas/user.schema'
+import { UserPermissionNames } from 'src/entities/user-profile/nested/user-permission-names.enum'
 import { SceneEntrance } from './scene-entrance.interface'
+import { UserDocument } from 'src/business-logic/user/schemas/user.schema'
 
 export interface IScene {
     readonly name: SceneName.Union

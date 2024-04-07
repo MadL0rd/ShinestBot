@@ -1,7 +1,7 @@
-import { UserPermissionNames } from 'src/business-logic/user/enums/user-permission-names.enum'
-import { UserDocument } from 'src/business-logic/user/schemas/user.schema'
+import { UserPermissionNames } from 'src/entities/user-profile/nested/user-permission-names.enum'
+import { UserProfile } from 'src/entities/user-profile/user-profile.entity'
 
-export function getActiveUserPermissionNames(user: UserDocument): UserPermissionNames.Union[] {
+export function getActiveUserPermissionNames(user: UserProfile): UserPermissionNames.Union[] {
     return (
         user.internalInfo?.permissions?.compactMap((permission) => {
             if (permission.expirationDate && permission.expirationDate < new Date()) return null

@@ -2,15 +2,16 @@ import { Model } from 'mongoose'
 import { Injectable } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import { CreateUserDto } from './dto/create-user.dto'
-import { User, UserDocument, UserHistoryRecord } from './schemas/user.schema'
 import { UpdateUserDto } from './dto/update-user.dto'
 import { logger } from 'src/app/app.logger'
 import { UserHistoryEvent } from './enums/user-history-event.enum'
-import { UserInternalInfo } from './schemas/models/user.internal-info'
+import { UserInternalInfo } from '../../entities/user-profile/nested/user.internal-info'
+import { UserDocument, UserSchema } from './schemas/user.schema'
+import { UserHistoryRecord } from 'src/entities/user-profile/user-profile.entity'
 
 @Injectable()
 export class UserService {
-    constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
+    constructor(@InjectModel(UserSchema.name) private userModel: Model<UserDocument>) {}
 
     async createIfNeededAndGet(createUserDto: CreateUserDto): Promise<UserDocument> {
         const existingUser = await this.findOneByTelegramId(createUserDto.telegramId)

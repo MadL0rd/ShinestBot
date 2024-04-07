@@ -3,7 +3,7 @@ import { BotContent } from 'src/business-logic/bot-content/schemas/bot-content.s
 import { MediaContent } from 'src/business-logic/bot-content/schemas/models/bot-content.media-content'
 import { UniqueMessage } from 'src/business-logic/bot-content/schemas/models/bot-content.unique-message'
 import { UserHistoryEvent } from 'src/business-logic/user/enums/user-history-event.enum'
-import { UserPermissionNames } from 'src/business-logic/user/enums/user-permission-names.enum'
+import { UserPermissionNames } from 'src/entities/user-profile/nested/user-permission-names.enum'
 import { UserDocument } from 'src/business-logic/user/schemas/user.schema'
 import { UserService } from 'src/business-logic/user/user.service'
 import { Context, Markup } from 'telegraf'

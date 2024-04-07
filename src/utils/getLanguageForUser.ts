@@ -1,7 +1,7 @@
 import { internalConstants } from 'src/app/app.internal-constants'
-import { User } from 'src/business-logic/user/schemas/user.schema'
+import { UserProfile } from 'src/entities/user-profile/user-profile.entity'
 
-export function getLanguageFor(user: User): string {
+export function getLanguageFor(user: UserProfile): string {
     return (
         user.internalInfo?.language?.upperCased ??
         user.telegramInfo?.language_code?.upperCased ??

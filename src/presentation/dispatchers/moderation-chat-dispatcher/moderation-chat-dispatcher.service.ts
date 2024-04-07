@@ -16,7 +16,7 @@ import { ModeratedPublicationsService } from 'src/presentation/publication-manag
 import { generateInlineButtonSegue } from 'src/presentation/utils/inline-button.utils'
 import { SceneCallbackAction } from 'src/presentation/scenes/models/scene-callback'
 import { getActiveUserPermissionNames } from 'src/utils/getActiveUserPermissions'
-import { User } from 'src/business-logic/user/schemas/user.schema'
+import { UserProfile } from 'src/entities/user-profile/user-profile.entity'
 
 @Injectable()
 export class ModerationChatDispatcherService {
@@ -112,7 +112,7 @@ export class ModerationChatDispatcherService {
     // =====================
 
     private async handleEditPublication(
-        admin: User,
+        admin: UserProfile,
         publication: PublicationDocument,
         ctx: Context<Update>
     ) {

@@ -1,32 +1,15 @@
-import { HydratedDocument } from 'mongoose'
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose'
-import { UserHistoryEvent as UserHistoryEvent } from '../enums/user-history-event.enum'
-import { UserInternalInfo } from './models/user.internal-info'
+import { MongoDocument } from 'src/entities/_common/mongo-document.type'
+import { UserInternalInfo } from 'src/entities/user-profile/nested/user.internal-info'
+import {
+    TelegramInfo,
+    SceneData,
+    UserHistoryRecord,
+    UserProfile,
+} from 'src/entities/user-profile/user-profile.entity'
 
-export type UserDocument = HydratedDocument<User>
-
-export class TelegramInfo {
-    id: number
-    is_bot: boolean
-    first_name: string
-    last_name?: string
-    username?: string
-    language_code?: string
-}
-
-export class SceneData {
-    sceneName?: string
-    data?: object
-}
-
-export class UserHistoryRecord {
-    timeStamp: Date
-    event: UserHistoryEvent
-    content?: object | string
-}
-
-@Schema()
-export class User {
+@Schema({ collection: 'users' })
+export class UserSchema implements UserProfile {
     @Prop()
     telegramId: number
 
@@ -43,4 +26,5 @@ export class User {
     userHistory: UserHistoryRecord[]
 }
 
-export const UserSchema = SchemaFactory.createForClass(User)
+export type UserDocument = MongoDocument<UserProfile>
+export const userSchema = SchemaFactory.createForClass(UserSchema)
