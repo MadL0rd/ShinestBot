@@ -169,10 +169,9 @@ export class AdminMenuUsersManagementSceneScene extends Scene<ISceneData, SceneE
             if (messageText.split(' ').length != 2) {
                 return this.completion.canNotHandle(data)
             }
-            const targetPermission = UserProfile.PermissionNames.castToInstance(
-                messageText.split(' ')[1]
-            )
-            if (targetPermission == null) {
+            const targetPermission = messageText.split(' ')[1]
+
+            if (!UserProfile.PermissionNames.includes(targetPermission)) {
                 return this.completion.canNotHandle(data)
             }
             let permissionUpdateEnable = false
@@ -187,11 +186,11 @@ export class AdminMenuUsersManagementSceneScene extends Scene<ISceneData, SceneE
             // Include only enabled actions
             switch (targetPermission) {
                 // Any actions with owner can do only developer
-                case UserProfile.PermissionNames.castToInstance('owner'):
+                case 'owner':
                     break
 
                 // Only owner can set admin permission
-                case UserProfile.PermissionNames.castToInstance('admin'):
+                case 'admin':
                     if (this.userActivePermissions.includes('owner')) {
                         permissionUpdateEnable = true
                     }
@@ -199,7 +198,7 @@ export class AdminMenuUsersManagementSceneScene extends Scene<ISceneData, SceneE
 
                 // Owner and admin can ban user
                 // Nobody can ban owner and admin
-                case UserProfile.PermissionNames.castToInstance('banned'):
+                case 'banned':
                     if (
                         targetUserActivePermissions &&
                         targetUserActivePermissions.includes('owner') == false &&
@@ -226,9 +225,7 @@ export class AdminMenuUsersManagementSceneScene extends Scene<ISceneData, SceneE
             ) {
                 // Remove permission
                 targetUser.internalInfo.permissions = targetUser.internalInfo.permissions.filter(
-                    (permission) =>
-                        UserProfile.PermissionNames.castToInstance(permission.permissionName) !=
-                        targetPermission
+                    (permission) => permission.permissionName != targetPermission
                 )
             } else {
                 // Add permission
