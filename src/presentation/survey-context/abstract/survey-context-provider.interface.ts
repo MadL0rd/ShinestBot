@@ -1,4 +1,4 @@
-import { Survey } from 'src/business-logic/bot-content/schemas/models/bot-content.survey'
+import { Survey } from 'src/entities/survey'
 import { UserProfile } from 'src/entities/user-profile'
 import { SceneEntrance } from 'src/presentation/scenes/models/scene-entrance.interface'
 
@@ -30,7 +30,7 @@ export type ValidationResult = ValidationResultSuccess | ValidationResultDenied
 export interface ISurveyContextProvider {
     type: SurveyContextProviderType.Union
     validateUserCanStartSurvey(user: UserProfile.BaseType): Promise<ValidationResult>
-    getSurvey(user: UserProfile.BaseType): Promise<Survey.Model>
+    getSurvey(user: UserProfile.BaseType): Promise<Survey.BaseType>
     getAnswersCache(user: UserProfile.BaseType): Promise<Survey.PassedAnswersCache>
     getAnswersCacheStable(user: UserProfile.BaseType): Promise<Survey.PassedAnswersCache>
     setAnswersCache(

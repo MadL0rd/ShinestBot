@@ -3,10 +3,6 @@ import {
     ISurveyContextProvider,
     ValidationResult,
 } from '../abstract/survey-context-provider.interface'
-import {
-    Survey,
-    SurveyUsageHelpers,
-} from 'src/business-logic/bot-content/schemas/models/bot-content.survey'
 import { UserService } from 'src/business-logic/user/user.service'
 import { BotContent } from 'src/business-logic/bot-content/schemas/bot-content.schema'
 import { internalConstants } from 'src/app/app.internal-constants'
@@ -16,6 +12,7 @@ import { ModeratedPublicationsService } from 'src/presentation/publication-manag
 import { PublicationStorageService } from 'src/business-logic/publication-storage/publication-storage.service'
 import { logger } from 'src/app/app.logger'
 import { UserProfile } from 'src/entities/user-profile'
+import { Survey } from 'src/entities/survey'
 
 @Injectable()
 export class SurveyContextModerationEditingService implements ISurveyContextProvider {
@@ -44,7 +41,7 @@ export class SurveyContextModerationEditingService implements ISurveyContextProv
         return { canStartSurvey: true }
     }
 
-    async getSurvey(user: UserProfile.BaseType): Promise<Survey.Model> {
+    async getSurvey(user: UserProfile.BaseType): Promise<Survey.BaseType> {
         const botContent = await this.getBotContentFor(user)
         return botContent.survey
     }
@@ -94,11 +91,11 @@ export class SurveyContextModerationEditingService implements ISurveyContextProv
         const source = await this.getSurvey(user)
 
         // If survey is not completed
-        if (SurveyUsageHelpers.findNextQuestion(source, answers)) cache
+        if (Survey.Helper.findNextQuestion(source, answers)) cache
 
         // Sort questions in original order
         // and remove old question answers if survey was changed
-        let targetQuestion = SurveyUsageHelpers.findNextQuestion(source, filteredAnswers)
+        let targetQuestion = Survey.Helper.findNextQuestion(source, filteredAnswers)
         while (targetQuestion) {
             const targetQuestionId = targetQuestion.id
             const targetAnswer = answers.find((answer) => answer.question.id == targetQuestionId)
@@ -109,7 +106,7 @@ export class SurveyContextModerationEditingService implements ISurveyContextProv
             targetAnswer.question = targetQuestion
             filteredAnswers.push(targetAnswer)
 
-            targetQuestion = SurveyUsageHelpers.findNextQuestion(source, filteredAnswers)
+            targetQuestion = Survey.Helper.findNextQuestion(source, filteredAnswers)
         }
 
         cache.passedAnswers = filteredAnswers

@@ -1,16 +1,13 @@
 import moment from 'moment'
 import { internalConstants } from 'src/app/app.internal-constants'
 import { BotContent } from 'src/business-logic/bot-content/schemas/bot-content.schema'
-import {
-    Survey,
-    SurveyUsageHelpers,
-} from 'src/business-logic/bot-content/schemas/models/bot-content.survey'
 import { UniqueMessage } from 'src/business-logic/bot-content/schemas/models/bot-content.unique-message'
 import { PublicationStatus } from 'src/business-logic/publication-storage/enums/publication-status.enum'
 import {
     Publication,
     PublicationDocument,
 } from 'src/business-logic/publication-storage/schemas/publication.schema'
+import { Survey } from 'src/entities/survey'
 import { UserProfile } from 'src/entities/user-profile'
 
 export namespace SurveyFormatter {
@@ -23,7 +20,7 @@ export namespace SurveyFormatter {
         for (let i = 0; i < answers.passedAnswers.length; i++) {
             const answer = answers.passedAnswers[i]
             const answerStringValue =
-                SurveyUsageHelpers.getAnswerStringValue(answer, text) ??
+                Survey.Helper.getAnswerStringValue(answer, text) ??
                 text.surveyFinal.textOptionalAnswerIsNull
             result += `${i + 1}.\t${answer.question.publicTitle}: <b>${answerStringValue}</b>\n`
         }
@@ -57,7 +54,7 @@ export namespace SurveyFormatter {
         for (let i = 0; i < publication.answers.length; i++) {
             const answer = publication.answers[i]
             const answerValue =
-                SurveyUsageHelpers.getAnswerStringValue(answer, text) ??
+                Survey.Helper.getAnswerStringValue(answer, text) ??
                 text.userPublications.finalOptionalAnswerIsNull
             PublicationText += `${i + 1}.\t${answer.question.publicTitle}: <b>${answerValue}</b>`
             PublicationText += '\n'
@@ -135,9 +132,9 @@ export namespace SurveyFormatter {
 
         for (const answer of publication.answers) {
             if (answer.question.addAnswerToTelegramPublication == false) continue
-            if (SurveyUsageHelpers.isPassedAnswerMediaType(answer)) continue
+            if (Survey.Helper.isPassedAnswerMediaType(answer)) continue
 
-            const answerStringValue = SurveyUsageHelpers.getAnswerStringValue(answer, text)
+            const answerStringValue = Survey.Helper.getAnswerStringValue(answer, text)
             publicationText += `${answer.question.publicTitle}: <b>${answerStringValue}</b>\n`
         }
 

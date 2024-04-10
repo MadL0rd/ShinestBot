@@ -1,5 +1,3 @@
-import { Survey } from 'src/business-logic/bot-content/schemas/models/bot-content.survey'
-import { UserHistoryEvent } from 'src/business-logic/user/enums/user-history-event.enum'
 import { _UserProfileFormatter } from './user-profile.formatter'
 import { _UserProfileHelper } from './user-profile.helper'
 import { _UserProfileInternalInfo } from './nested/internal-info.entity'

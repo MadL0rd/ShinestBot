@@ -1,5 +1,5 @@
-import { Survey } from 'src/business-logic/bot-content/schemas/models/bot-content.survey'
 import { _UserProfilePermissionNames } from './permission-names.enum'
+import { Survey } from 'src/entities/survey'
 
 export namespace _UserProfileInternalInfo {
     export type BaseType = {

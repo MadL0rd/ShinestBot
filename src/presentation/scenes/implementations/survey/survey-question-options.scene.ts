@@ -10,8 +10,8 @@ import { Scene } from '../../models/scene.abstract'
 import { SceneUsagePermissionsValidator } from '../../models/scene-usage-permissions-validator'
 import { InjectableSceneConstructor } from '../../scene-factory/scene-injections-provider.service'
 import { SurveyContextProviderType } from 'src/presentation/survey-context/abstract/survey-context-provider.interface'
-import { Survey } from 'src/business-logic/bot-content/schemas/models/bot-content.survey'
 import { SurveyContextProviderFactoryService } from 'src/presentation/survey-context/survey-context-provider-factory/survey-context-provider-factory.service'
+import { Survey } from 'src/entities/survey'
 
 // =====================
 // Scene data classes
