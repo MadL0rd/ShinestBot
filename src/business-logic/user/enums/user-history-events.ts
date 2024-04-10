@@ -85,4 +85,5 @@ export const eventsSchema = {
         type: 'startSceneModerationEditing',
         localizedTitle: 'Перешел к сцене moderationEditing',
     },
+    /** New scene event placeholder */
 } as const
