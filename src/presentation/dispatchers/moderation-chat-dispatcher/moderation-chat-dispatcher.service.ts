@@ -365,6 +365,7 @@ export class ModerationChatDispatcherService {
             publication,
             botContent.uniqueMessage
         )
+        if (!adminMessageText) return ''
         await this.bot.telegram.sendMessage(userId, adminMessageText, {
             parse_mode: 'HTML',
         })

@@ -2,13 +2,14 @@ import moment from 'moment'
 import { internalConstants } from 'src/app/app.internal-constants'
 import { BotContent } from 'src/business-logic/bot-content/schemas/bot-content.schema'
 import { UniqueMessage } from 'src/business-logic/bot-content/schemas/models/bot-content.unique-message'
-import { PublicationStatus } from 'src/business-logic/publication-storage/enums/publication-status.enum'
 import {
     Publication,
     PublicationDocument,
 } from 'src/business-logic/publication-storage/schemas/publication.schema'
 import { Survey } from 'src/entities/survey'
 import { UserProfile } from 'src/entities/user-profile'
+import { logger } from 'src/app/app.logger'
+import { PublicationEntity } from 'src/entities/publication'
 
 export namespace SurveyFormatter {
     export function generateTextFromPassedAnswers(
@@ -82,7 +83,7 @@ export namespace SurveyFormatter {
         originalText: string,
         publication: PublicationDocument,
         text: UniqueMessage
-    ): string {
+    ): string | undefined {
         const tgPublicationLinkList = publicationTelegramLinks(publication)
         let messageText = originalText + '\n'
 
@@ -96,6 +97,8 @@ export namespace SurveyFormatter {
                     )
             }
         }
+        const publicationStatus = publicationStatusString(publication.status, text)
+        if (!publicationStatus) return
         return messageText
             .replace(text.moderation.messageAdvertIdPlaceholder, publication._id.toString())
             .replace(
@@ -104,10 +107,7 @@ export namespace SurveyFormatter {
                     .utcOffset('Europe/Moscow')
                     .format('DD.MM.yyyy HH:mm')
             )
-            .replace(
-                text.moderation.messagePostStatusPlaceholder,
-                publicationStatusString(publication.status, text)
-            )
+            .replace(text.moderation.messagePostStatusPlaceholder, publicationStatus)
     }
 
     export function getPublicationTagsString(publication: PublicationDocument): string {
@@ -147,9 +147,9 @@ export namespace SurveyFormatter {
     }
 
     export function publicationStatusString(
-        status: PublicationStatus.Union,
+        status: PublicationEntity.PublicationStatus.Union,
         text: UniqueMessage
-    ): string {
+    ): string | undefined {
         switch (status) {
             case 'moderation':
                 return text.moderation.publicationStatusModeration
@@ -161,6 +161,9 @@ export namespace SurveyFormatter {
                 return text.moderation.publicationStatusNotRelevant
             case 'created':
                 return text.moderation.publicationStatusCreated
+            default:
+                logger.error(`Cannot find public name for status ${status}`)
+                return
         }
     }
 

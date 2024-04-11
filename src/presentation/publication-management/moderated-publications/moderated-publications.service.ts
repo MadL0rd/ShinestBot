@@ -6,10 +6,10 @@ import { logger } from 'src/app/app.logger'
 import { BotContentService } from 'src/business-logic/bot-content/bot-content.service'
 import { SurveyUsageHelpers } from 'src/business-logic/bot-content/schemas/models/bot-content.survey'
 import { PublicationCreateDto } from 'src/business-logic/publication-storage/dto/publication.dto'
-import { PublicationStatus } from 'src/business-logic/publication-storage/enums/publication-status.enum'
 import { PublicationStorageService } from 'src/business-logic/publication-storage/publication-storage.service'
 import { PublicationDocument } from 'src/business-logic/publication-storage/schemas/publication.schema'
 import { UserService } from 'src/business-logic/user/user.service'
+import { PublicationEntity } from 'src/entities/publication'
 import { sleep } from 'src/utils/sleep'
 import { SurveyFormatter } from 'src/utils/survey-formatter'
 import { Markup, Telegraf } from 'telegraf'
@@ -261,7 +261,10 @@ export class ModeratedPublicationsService {
         }
     }
 
-    async updatePublicationStatus(publicationDocumentId: string, status: PublicationStatus.Union) {
+    async updatePublicationStatus(
+        publicationDocumentId: string,
+        status: PublicationEntity.PublicationStatus.Union
+    ) {
         await this.updatePublication(publicationDocumentId, {
             status: status,
         })
@@ -303,6 +306,7 @@ export class ModeratedPublicationsService {
             publicationDocument,
             text
         )
+        if (!moderationMessageText) return
         await this.bot.telegram.sendMessage(
             publicationDocument.userTelegramId,
             moderationMessageText,

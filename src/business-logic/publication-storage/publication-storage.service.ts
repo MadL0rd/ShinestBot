@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import { Model } from 'mongoose'
-import { PublicationStatus } from './enums/publication-status.enum'
 import { Publication, PublicationDocument } from './schemas/publication.schema'
 import { PublicationCreateDto, PublicationUpdateDto } from './dto/publication.dto'
+import { PublicationEntity } from 'src/entities/publication'
 
 @Injectable()
 export class PublicationStorageService {
@@ -39,7 +39,7 @@ export class PublicationStorageService {
     }
 
     async findAllActivePublicationIds(skip: number = 0, limit: number = 1): Promise<string[]> {
-        const statusActive: PublicationStatus.Union = 'active'
+        const statusActive: PublicationEntity.PublicationStatus.Union = 'active'
         const result = await this.model
             .find(
                 // Filter
