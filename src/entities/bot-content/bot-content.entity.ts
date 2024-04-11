@@ -1,6 +1,7 @@
 import { Survey } from '../survey'
 import { _BotContentFormatter } from './bot-content.formatter'
 import { _BotContentHelper } from './bot-content.helper'
+import { _MediaContent } from './nested/media-content.entity'
 import { _OnboardingPage } from './nested/onboarding-page.entity'
 import { UniqueMessage } from './nested/unique-message.entity'
 
@@ -13,6 +14,7 @@ export namespace _BotContentEntity {
     export import Formatter = _BotContentFormatter
 
     export import OnboardingPage = _OnboardingPage
+    export import MediaContent = _MediaContent
 
     export type BaseType = {
         language: string

@@ -1,6 +1,6 @@
-import { UniqueMessage } from 'src/business-logic/bot-content/schemas/models/bot-content.unique-message'
 import { PermissionsValidationResult } from './scene.interface'
 import { UserProfile } from 'src/entities/user-profile'
+import { UniqueMessage } from 'src/entities/bot-content/nested/unique-message.entity'
 
 export namespace SceneUsagePermissionsValidator {
     export interface IPermissionsValidator {

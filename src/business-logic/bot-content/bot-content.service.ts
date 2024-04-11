@@ -6,13 +6,12 @@ import { DataSheetPrototype } from '../../core/sheet-data-provider/schemas/data-
 import { CreateBotContentDto } from './dto/create-bot-content.dto'
 import { UpdateBotContentDto } from './dto/update-bot-content.dto'
 import { logger } from 'src/app/app.logger'
-import { UniqueMessage } from './schemas/models/bot-content.unique-message'
 import { internalConstants } from 'src/app/app.internal-constants'
 import { LocalizationService } from '../../core/localization/localization.service'
-import { OnboardingPage } from './schemas/models/bot-content.onboarding-page'
-import { MediaContent } from './schemas/models/bot-content.media-content'
 import { SheetDataProviderService } from '../../core/sheet-data-provider/sheet-data-provider.service'
-import { Survey, SurveyCacheHelpers } from './schemas/models/bot-content.survey'
+import { UniqueMessage } from 'src/entities/bot-content/nested/unique-message.entity'
+import { BotContentEntity } from 'src/entities/bot-content'
+import { Survey } from 'src/entities/survey'
 
 @Injectable()
 export class BotContentService implements OnModuleInit {
@@ -273,7 +272,7 @@ export class BotContentService implements OnModuleInit {
                 throw Error(`Fatal error: content corrupted`)
             }
             const resultContent = contentRowsLocalized.map((rowItem) => {
-                const result: OnboardingPage = {
+                const result: BotContentEntity.OnboardingPage.BaseType = {
                     id: rowItem.id,
                     messageText: rowItem.messageText,
                     buttonText: rowItem.buttonText,
@@ -333,8 +332,7 @@ export class BotContentService implements OnModuleInit {
                 throw Error(`Fatal error: content corrupted`)
             }
             const resultContent = contentRowsLocalized.map((rowItem) => {
-                const rowAnswerType =
-                    SurveyCacheHelpers.answerTypeNameByPublicName[rowItem.answerType]
+                const rowAnswerType = Survey.Helper.answerTypeNameByPublicName[rowItem.answerType]
                 const rowItemString = JSON.stringify(rowItem, null, 2)
                 if (!rowAnswerType) {
                     throw Error(`Unsupported unser type: ${rowItem.answerType}\n${rowItemString}`)
@@ -571,7 +569,7 @@ export class BotContentService implements OnModuleInit {
         videosCell?: string,
         audioCell?: string,
         documentsCell?: string
-    ): MediaContent {
+    ): BotContentEntity.MediaContent.BaseType {
         return {
             images:
                 imagesCell

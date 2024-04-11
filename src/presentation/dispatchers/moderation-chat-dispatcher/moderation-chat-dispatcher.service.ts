@@ -9,12 +9,12 @@ import { logger } from 'src/app/app.logger'
 import { SurveyFormatter } from 'src/utils/survey-formatter'
 import { PublicationDocument } from 'src/business-logic/publication-storage/schemas/publication.schema'
 import { MediaGroup } from 'node_modules/telegraf/typings/telegram-types'
-import { SurveyUsageHelpers } from 'src/business-logic/bot-content/schemas/models/bot-content.survey'
 import { InjectBot } from 'nestjs-telegraf'
 import { ModeratedPublicationsService } from 'src/presentation/publication-management/moderated-publications/moderated-publications.service'
 import { generateInlineButtonSegue } from 'src/presentation/utils/inline-button.utils'
 import { SceneCallbackAction } from 'src/presentation/scenes/models/scene-callback'
 import { UserProfile } from 'src/entities/user-profile'
+import { Survey } from 'src/entities/survey'
 
 @Injectable()
 export class ModerationChatDispatcherService {
@@ -179,7 +179,7 @@ export class ModerationChatDispatcherService {
         const mediaGroupArgs: MediaGroup = publication.answers
             .compactMap((answer) => {
                 return answer.question.addAnswerToTelegramPublication &&
-                    SurveyUsageHelpers.isPassedAnswerMediaType(answer)
+                    Survey.Helper.isPassedAnswerMediaType(answer)
                     ? answer.media
                     : null
             })

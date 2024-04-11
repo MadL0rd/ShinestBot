@@ -1,7 +1,5 @@
 import { logger } from 'src/app/app.logger'
 import { BotContent } from 'src/business-logic/bot-content/schemas/bot-content.schema'
-import { MediaContent } from 'src/business-logic/bot-content/schemas/models/bot-content.media-content'
-import { UniqueMessage } from 'src/business-logic/bot-content/schemas/models/bot-content.unique-message'
 import { UserHistoryEvent } from 'src/business-logic/user/enums/user-history-event.enum'
 import { UserProfileDocument } from 'src/business-logic/user/schemas/user.schema'
 import { UserService } from 'src/business-logic/user/user.service'
@@ -28,6 +26,8 @@ import {
 import { SceneCallbackData } from './scene-callback'
 import { InlineButtonDto, generateInlineButton } from 'src/presentation/utils/inline-button.utils'
 import { UserProfile } from 'src/entities/user-profile'
+import { UniqueMessage } from 'src/entities/bot-content/nested/unique-message.entity'
+import { BotContentEntity } from 'src/entities/bot-content'
 
 export abstract class Scene<SceneDataType extends object, SceneEnterDataType extends object>
     implements IScene
@@ -160,7 +160,7 @@ export abstract class Scene<SceneDataType extends object, SceneEnterDataType ext
 
     protected async replyMediaContent(
         ctx: Context<Update>,
-        media: MediaContent,
+        media: BotContentEntity.OnboardingPage.MediaContent.BaseType,
         separatedContentType: null | 'images' | 'videos' | 'audio' | 'docks' = null
     ): Promise<void> {
         // Media group

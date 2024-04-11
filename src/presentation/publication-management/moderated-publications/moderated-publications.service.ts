@@ -4,12 +4,12 @@ import { MediaGroup } from 'node_modules/telegraf/typings/telegram-types'
 import { internalConstants } from 'src/app/app.internal-constants'
 import { logger } from 'src/app/app.logger'
 import { BotContentService } from 'src/business-logic/bot-content/bot-content.service'
-import { SurveyUsageHelpers } from 'src/business-logic/bot-content/schemas/models/bot-content.survey'
 import { PublicationCreateDto } from 'src/business-logic/publication-storage/dto/publication.dto'
 import { PublicationStorageService } from 'src/business-logic/publication-storage/publication-storage.service'
 import { PublicationDocument } from 'src/business-logic/publication-storage/schemas/publication.schema'
 import { UserService } from 'src/business-logic/user/user.service'
 import { PublicationEntity } from 'src/entities/publication'
+import { Survey } from 'src/entities/survey'
 import { sleep } from 'src/utils/sleep'
 import { SurveyFormatter } from 'src/utils/survey-formatter'
 import { Markup, Telegraf } from 'telegraf'
@@ -212,8 +212,7 @@ export class ModeratedPublicationsService {
         const inlineKeyboardMainPublication: InlineKeyboardButton[][] = []
         if (publicationDocument.placementHistory) {
             const publicationContainsMedia = publicationDocument.answers.some(
-                (answer) =>
-                    SurveyUsageHelpers.isPassedAnswerMediaType(answer) && answer.media.isNotEmpty
+                (answer) => Survey.Helper.isPassedAnswerMediaType(answer) && answer.media.isNotEmpty
             )
             for (const placement of publicationDocument.placementHistory) {
                 if (publicationContainsMedia) {

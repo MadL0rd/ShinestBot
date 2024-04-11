@@ -8,8 +8,8 @@ import { SceneName } from '../models/scene-name.enum'
 import { SceneHandlerCompletion } from '../models/scene.interface'
 import { Scene } from '../models/scene.abstract'
 import { SceneUsagePermissionsValidator } from '../models/scene-usage-permissions-validator'
-import { OnboardingPage } from 'src/business-logic/bot-content/schemas/models/bot-content.onboarding-page'
 import { InjectableSceneConstructor } from '../scene-factory/scene-injections-provider.service'
+import { BotContentEntity } from 'src/entities/bot-content'
 
 // =====================
 // Scene data classes
@@ -108,7 +108,10 @@ export class OnboardingScene extends Scene<ISceneData, SceneEnterDataType> {
     // Private methods
     // =====================
 
-    private async showOnboardingPage(ctx: Context<Update>, page?: OnboardingPage): Promise<void> {
+    private async showOnboardingPage(
+        ctx: Context<Update>,
+        page?: BotContentEntity.OnboardingPage.BaseType
+    ): Promise<void> {
         if (!page) return
 
         await ctx.replyWithHTML(

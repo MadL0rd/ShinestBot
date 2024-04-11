@@ -1,7 +1,6 @@
 import moment from 'moment'
 import { internalConstants } from 'src/app/app.internal-constants'
 import { BotContent } from 'src/business-logic/bot-content/schemas/bot-content.schema'
-import { UniqueMessage } from 'src/business-logic/bot-content/schemas/models/bot-content.unique-message'
 import {
     Publication,
     PublicationDocument,
@@ -10,6 +9,7 @@ import { Survey } from 'src/entities/survey'
 import { UserProfile } from 'src/entities/user-profile'
 import { logger } from 'src/app/app.logger'
 import { PublicationEntity } from 'src/entities/publication'
+import { UniqueMessage } from 'src/entities/bot-content/nested/unique-message.entity'
 
 export namespace SurveyFormatter {
     export function generateTextFromPassedAnswers(
