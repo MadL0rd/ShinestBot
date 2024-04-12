@@ -5,7 +5,7 @@ import { _SurveyEntity as SurveyEntity } from './survey.entity'
  * Namespace for survey entity helper functions.
  * This namespace should contain functions that assist in processing or manipulating entity data.
  */
-export namespace _surveyHelper {
+export namespace _SurveyHelper {
     // =====================
     // Cache helpers
     // =====================

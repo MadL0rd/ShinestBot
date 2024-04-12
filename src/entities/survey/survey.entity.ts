@@ -1,13 +1,13 @@
-import { _surveyFormatter } from './survey.formatter'
-import { _surveyHelper } from './survey.helper'
+import { _SurveyFormatter } from './survey.formatter'
+import { _SurveyHelper } from './survey.helper'
 
 /**
  * Namespace for survey entity related functionality.
  * This namespace should contain types representing the entity's types and alias to `Helper` and `Formatter` namespaces.
  */
 export namespace _SurveyEntity {
-    export import Helper = _surveyHelper
-    export import Formatter = _surveyFormatter
+    export import Helper = _SurveyHelper
+    export import Formatter = _SurveyFormatter
 
     export type BaseType = {
         readonly contentLanguage: string
