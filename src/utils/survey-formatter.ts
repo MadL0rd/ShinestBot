@@ -1,6 +1,5 @@
 import moment from 'moment'
 import { internalConstants } from 'src/app/app.internal-constants'
-import { BotContent } from 'src/business-logic/bot-content/schemas/bot-content.schema'
 import {
     Publication,
     PublicationDocument,
@@ -10,11 +9,12 @@ import { UserProfile } from 'src/entities/user-profile'
 import { logger } from 'src/app/app.logger'
 import { PublicationEntity } from 'src/entities/publication'
 import { UniqueMessage } from 'src/entities/bot-content/nested/unique-message.entity'
+import { BotContent } from 'src/entities/bot-content'
 
 export namespace SurveyFormatter {
     export function generateTextFromPassedAnswers(
         answers: Survey.PassedAnswersCache,
-        botContent: BotContent
+        botContent: BotContent.BaseType
     ) {
         const text = botContent.uniqueMessage
         let result = ''
@@ -30,7 +30,7 @@ export namespace SurveyFormatter {
 
     export function moderationPreSynchronizedText(
         publication: PublicationDocument,
-        botContent: BotContent
+        botContent: BotContent.BaseType
     ): string {
         const prefix =
             internalConstants.loadingServiceChatMessagePrefix + publication._id.toString()

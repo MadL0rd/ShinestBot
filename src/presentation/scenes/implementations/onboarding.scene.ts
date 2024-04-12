@@ -9,7 +9,7 @@ import { SceneHandlerCompletion } from '../models/scene.interface'
 import { Scene } from '../models/scene.abstract'
 import { SceneUsagePermissionsValidator } from '../models/scene-usage-permissions-validator'
 import { InjectableSceneConstructor } from '../scene-factory/scene-injections-provider.service'
-import { BotContentEntity } from 'src/entities/bot-content'
+import { BotContent } from 'src/entities/bot-content'
 
 // =====================
 // Scene data classes
@@ -110,7 +110,7 @@ export class OnboardingScene extends Scene<ISceneData, SceneEnterDataType> {
 
     private async showOnboardingPage(
         ctx: Context<Update>,
-        page?: BotContentEntity.OnboardingPage.BaseType
+        page?: BotContent.OnboardingPage.BaseType
     ): Promise<void> {
         if (!page) return
 

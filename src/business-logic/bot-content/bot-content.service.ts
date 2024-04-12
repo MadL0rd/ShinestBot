@@ -1,7 +1,6 @@
 import { Injectable, OnModuleInit } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import { Model } from 'mongoose'
-import { BotContent, BotContentDocument, BotContentStable } from './schemas/bot-content.schema'
 import { DataSheetPrototype } from '../../core/sheet-data-provider/schemas/data-sheet-prototype'
 import { CreateBotContentDto } from './dto/create-bot-content.dto'
 import { UpdateBotContentDto } from './dto/update-bot-content.dto'
@@ -10,8 +9,9 @@ import { internalConstants } from 'src/app/app.internal-constants'
 import { LocalizationService } from '../../core/localization/localization.service'
 import { SheetDataProviderService } from '../../core/sheet-data-provider/sheet-data-provider.service'
 import { UniqueMessage } from 'src/entities/bot-content/nested/unique-message.entity'
-import { BotContentEntity } from 'src/entities/bot-content'
 import { Survey } from 'src/entities/survey'
+import { BotContent } from 'src/entities/bot-content'
+import { BotContentDocument, BotContentSchema } from './schemas/bot-content.schema'
 
 @Injectable()
 export class BotContentService implements OnModuleInit {
@@ -20,14 +20,14 @@ export class BotContentService implements OnModuleInit {
     // =====================
 
     private readonly cachedTrueValue = 'TRUE'
-    private botContentCache: Map<string, BotContentStable>
+    private botContentCache: Map<string, BotContentDocument>
 
     constructor(
-        @InjectModel(BotContent.name) private model: Model<BotContent>,
+        @InjectModel(BotContentSchema.name) private model: Model<BotContentSchema>,
         private readonly sheetDataProvider: SheetDataProviderService,
         private readonly localizationService: LocalizationService
     ) {
-        this.botContentCache = new Map<string, BotContentStable>()
+        this.botContentCache = new Map<string, BotContentDocument>()
     }
 
     async onModuleInit(): Promise<void> {
@@ -63,7 +63,7 @@ export class BotContentService implements OnModuleInit {
         return botContent.compactMap((content) => content.language)
     }
 
-    async getContent(language: string): Promise<BotContentStable> {
+    async getContent(language: string): Promise<BotContentDocument> {
         const contentCache = this.botContentCache.get(language)
         if (contentCache) {
             return contentCache
@@ -94,7 +94,7 @@ export class BotContentService implements OnModuleInit {
                 await this.cacheSurvey()
                 break
         }
-        this.botContentCache = new Map<string, BotContentStable>()
+        this.botContentCache = new Map<string, BotContentDocument>()
     }
 
     async cacheLocalization() {
@@ -118,20 +118,20 @@ export class BotContentService implements OnModuleInit {
         }
     }
 
-    private async create(createBotContentDto: CreateBotContentDto): Promise<BotContent> {
+    private async create(createBotContentDto: CreateBotContentDto): Promise<BotContentDocument> {
         return this.model.create(createBotContentDto)
     }
 
     private async update(
         updateBotContentDto: UpdateBotContentDto,
         existingContent: BotContentDocument
-    ): Promise<BotContent | unknown> {
+    ): Promise<BotContentDocument | unknown> {
         return this.model
             .updateOne({ _id: existingContent._id }, updateBotContentDto, { new: true })
             .exec()
     }
 
-    private async findOneBy(lang: string): Promise<BotContent | null> {
+    private async findOneBy(lang: string): Promise<BotContentDocument | null> {
         return this.model.findOne({ language: lang }).exec()
     }
 
@@ -141,7 +141,7 @@ export class BotContentService implements OnModuleInit {
         for (const dbLanguage of dbLanguages) {
             if (currentLanguages.includes(dbLanguage)) continue
             await this.model.deleteOne({ language: dbLanguage }).exec()
-            this.botContentCache = new Map<string, BotContentStable>()
+            this.botContentCache = new Map<string, BotContentDocument>()
         }
     }
 
@@ -272,7 +272,7 @@ export class BotContentService implements OnModuleInit {
                 throw Error(`Fatal error: content corrupted`)
             }
             const resultContent = contentRowsLocalized.map((rowItem) => {
-                const result: BotContentEntity.OnboardingPage.BaseType = {
+                const result: BotContent.OnboardingPage.BaseType = {
                     id: rowItem.id,
                     messageText: rowItem.messageText,
                     buttonText: rowItem.buttonText,
@@ -569,7 +569,7 @@ export class BotContentService implements OnModuleInit {
         videosCell?: string,
         audioCell?: string,
         documentsCell?: string
-    ): BotContentEntity.MediaContent.BaseType {
+    ): BotContent.MediaContent.BaseType {
         return {
             images:
                 imagesCell

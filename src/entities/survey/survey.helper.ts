@@ -1,4 +1,4 @@
-import { BotContentEntity } from '../bot-content'
+import { BotContent } from '../bot-content'
 import { _SurveyEntity as SurveyEntity } from './survey.entity'
 
 /**
@@ -86,8 +86,7 @@ export namespace _SurveyHelper {
 
     export function getAnswerStringValue(
         answer: SurveyEntity.PassedAnswer,
-        // TODO: Fix import
-        text: BotContentEntity.BaseType['uniqueMessage']
+        text: BotContent.UniqueMessage
     ): string | undefined {
         switch (answer.type) {
             case 'options':

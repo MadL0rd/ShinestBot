@@ -19,9 +19,9 @@ import {
     SceneUserContext,
 } from 'src/presentation/scenes/models/scene.interface'
 import { SceneFactoryService } from 'src/presentation/scenes/scene-factory/scene-factory.service'
-import { BotContent } from 'src/business-logic/bot-content/schemas/bot-content.schema'
 import { SceneEntrance } from 'src/presentation/scenes/models/scene-entrance.interface'
 import { UserProfile } from 'src/entities/user-profile'
+import { BotContent } from 'src/entities/bot-content'
 
 @Injectable()
 export class PrivateDialogDispatcherService {
@@ -347,7 +347,7 @@ export class PrivateDialogDispatcherService {
 
     private async validateUserCanUseScene(
         ctx: Context<Update> | Context<Update.CallbackQueryUpdate>,
-        botContent: BotContent,
+        botContent: BotContent.BaseType,
         scene?: IScene,
         needToSendMessage: boolean = true
     ): Promise<boolean> {

@@ -1,5 +1,4 @@
 import { logger } from 'src/app/app.logger'
-import { BotContent } from 'src/business-logic/bot-content/schemas/bot-content.schema'
 import { UserHistoryEvent } from 'src/business-logic/user/enums/user-history-event.enum'
 import { UserProfileDocument } from 'src/business-logic/user/schemas/user.schema'
 import { UserService } from 'src/business-logic/user/user.service'
@@ -27,7 +26,7 @@ import { SceneCallbackData } from './scene-callback'
 import { InlineButtonDto, generateInlineButton } from 'src/presentation/utils/inline-button.utils'
 import { UserProfile } from 'src/entities/user-profile'
 import { UniqueMessage } from 'src/entities/bot-content/nested/unique-message.entity'
-import { BotContentEntity } from 'src/entities/bot-content'
+import { BotContent } from 'src/entities/bot-content'
 
 export abstract class Scene<SceneDataType extends object, SceneEnterDataType extends object>
     implements IScene
@@ -35,7 +34,7 @@ export abstract class Scene<SceneDataType extends object, SceneEnterDataType ext
     // =====================
     // Private properties
     // =====================
-    private _content: BotContent
+    private _content: BotContent.BaseType
     private _text: UniqueMessage
     private _user: UserProfileDocument
     private _userActivePermissions: UserProfile.PermissionNames.Union[]
@@ -53,7 +52,7 @@ export abstract class Scene<SceneDataType extends object, SceneEnterDataType ext
     protected get userActivePermissions(): UserProfile.PermissionNames.Union[] {
         return this._userActivePermissions
     }
-    protected get content(): BotContent {
+    protected get content(): BotContent.BaseType {
         return this._content
     }
     protected get text(): UniqueMessage {
@@ -160,7 +159,7 @@ export abstract class Scene<SceneDataType extends object, SceneEnterDataType ext
 
     protected async replyMediaContent(
         ctx: Context<Update>,
-        media: BotContentEntity.OnboardingPage.MediaContent.BaseType,
+        media: BotContent.OnboardingPage.MediaContent.BaseType,
         separatedContentType: null | 'images' | 'videos' | 'audio' | 'docks' = null
     ): Promise<void> {
         // Media group

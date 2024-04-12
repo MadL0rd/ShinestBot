@@ -4,7 +4,6 @@ import {
     ValidationResult,
 } from '../abstract/survey-context-provider.interface'
 import { UserService } from 'src/business-logic/user/user.service'
-import { BotContent } from 'src/business-logic/bot-content/schemas/bot-content.schema'
 import { internalConstants } from 'src/app/app.internal-constants'
 import { BotContentService } from 'src/business-logic/bot-content/bot-content.service'
 import { SceneEntrance } from 'src/presentation/scenes/models/scene-entrance.interface'
@@ -13,6 +12,7 @@ import { PublicationStorageService } from 'src/business-logic/publication-storag
 import { logger } from 'src/app/app.logger'
 import { UserProfile } from 'src/entities/user-profile'
 import { Survey } from 'src/entities/survey'
+import { BotContentDocument } from 'src/business-logic/bot-content/schemas/bot-content.schema'
 
 @Injectable()
 export class SurveyContextModerationEditingService implements ISurveyContextProvider {
@@ -171,7 +171,7 @@ export class SurveyContextModerationEditingService implements ISurveyContextProv
     // Private methods
     // =====================
 
-    private async getBotContentFor(user: UserProfile.BaseType): Promise<BotContent> {
+    private async getBotContentFor(user: UserProfile.BaseType): Promise<BotContentDocument> {
         const userLanguage = UserProfile.Helper.getLanguageFor(user)
         return await this.botContentService.getContent(userLanguage)
     }

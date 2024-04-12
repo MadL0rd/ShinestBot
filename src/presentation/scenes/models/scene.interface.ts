@@ -2,10 +2,10 @@ import { Context } from 'telegraf'
 import { SceneName } from './scene-name.enum'
 import { Update } from 'telegraf/types'
 import { SceneCallbackData } from './scene-callback'
-import { BotContent } from 'src/business-logic/bot-content/schemas/bot-content.schema'
 import { SceneEntrance } from './scene-entrance.interface'
 import { UserProfileDocument } from 'src/business-logic/user/schemas/user.schema'
 import { UserProfile } from 'src/entities/user-profile'
+import { BotContent } from 'src/entities/bot-content'
 
 export interface IScene {
     readonly name: SceneName.Union
@@ -62,5 +62,5 @@ export interface PermissionsValidationResult {
 export interface SceneUserContext {
     readonly user: UserProfileDocument
     readonly userActivePermissions: UserProfile.PermissionNames.Union[]
-    readonly botContent: BotContent
+    readonly botContent: BotContent.BaseType
 }
