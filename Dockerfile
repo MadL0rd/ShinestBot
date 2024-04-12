@@ -1,5 +1,4 @@
-FROM node:20
-
+FROM node:21-alpine
 
 # Create app directory
 WORKDIR /usr/src/app
@@ -16,7 +15,6 @@ COPY . .
 
 # Creates a "dist" folder with the production build
 RUN npm run build
-
 
 # Start the server using the production build
 CMD [ "node", "dist/main.js" ]
