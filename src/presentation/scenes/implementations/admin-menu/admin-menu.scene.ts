@@ -10,7 +10,6 @@ import { SceneHandlerCompletion } from '../../models/scene.interface'
 import { Scene } from '../../models/scene.abstract'
 import { SceneUsagePermissionsValidator } from '../../models/scene-usage-permissions-validator'
 import { InjectableSceneConstructor } from '../../scene-factory/scene-injections-provider.service'
-import { LocalizationService } from 'src/core/localization/localization.service'
 import { DataSheetPrototype } from 'src/core/sheet-data-provider/schemas/data-sheet-prototype'
 import { BotContentService } from 'src/business-logic/bot-content/bot-content.service'
 
@@ -33,7 +32,7 @@ export class AdminMenuScene extends Scene<ISceneData, SceneEnterDataType> {
     // Properties
     // =====================
 
-    readonly name: SceneName.union = 'adminMenu'
+    readonly name: SceneName.Union = 'adminMenu'
     protected get dataDefault(): ISceneData {
         return {} as ISceneData
     }
@@ -43,7 +42,6 @@ export class AdminMenuScene extends Scene<ISceneData, SceneEnterDataType> {
 
     constructor(
         protected readonly userService: UserService,
-        private readonly localizationService: LocalizationService,
         private readonly botContentService: BotContentService
     ) {
         super()
@@ -60,7 +58,7 @@ export class AdminMenuScene extends Scene<ISceneData, SceneEnterDataType> {
         logger.log(
             `${this.name} scene handleEnterScene. User: ${this.user.telegramInfo.id} ${this.user.telegramInfo.username}`
         )
-        await this.logToUserHistory(this.historyEvent.startSceneAdminMenu)
+        await this.logToUserHistory({ type: 'startSceneAdminMenu' })
 
         await ctx.replyWithHTML(
             `${this.text.adminMenu.text}\n\nVersion: <b>${internalConstants.npmPackageVersion}</b>`,
@@ -86,10 +84,10 @@ export class AdminMenuScene extends Scene<ISceneData, SceneEnterDataType> {
                 return this.completion.complete({ sceneName: 'adminMenuGenerateMetrics' })
 
             case this.text.adminMenu.buttonUsersManagement:
-                return this.completion.complete({ sceneName: 'adminMenuUsersManagementScene' })
+                return this.completion.complete({ sceneName: 'adminMenuUsersManagement' })
 
             case this.text.adminMenu.buttonMailing:
-                return this.completion.complete({ sceneName: 'adminMenuMailingScene' })
+                return this.completion.complete({ sceneName: 'adminMenuMailing' })
 
             case this.text.common.buttonReturnToMainMenu:
                 return this.completion.complete({ sceneName: 'mainMenu' })
@@ -115,7 +113,7 @@ export class AdminMenuScene extends Scene<ISceneData, SceneEnterDataType> {
         const messageInfo = await ctx.replyWithHTML(`${messagePrefix}\n\n${localizationInfo}`)
         if (!ctx.chat) return
         try {
-            await this.localizationService.cacheLocalization()
+            await this.botContentService.cacheLocalization()
         } catch (error) {
             logger.error(`Fail to cache localization`, error)
             localizationInfo = emoji.error + ' Загрузка локализации'
@@ -159,6 +157,7 @@ export class AdminMenuScene extends Scene<ISceneData, SceneEnterDataType> {
                 } catch (error) {
                     statuses.set(pageName, error as Error)
                     logger.error(`Fail to cache spreadsheet page ${pageName}`, error)
+                    return
                 }
             }
             return cacheSpreadsheetFunc()

@@ -8,6 +8,10 @@ import { SceneName } from './scene-name.enum'
  */
 export enum SceneCallbackAction {
     segueButton = 0,
+    surveySkipQuestion = 1,
+    surveyBackToPreviousQuestion = 2,
+    publicationSetStatusNotRelevant = 3,
+    reusePublication = 4,
 }
 
 export interface SceneCallbackDataSegue {
@@ -28,7 +32,7 @@ export class SceneCallbackData {
         private readonly d: object
     ) {}
 
-    public get sceneName(): SceneName.union | null {
+    public get sceneName(): SceneName.Union | null {
         return SceneName.getById(this.s)
     }
     public get action(): SceneCallbackAction {

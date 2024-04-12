@@ -32,4 +32,12 @@ module.exports = {
             },
         ],
     },
+    overrides: [
+        {
+            files: ['*.entity.ts'],
+            rules: {
+                '@typescript-eslint/no-unused-vars': 'off',
+            },
+        },
+    ],
 }

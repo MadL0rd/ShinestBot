@@ -1,22 +1,23 @@
-import { HydratedDocument } from 'mongoose'
+import mongoose from 'mongoose'
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose'
-import { UniqueMessage } from './models/bot-content.unique-message'
-import { OnboardingPage } from './models/bot-content.onboarding-page'
-
-export type BotContentDocument = HydratedDocument<BotContent>
+import { MongoDocument } from 'src/entities/common/mongo-document.type'
+import { BotContent } from 'src/entities/bot-content'
+import { Survey } from 'src/entities/survey'
 
 @Schema()
-export class BotContent {
+export class BotContentSchema implements BotContent.BaseType {
     @Prop()
     language: string
 
-    @Prop()
-    uniqueMessage: UniqueMessage
+    @Prop({ type: mongoose.Schema.Types.Mixed })
+    uniqueMessage: BotContent.UniqueMessage
 
     @Prop()
-    onboarding: OnboardingPage[]
+    onboarding: BotContent.OnboardingPage.BaseType[]
+
+    @Prop({ type: mongoose.Schema.Types.Mixed })
+    survey: Survey.BaseType
 }
 
-export type BotContentStable = Required<BotContent>
-
-export const BotContentSchema = SchemaFactory.createForClass(BotContent)
+export type BotContentDocument = MongoDocument<BotContent.BaseType>
+export const botContentSchema = SchemaFactory.createForClass(BotContentSchema)

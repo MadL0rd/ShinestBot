@@ -1,3 +1,3 @@
-import { BotContent } from '../schemas/bot-content.schema'
+import { BotContentSchema } from '../schemas/bot-content.schema'
 
-export interface CreateBotContentDto extends Partial<BotContent> {}
+export interface CreateBotContentDto extends Partial<BotContentSchema> {}

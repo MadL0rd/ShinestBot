@@ -33,7 +33,7 @@ export class MainMenuScene extends Scene<ISceneData, SceneEnterDataType> {
     // Properties
     // =====================
 
-    readonly name: SceneName.union = 'mainMenu'
+    readonly name: SceneName.Union = 'mainMenu'
     protected get dataDefault(): ISceneData {
         return {} as ISceneData
     }
@@ -56,7 +56,7 @@ export class MainMenuScene extends Scene<ISceneData, SceneEnterDataType> {
         logger.log(
             `${this.name} scene handleEnterScene. User: ${this.user.telegramInfo.id} ${this.user.telegramInfo.username}`
         )
-        await this.logToUserHistory(this.historyEvent.startSceneMainMenu)
+        await this.logToUserHistory({ type: 'startSceneMainMenu' })
 
         await ctx.replyWithHTML(this.text.mainMenu.text, this.menuMarkup())
 
@@ -75,10 +75,23 @@ export class MainMenuScene extends Scene<ISceneData, SceneEnterDataType> {
                 return this.completion.inProgress({})
 
             case this.text.mainMenu.buttonLanguageSettings:
-                return this.completion.complete({ sceneName: 'languageSettingsScene' })
+                return this.completion.complete({ sceneName: 'languageSettings' })
 
             case this.text.mainMenu.buttonAdminMenu:
                 return this.completion.complete({ sceneName: 'adminMenu' })
+
+            case this.text.mainMenu.userPublications:
+                return this.completion.complete({ sceneName: 'userPublications' })
+
+            case this.text.mainMenu.editPublicationAsAdmin:
+                return this.completion.complete({ sceneName: 'moderationEditing' })
+
+            case this.text.mainMenu.buttonSurvey:
+                return this.completion.complete({
+                    sceneName: 'survey',
+                    providerType: 'default',
+                    allowContinueQuestion: true,
+                })
         }
 
         return this.completion.canNotHandle({})
@@ -96,8 +109,10 @@ export class MainMenuScene extends Scene<ISceneData, SceneEnterDataType> {
                 if (!nextScene) return this.completion.canNotHandle({})
 
                 return this.completion.completeWithUnsafeSceneEntrance(nextScene)
+
+            default:
+                return this.completion.canNotHandle({})
         }
-        return this.completion.canNotHandle({})
     }
 
     // =====================
@@ -111,7 +126,10 @@ export class MainMenuScene extends Scene<ISceneData, SceneEnterDataType> {
         return this.keyboardMarkupWithAutoLayoutFor(
             [
                 this.text.mainMenu.buttonRepoLink,
+                this.text.mainMenu.buttonSurvey,
                 this.text.mainMenu.buttonLanguageSettings,
+                this.text.mainMenu.userPublications,
+                ownerOrAdmin ? this.text.mainMenu.editPublicationAsAdmin : null,
                 ownerOrAdmin ? this.text.mainMenu.buttonAdminMenu : null,
             ].compact
         )

@@ -1,46 +1,22 @@
-import { HydratedDocument } from 'mongoose'
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose'
-import { UserHistoryEvent as UserHistoryEvent } from '../enums/user-history-event.enum'
-import { UserInternalInfo } from './models/user.internal-info'
+import mongoose from 'mongoose'
+import { MongoDocument } from 'src/entities/common/mongo-document.type'
+import { UserProfile } from 'src/entities/user-profile'
 
-export type UserDocument = HydratedDocument<User>
-
-export class TelegramInfo {
-    id: number
-    is_bot: boolean
-    first_name: string
-    last_name?: string
-    username?: string
-    language_code?: string
-}
-
-export class SceneData {
-    sceneName?: string
-    data?: object
-}
-
-export class UserHistoryRecord {
-    timeStamp: Date
-    event: UserHistoryEvent
-    content?: object | string
-}
-
-@Schema()
-export class User {
+@Schema({ collection: 'users' })
+export class UserProfileSchema implements UserProfile.BaseType {
     @Prop()
     telegramId: number
 
-    @Prop()
-    telegramInfo: TelegramInfo
+    @Prop({ type: mongoose.Schema.Types.Mixed })
+    telegramInfo: UserProfile.TelegramInfo
 
-    @Prop()
-    sceneData: SceneData
+    @Prop({ type: mongoose.Schema.Types.Mixed })
+    sceneData: UserProfile.SceneData
 
-    @Prop()
-    internalInfo: UserInternalInfo
-
-    @Prop()
-    userHistory: UserHistoryRecord[]
+    @Prop({ type: mongoose.Schema.Types.Mixed })
+    internalInfo: UserProfile.InternalInfo.BaseType
 }
 
-export const UserSchema = SchemaFactory.createForClass(User)
+export type UserProfileDocument = MongoDocument<UserProfile.BaseType>
+export const userProfileSchema = SchemaFactory.createForClass(UserProfileSchema)

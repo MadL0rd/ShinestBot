@@ -115,6 +115,39 @@
                 "audio": "",
                 "docs": ""
             }
+        },
+        "survey": {
+            "sheetId": "survey",
+            "sheetPublicName": "Опрос",
+            "contentType": "commonContent",
+            "cacheConfiguration": {
+                "configurationRow": 1,
+                "firstContentRow": 3,
+                "lastContentRow": 100,
+                "firstLetter": "A",
+                "lastLetter": "I"
+            },
+            "validation": {
+                "minRowLength": 3,
+                "requiredFields": {
+                    "id": "",
+                    "isRequired": "",
+                    "questionText": "",
+                    "publicTitle": "",
+                    "answerType": "",
+                    "showInPublicationTelegram": ""
+                }
+            },
+            "itemPrototype": {
+                "id": "",
+                "isRequired": "",
+                "questionText": "",
+                "publicTitle": "",
+                "answerType": "",
+                "answerParams": "",
+                "filters": "",
+                "showInPublicationTelegram": ""
+            }
         }
     }
 }

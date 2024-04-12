@@ -1,10 +1,6 @@
 import { logger } from 'src/app/app.logger'
-import { BotContent } from 'src/business-logic/bot-content/schemas/bot-content.schema'
-import { MediaContent } from 'src/business-logic/bot-content/schemas/models/bot-content.media-content'
-import { UniqueMessage } from 'src/business-logic/bot-content/schemas/models/bot-content.unique-message'
 import { UserHistoryEvent } from 'src/business-logic/user/enums/user-history-event.enum'
-import { UserPermissionNames } from 'src/business-logic/user/enums/user-permission-names.enum'
-import { UserDocument } from 'src/business-logic/user/schemas/user.schema'
+import { UserProfileDocument } from 'src/business-logic/user/schemas/user.schema'
 import { UserService } from 'src/business-logic/user/user.service'
 import { Context, Markup } from 'telegraf'
 import {
@@ -28,6 +24,9 @@ import {
 } from './scene.interface'
 import { SceneCallbackData } from './scene-callback'
 import { InlineButtonDto, generateInlineButton } from 'src/presentation/utils/inline-button.utils'
+import { UserProfile } from 'src/entities/user-profile'
+import { UniqueMessage } from 'src/entities/bot-content/nested/unique-message.entity'
+import { BotContent } from 'src/entities/bot-content'
 
 export abstract class Scene<SceneDataType extends object, SceneEnterDataType extends object>
     implements IScene
@@ -35,10 +34,10 @@ export abstract class Scene<SceneDataType extends object, SceneEnterDataType ext
     // =====================
     // Private properties
     // =====================
-    private _content: BotContent
+    private _content: BotContent.BaseType
     private _text: UniqueMessage
-    private _user: UserDocument
-    private _userActivePermissions: UserPermissionNames.union[]
+    private _user: UserProfileDocument
+    private _userActivePermissions: UserProfile.PermissionNames.Union[]
 
     // =====================
     // Protected properties:
@@ -47,13 +46,13 @@ export abstract class Scene<SceneDataType extends object, SceneEnterDataType ext
     protected readonly completion = new SceneHandlerCompletionTemplates<SceneDataType>()
     protected readonly historyEvent = UserHistoryEvent
 
-    protected get user(): UserDocument {
+    protected get user(): UserProfileDocument {
         return this._user
     }
-    protected get userActivePermissions(): UserPermissionNames.union[] {
+    protected get userActivePermissions(): UserProfile.PermissionNames.Union[] {
         return this._userActivePermissions
     }
-    protected get content(): BotContent {
+    protected get content(): BotContent.BaseType {
         return this._content
     }
     protected get text(): UniqueMessage {
@@ -63,7 +62,7 @@ export abstract class Scene<SceneDataType extends object, SceneEnterDataType ext
     // =====================
     // Abstract properties
     // =====================
-    readonly name: SceneName.union
+    readonly name: SceneName.Union
     protected readonly userService: UserService
     protected get dataDefault(): SceneDataType {
         return {} as SceneDataType
@@ -152,13 +151,15 @@ export abstract class Scene<SceneDataType extends object, SceneEnterDataType ext
         return this.keyboardMarkupFor(keyboardWithAutoLayout)
     }
 
-    protected async logToUserHistory(event: UserHistoryEvent, content?: string): Promise<void> {
-        await this.userService.logToUserHistory(this.user, event, content)
+    protected async logToUserHistory<EventName extends UserHistoryEvent.EventTypeName>(
+        event: UserHistoryEvent.SomeEventType<EventName>
+    ) {
+        await this.userService.logToUserHistory(this.user, event)
     }
 
     protected async replyMediaContent(
         ctx: Context<Update>,
-        media: MediaContent,
+        media: BotContent.OnboardingPage.MediaContent.BaseType,
         separatedContentType: null | 'images' | 'videos' | 'audio' | 'docks' = null
     ): Promise<void> {
         // Media group
@@ -262,6 +263,14 @@ class SceneHandlerCompletionTemplates<SceneDataType extends object> {
         }
     }
 
+    canNotHandleUnsafe(): SceneHandlerCompletion {
+        return {
+            inProgress: true,
+            didHandledUserInteraction: false,
+            sceneData: {} as SceneDataType,
+        }
+    }
+
     inProgress(data: SceneDataType): SceneHandlerCompletion {
         return {
             inProgress: true,
@@ -278,7 +287,7 @@ class SceneHandlerCompletionTemplates<SceneDataType extends object> {
         }
     }
 
-    completeWithUnsafeSceneEntrance(sceneName: SceneName.union): SceneHandlerCompletion {
+    completeWithUnsafeSceneEntrance(sceneName: SceneName.Union): SceneHandlerCompletion {
         return {
             inProgress: false,
             didHandledUserInteraction: true,

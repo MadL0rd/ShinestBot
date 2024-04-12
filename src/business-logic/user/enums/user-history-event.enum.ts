@@ -1,18 +1,14 @@
-export enum UserHistoryEvent {
-    start = 'Старт',
-    botIsBlockedDetected = 'Бот был заблокирован пользователем',
-    startWithParam = 'Запустил бота по ссылке c параметром',
-    sendMessage = 'Отправил сообщение',
-    callbackButtonDidTapped = 'Нажал на кнопку в сообщении',
+import { DistributiveOmit } from 'src/entities/common/distributive-omit.type'
+import { eventsSchema } from './user-history-events'
 
-    failedToSendMessage = 'Не удалось отправить сообщение пользователю',
+export namespace UserHistoryEvent {
+    // Content schemas
+    export const schemaEvents = eventsSchema
+    export type EventTypeName = keyof typeof schemaEvents
+    export type AnyEventType = (typeof schemaEvents)[EventTypeName]
 
-    startSceneOnboarding = 'Начал смотреть онбординг',
-    startSceneMainMenu = 'Перешел в главное меню',
-    startSceneAdminMenu = 'Перешел к сцене AdminMenu',
-    startSceneAdminMenuGenerateMetrics = 'Перешел к сцене adminMenuGenerateMetrics',
-    startSceneAdminMenuUsersManagementScene = 'Перешел к сцене AdminMenuUsersManagementScene',
-    startSceneAdminMenuMailingScene = 'Перешел к сцене AdminMenuMailingScene',
-    startSceneLanguageSettingsScene = 'Перешел к сцене LanguageSettingsScene',
-    /** New scene event placeholder */
+    export type SomeEventType<EventName extends EventTypeName> = DistributiveOmit<
+        (typeof schemaEvents)[EventName],
+        'localizedTitle'
+    >
 }

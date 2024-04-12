@@ -4,14 +4,13 @@ import { InjectBot } from 'nestjs-telegraf'
 import { internalConstants } from 'src/app/app.internal-constants'
 import { logger } from 'src/app/app.logger'
 import { BotContentService } from 'src/business-logic/bot-content/bot-content.service'
-import { BotContent } from 'src/business-logic/bot-content/schemas/bot-content.schema'
 import { GptApiService } from 'src/business-logic/gpt-api/gpt-api.service'
-import { UserHistoryEvent } from 'src/business-logic/user/enums/user-history-event.enum'
 import { UserService } from 'src/business-logic/user/user.service'
 import { SceneCallbackAction } from 'src/presentation/scenes/models/scene-callback'
 import { Context, Telegraf } from 'telegraf'
 import { InlineKeyboardButton } from 'node_modules/telegraf/typings/core/types/typegram'
 import { generateInlineButtonSegue } from '../utils/inline-button.utils'
+import { BotContent } from 'src/entities/bot-content'
 
 @Injectable()
 export class NotificationsService {
@@ -75,7 +74,7 @@ export class NotificationsService {
                     `Failed to send morning notification to user ${user.telegramInfo.username}`,
                     error
                 )
-                this.userService.logToUserHistory(user, UserHistoryEvent.botIsBlockedDetected)
+                this.userService.logToUserHistory(user, { type: 'botIsBlockedDetected' })
             }
         }
     }
@@ -133,7 +132,7 @@ export class NotificationsService {
                     `Failed to send evening notification to user ${user.telegramInfo.username}`,
                     error
                 )
-                this.userService.logToUserHistory(user, UserHistoryEvent.botIsBlockedDetected)
+                this.userService.logToUserHistory(user, { type: 'botIsBlockedDetected' })
             }
         }
     }
@@ -142,7 +141,7 @@ export class NotificationsService {
     // Private methods
     // =====================
 
-    private async getBotContent(): Promise<BotContent> {
+    private async getBotContent(): Promise<BotContent.BaseType> {
         return await this.botContentService.getContent(internalConstants.defaultLanguage)
     }
 }

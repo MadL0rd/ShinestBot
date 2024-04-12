@@ -1,18 +1,18 @@
-import { UniqueMessage } from 'src/business-logic/bot-content/schemas/models/bot-content.unique-message'
-import { UserPermissionNames } from 'src/business-logic/user/enums/user-permission-names.enum'
 import { PermissionsValidationResult } from './scene.interface'
+import { UserProfile } from 'src/entities/user-profile'
+import { UniqueMessage } from 'src/entities/bot-content/nested/unique-message.entity'
 
 export namespace SceneUsagePermissionsValidator {
     export interface IPermissionsValidator {
         validateUseScenePermissions(
-            userActivePermissions: UserPermissionNames.union[],
+            userActivePermissions: UserProfile.PermissionNames.Union[],
             text: UniqueMessage
         ): PermissionsValidationResult
     }
 
     export class CanUseIfNotBanned implements IPermissionsValidator {
         validateUseScenePermissions(
-            userActivePermissions: UserPermissionNames.union[],
+            userActivePermissions: UserProfile.PermissionNames.Union[],
             text: UniqueMessage
         ): PermissionsValidationResult {
             if (userActivePermissions === null || userActivePermissions.length === 0) {
@@ -30,7 +30,7 @@ export namespace SceneUsagePermissionsValidator {
 
     export class OwnerOrAdminOnly implements IPermissionsValidator {
         validateUseScenePermissions(
-            userActivePermissions: UserPermissionNames.union[],
+            userActivePermissions: UserProfile.PermissionNames.Union[],
             text: UniqueMessage
         ): PermissionsValidationResult {
             const ownerOrAdmin =

@@ -204,35 +204,48 @@ export class LocalizationService {
                         )
                     }
 
-                    const arrayItemIds = originalArrayFieldItemValue
-                        .split(propSchema.arrayItemsSeparator)
+                    const fieldArrayItems = originalArrayFieldItemValue
+                        .split(propSchema.itemsSeparator)
                         .map((arrayItem) => arrayItem.trimmed)
                         .filter((arrayItem) => arrayItem.isNotEmpty)
                         .map((arrayItem) => {
                             const arrayItemComponents = arrayItem
-                                .split(propSchema.arrayItemComponentsSeparator)
-                                .map((item) => item.trimmed)
-                            const arrayItemId = arrayItemComponents[propSchema.arrayItemIdIndex]
+                                .split(propSchema.itemComponentsSeparator)
+                                .map((fieldArrayItem) => fieldArrayItem.trimmed)
+                            const arrayItemId = arrayItemComponents[propSchema.itemIdIndex]
                             if (!arrayItemId) {
                                 throw Error(
                                     `Can not find item id inside string '${arrayItem}'\nfield:\t'${propKey}'\ntable row item:\t${rowItemJsonString}`
                                 )
                             }
-                            return arrayItemId
+                            return {
+                                id: arrayItemId.replace(propSchema.needToBeLocalizedPrefix, '')
+                                    .trimmed,
+                                needToBeLocalized: arrayItemId.startsWith(
+                                    propSchema.needToBeLocalizedPrefix
+                                ),
+                                rawValue: arrayItem,
+                            }
                         })
-                    if (arrayItemIds.isEmpty) {
+
+                    if (fieldArrayItems.isEmpty) {
                         throw Error(
                             `Can not find array items inside string '${originalArrayFieldItemValue}'\ntable row item:\t${rowItemJsonString}`
                         )
                     }
-                    const duplicatedarrayItemIds = arrayItemIds.justNotUnique
+
+                    const duplicatedarrayItemIds = fieldArrayItems.map(
+                        (fieldArrayItem) => fieldArrayItem.id
+                    ).justNotUnique
                     if (duplicatedarrayItemIds.isNotEmpty)
                         throw Error(
                             `Duplicated id\nfield:\t'${propKey}'\ntable row item:\t${rowItemJsonString}`
                         )
 
-                    const arrayItemsLocalizedStrings = arrayItemIds.map((arrayItemId) => {
-                        const localizedStringKey = `${itemId} / ${propKey} / ${arrayItemId}`
+                    const arrayItemsLocalizedStrings = fieldArrayItems.map((arrayItem) => {
+                        if (arrayItem.needToBeLocalized === false) return undefined
+
+                        const localizedStringKey = `${itemId} / ${propKey} / ${arrayItem.id}`
                         const fieldLocalizedString = localizedGroup.content[localizedStringKey]
                         if (!fieldLocalizedString) {
                             throw Error(
@@ -243,13 +256,19 @@ export class LocalizationService {
                     })
 
                     localizedGroup.languages.forEach((language) => {
-                        const localizedFieldValue = arrayItemIds
-                            .map((arrayItemId, index) => {
+                        const localizedFieldValue = fieldArrayItems
+                            .map((fieldArrayItem, index) => {
                                 const localizedString = arrayItemsLocalizedStrings[index]
+
+                                if (!localizedString) return fieldArrayItem.rawValue
                                 // TODO: use propSchema.arrayItemIdIndex while combine array items
-                                return `${arrayItemId} ${propSchema.arrayItemComponentsSeparator} ${localizedString.localizedValues[language]}`
+                                // If format is not `${id}${separator}${value}`
+                                return [
+                                    `${fieldArrayItem.id}`,
+                                    `${localizedString.localizedValues[language]}`,
+                                ].join(propSchema.itemComponentsSeparator)
                             })
-                            .join(propSchema.arrayItemsSeparator)
+                            .join(propSchema.itemsSeparator)
 
                         resultItemForksByLanguage[language][propKey] = localizedFieldValue
                     })

@@ -16,7 +16,7 @@ import { UserHistoryEvent } from 'src/business-logic/user/enums/user-history-eve
 // Scene data classes
 // =====================
 export class AdminMenuMailingSceneSceneEntranceDto implements SceneEntrance.Dto {
-    readonly sceneName = 'adminMenuMailingScene'
+    readonly sceneName = 'adminMenuMailing'
 }
 type SceneEnterDataType = AdminMenuMailingSceneSceneEntranceDto
 interface ISceneData {
@@ -33,7 +33,7 @@ export class AdminMenuMailingSceneScene extends Scene<ISceneData, SceneEnterData
     // Properties
     // =====================
 
-    readonly name: SceneName.union = 'adminMenuMailingScene'
+    readonly name: SceneName.Union = 'adminMenuMailing'
     protected get dataDefault(): ISceneData {
         return {} as ISceneData
     }
@@ -56,7 +56,7 @@ export class AdminMenuMailingSceneScene extends Scene<ISceneData, SceneEnterData
         logger.log(
             `${this.name} scene handleEnterScene. User: ${this.user.telegramInfo.id} ${this.user.telegramInfo.username}`
         )
-        await this.logToUserHistory(this.historyEvent.startSceneAdminMenuMailingScene)
+        await this.logToUserHistory({ type: 'startSceneAdminMenuMailingScene' })
 
         await ctx.replyWithHTML(this.text.adminMenu.mailingText, Markup.removeKeyboard())
 
@@ -107,10 +107,9 @@ export class AdminMenuMailingSceneScene extends Scene<ISceneData, SceneEnterData
                                 logger.log(`Пользователь ${userId} не найден!`)
                                 continue
                             }
-                            await this.userService.logToUserHistory(
-                                user,
-                                UserHistoryEvent.botIsBlockedDetected
-                            )
+                            await this.userService.logToUserHistory(user, {
+                                type: 'botIsBlockedDetected',
+                            })
                         }
                         if (index % 10 == 0) {
                             await ctx.telegram.editMessageText(
