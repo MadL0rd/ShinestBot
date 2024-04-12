@@ -9,10 +9,9 @@ import { SceneHandlerCompletion } from '../../models/scene.interface'
 import { Scene } from '../../models/scene.abstract'
 import { SceneUsagePermissionsValidator } from '../../models/scene-usage-permissions-validator'
 import { InjectableSceneConstructor } from '../../scene-factory/scene-injections-provider.service'
-import { UserDocument } from 'src/business-logic/user/schemas/user.schema'
+import { UserProfileDocument } from 'src/business-logic/user/schemas/user.schema'
 import { replaceMarkdownWithHtml } from 'src/utils/replaceMarkdownWithHtml'
-import { UserPermissionNames } from 'src/business-logic/user/enums/user-permission-names.enum'
-import { getActiveUserPermissionNames } from 'src/utils/getActiveUserPermissions'
+import { UserProfile } from 'src/entities/user-profile'
 
 // =====================
 // Scene data classes
@@ -41,7 +40,7 @@ export class AdminMenuUsersManagementSceneScene extends Scene<ISceneData, SceneE
         return {} as ISceneData
     }
     protected get permissionsValidator(): SceneUsagePermissionsValidator.IPermissionsValidator {
-        return new SceneUsagePermissionsValidator.CanUseIfNotBanned()
+        return new SceneUsagePermissionsValidator.OwnerOrAdminOnly()
     }
 
     constructor(protected readonly userService: UserService) {
@@ -59,7 +58,7 @@ export class AdminMenuUsersManagementSceneScene extends Scene<ISceneData, SceneE
         logger.log(
             `${this.name} scene handleEnterScene. User: ${this.user.telegramInfo.id} ${this.user.telegramInfo.username}`
         )
-        await this.logToUserHistory(this.historyEvent.startSceneAdminMenuUsersManagementScene)
+        await this.logToUserHistory({ type: 'startSceneAdminMenuUsersManagementScene' })
 
         await ctx.replyWithHTML(
             this.text.adminMenu.usersManagementTextFindUser,
@@ -80,7 +79,7 @@ export class AdminMenuUsersManagementSceneScene extends Scene<ISceneData, SceneE
         const data = this.restoreData(dataRaw)
 
         if (data.targetUserTelegramId == null) {
-            let targetUser: UserDocument | null = null
+            let targetUser: UserProfileDocument | null = null
             if (messageText.includes('@', 0)) {
                 targetUser = await this.userService.findByTelegramUsername(messageText)
             } else if (parseInt(messageText)) {
@@ -116,9 +115,10 @@ export class AdminMenuUsersManagementSceneScene extends Scene<ISceneData, SceneE
                         data.targetUserTelegramId
                     )
                     if (targetUser != null) {
-                        const targetUserActivePermissions = getActiveUserPermissionNames(targetUser)
+                        const targetUserActivePermissions =
+                            UserProfile.Helper.getActivePermissionNames(targetUser)
                         const buttons: string[] = []
-                        for (const permission of UserPermissionNames.allCases) {
+                        for (const permission of UserProfile.PermissionNames.allCases) {
                             const permissionValue = permission
                             const prefix = targetUserActivePermissions.includes(permissionValue)
                                 ? '✅'
@@ -169,8 +169,9 @@ export class AdminMenuUsersManagementSceneScene extends Scene<ISceneData, SceneE
             if (messageText.split(' ').length != 2) {
                 return this.completion.canNotHandle(data)
             }
-            const targetPermission = UserPermissionNames.castToInstance(messageText.split(' ')[1])
-            if (targetPermission == null) {
+            const targetPermission = messageText.split(' ')[1]
+
+            if (!UserProfile.PermissionNames.includes(targetPermission)) {
                 return this.completion.canNotHandle(data)
             }
             let permissionUpdateEnable = false
@@ -178,17 +179,18 @@ export class AdminMenuUsersManagementSceneScene extends Scene<ISceneData, SceneE
             let targetUserActivePermissions: string[] | null = null
             const targetUser = await this.userService.findOneByTelegramId(data.targetUserTelegramId)
             if (targetUser) {
-                targetUserActivePermissions = getActiveUserPermissionNames(targetUser)
+                targetUserActivePermissions =
+                    UserProfile.Helper.getActivePermissionNames(targetUser)
             }
 
             // Include only enabled actions
             switch (targetPermission) {
                 // Any actions with owner can do only developer
-                case UserPermissionNames.castToInstance('owner'):
+                case 'owner':
                     break
 
                 // Only owner can set admin permission
-                case UserPermissionNames.castToInstance('admin'):
+                case 'admin':
                     if (this.userActivePermissions.includes('owner')) {
                         permissionUpdateEnable = true
                     }
@@ -196,7 +198,7 @@ export class AdminMenuUsersManagementSceneScene extends Scene<ISceneData, SceneE
 
                 // Owner and admin can ban user
                 // Nobody can ban owner and admin
-                case UserPermissionNames.castToInstance('banned'):
+                case 'banned':
                     if (
                         targetUserActivePermissions &&
                         targetUserActivePermissions.includes('owner') == false &&
@@ -223,9 +225,7 @@ export class AdminMenuUsersManagementSceneScene extends Scene<ISceneData, SceneE
             ) {
                 // Remove permission
                 targetUser.internalInfo.permissions = targetUser.internalInfo.permissions.filter(
-                    (permission) =>
-                        UserPermissionNames.castToInstance(permission.permissionName) !=
-                        targetPermission
+                    (permission) => permission.permissionName != targetPermission
                 )
             } else {
                 // Add permission
@@ -272,7 +272,7 @@ export class AdminMenuUsersManagementSceneScene extends Scene<ISceneData, SceneE
     // =====================
     // Private methods
     // =====================
-    private generateUserInfoString(user: UserDocument): string {
+    private generateUserInfoString(user: UserProfileDocument): string {
         let result: string = ''
         result += `\nTelegram id: *${user.telegramId}*`
         result += `\nTelegram username: *@${user.telegramInfo.username}*`

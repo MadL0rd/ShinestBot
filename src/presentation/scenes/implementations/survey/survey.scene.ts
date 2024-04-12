@@ -11,7 +11,7 @@ import { SceneUsagePermissionsValidator } from '../../models/scene-usage-permiss
 import { InjectableSceneConstructor } from '../../scene-factory/scene-injections-provider.service'
 import { SurveyContextProviderType } from 'src/presentation/survey-context/abstract/survey-context-provider.interface'
 import { SurveyContextProviderFactoryService } from 'src/presentation/survey-context/survey-context-provider-factory/survey-context-provider-factory.service'
-import { SurveyUsageHelpers } from 'src/business-logic/bot-content/schemas/models/bot-content.survey'
+import { Survey } from 'src/entities/survey'
 
 // =====================
 // Scene data classes
@@ -62,7 +62,7 @@ export class SurveyScene extends Scene<ISceneData, SceneEnterDataType> {
         logger.log(
             `${this.name} scene handleEnterScene. User: ${this.user.telegramInfo.id} ${this.user.telegramInfo.username}`
         )
-        await this.logToUserHistory(this.historyEvent.startSceneSurvey, data?.providerType)
+        await this.logToUserHistory({ type: 'startSceneSurvey', surveyType: data?.providerType })
         if (!data) {
             logger.error('Scene start data corrupted')
             return this.completion.complete()
@@ -87,7 +87,7 @@ export class SurveyScene extends Scene<ISceneData, SceneEnterDataType> {
         }
 
         const surveySource = await provider.getSurvey(this.user)
-        const nextQuestion = SurveyUsageHelpers.findNextQuestion(surveySource, cache.passedAnswers)
+        const nextQuestion = Survey.Helper.findNextQuestion(surveySource, cache.passedAnswers)
         if (!nextQuestion) {
             return this.completion.complete({
                 sceneName: 'surveyFinal',

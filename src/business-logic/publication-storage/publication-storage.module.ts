@@ -1,14 +1,14 @@
 import { Module } from '@nestjs/common'
 import { MongooseModule } from '@nestjs/mongoose'
 import { PublicationStorageService } from './publication-storage.service'
-import { Publication, PublicationSchema } from './schemas/publication.schema'
+import { PublicationSchema, publicationSchema } from './schemas/publication.schema'
 
 @Module({
     imports: [
         MongooseModule.forFeature([
             {
-                name: Publication.name,
-                schema: PublicationSchema,
+                name: PublicationSchema.name,
+                schema: publicationSchema,
             },
         ]),
     ],

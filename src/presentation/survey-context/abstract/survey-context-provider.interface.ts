@@ -1,5 +1,5 @@
-import { Survey } from 'src/business-logic/bot-content/schemas/models/bot-content.survey'
-import { User } from 'src/business-logic/user/schemas/user.schema'
+import { Survey } from 'src/entities/survey'
+import { UserProfile } from 'src/entities/user-profile'
 import { SceneEntrance } from 'src/presentation/scenes/models/scene-entrance.interface'
 
 export namespace SurveyContextProviderType {
@@ -29,13 +29,18 @@ export type ValidationResult = ValidationResultSuccess | ValidationResultDenied
 
 export interface ISurveyContextProvider {
     type: SurveyContextProviderType.Union
-    validateUserCanStartSurvey(user: User): Promise<ValidationResult>
-    getSurvey(user: User): Promise<Survey.Model>
-    getAnswersCache(user: User): Promise<Survey.PassedAnswersCache>
-    getAnswersCacheStable(user: User): Promise<Survey.PassedAnswersCache>
-    setAnswersCache(user: User, cache: Survey.PassedAnswersCache | undefined): Promise<void>
-    clearAnswersCache(user: User): Promise<void>
-    pushAnswerToCache(user: User, answer: Survey.PassedAnswer): Promise<void>
-    popAnswerFromCache(user: User): Promise<Survey.PassedAnswer | undefined>
-    completeSurveyAndGetNextScene(user: User): Promise<SceneEntrance.SomeSceneDto | undefined>
+    validateUserCanStartSurvey(user: UserProfile.BaseType): Promise<ValidationResult>
+    getSurvey(user: UserProfile.BaseType): Promise<Survey.BaseType>
+    getAnswersCache(user: UserProfile.BaseType): Promise<Survey.PassedAnswersCache>
+    getAnswersCacheStable(user: UserProfile.BaseType): Promise<Survey.PassedAnswersCache>
+    setAnswersCache(
+        user: UserProfile.BaseType,
+        cache: Survey.PassedAnswersCache | undefined
+    ): Promise<void>
+    clearAnswersCache(user: UserProfile.BaseType): Promise<void>
+    pushAnswerToCache(user: UserProfile.BaseType, answer: Survey.PassedAnswer): Promise<void>
+    popAnswerFromCache(user: UserProfile.BaseType): Promise<Survey.PassedAnswer | undefined>
+    completeSurveyAndGetNextScene(
+        user: UserProfile.BaseType
+    ): Promise<SceneEntrance.SomeSceneDto | undefined>
 }

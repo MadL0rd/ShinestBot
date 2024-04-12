@@ -4,9 +4,6 @@ import { BotContentService } from 'src/business-logic/bot-content/bot-content.se
 import { UserService } from 'src/business-logic/user/user.service'
 import { SceneName } from 'src/presentation/scenes/models/scene-name.enum'
 import { logger } from 'src/app/app.logger'
-import { UserHistoryEvent } from 'src/business-logic/user/enums/user-history-event.enum'
-import { getActiveUserPermissionNames } from 'src/utils/getActiveUserPermissions'
-import { getLanguageFor } from 'src/utils/getLanguageForUser'
 import { plainToClass } from 'class-transformer'
 import {
     Update,
@@ -22,8 +19,9 @@ import {
     SceneUserContext,
 } from 'src/presentation/scenes/models/scene.interface'
 import { SceneFactoryService } from 'src/presentation/scenes/scene-factory/scene-factory.service'
-import { BotContent } from 'src/business-logic/bot-content/schemas/bot-content.schema'
 import { SceneEntrance } from 'src/presentation/scenes/models/scene-entrance.interface'
+import { UserProfile } from 'src/entities/user-profile'
+import { BotContent } from 'src/entities/bot-content'
 
 @Injectable()
 export class PrivateDialogDispatcherService {
@@ -67,9 +65,13 @@ export class PrivateDialogDispatcherService {
                 publications: [],
                 adminsOnly: {},
             },
+            sceneData: {
+                sceneName: undefined,
+                data: undefined,
+            },
         })
 
-        await this.userService.logToUserHistory(user, UserHistoryEvent.start, `${startParam}`)
+        await this.userService.logToUserHistory(user, { type: 'start', startParam: startParam })
 
         const userContext = await this.generateSceneUserContext(ctx.from)
 
@@ -106,11 +108,10 @@ export class PrivateDialogDispatcherService {
         let userContext = await this.generateSceneUserContext(ctx.from)
         const message = ctx.message as Message.TextMessage
 
-        await this.userService.logToUserHistory(
-            userContext.user,
-            UserHistoryEvent.sendMessage,
-            message?.text
-        )
+        await this.userService.logToUserHistory(userContext.user, {
+            type: 'sendMessage',
+            text: message?.text,
+        })
 
         // Check message text is segue command like /back_to_menu
         const sceneNameFromCommandSegue = this.getSceneNameFromTextCommandSegue(message?.text)
@@ -206,11 +207,10 @@ export class PrivateDialogDispatcherService {
         const dataQuery = ctx.callbackQuery as CallbackQuery.DataQuery | undefined
 
         let userContext = await this.generateSceneUserContext(ctx.from)
-        await this.userService.logToUserHistory(
-            userContext.user,
-            UserHistoryEvent.callbackButtonDidTapped,
-            dataQuery?.data ?? '*empty*'
-        )
+        await this.userService.logToUserHistory(userContext.user, {
+            type: 'callbackButtonDidTapped',
+            data: dataQuery?.data,
+        })
 
         let callbackData: SceneCallbackData | null = null
 
@@ -347,7 +347,7 @@ export class PrivateDialogDispatcherService {
 
     private async validateUserCanUseScene(
         ctx: Context<Update> | Context<Update.CallbackQueryUpdate>,
-        botContent: BotContent,
+        botContent: BotContent.BaseType,
         scene?: IScene,
         needToSendMessage: boolean = true
     ): Promise<boolean> {
@@ -382,10 +382,14 @@ export class PrivateDialogDispatcherService {
                 publications: [],
                 adminsOnly: {},
             },
+            sceneData: {
+                sceneName: undefined,
+                data: undefined,
+            },
         })
-        const userActivePermissions = getActiveUserPermissionNames(user)
+        const userActivePermissions = UserProfile.Helper.getActivePermissionNames(user)
 
-        const userLanguage = getLanguageFor(user)
+        const userLanguage = UserProfile.Helper.getLanguageFor(user)
         const botContent = await this.botContentService.getContent(userLanguage)
 
         return {

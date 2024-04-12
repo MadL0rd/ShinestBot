@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import { Model } from 'mongoose'
-import { PublicationStatus } from './enums/publication-status.enum'
-import { Publication, PublicationDocument } from './schemas/publication.schema'
+import { PublicationSchema, PublicationDocument } from './schemas/publication.schema'
 import { PublicationCreateDto, PublicationUpdateDto } from './dto/publication.dto'
+import { Publication } from 'src/entities/publication'
 
 @Injectable()
 export class PublicationStorageService {
-    constructor(@InjectModel(Publication.name) private model: Model<Publication>) {}
+    constructor(@InjectModel(PublicationSchema.name) private model: Model<PublicationSchema>) {}
 
     async create(createDto: PublicationCreateDto): Promise<PublicationDocument> {
         return this.model.create(createDto)
@@ -39,7 +39,7 @@ export class PublicationStorageService {
     }
 
     async findAllActivePublicationIds(skip: number = 0, limit: number = 1): Promise<string[]> {
-        const statusActive: PublicationStatus.Union = 'active'
+        const statusActive: Publication.PublicationStatus.Union = 'active'
         const result = await this.model
             .find(
                 // Filter

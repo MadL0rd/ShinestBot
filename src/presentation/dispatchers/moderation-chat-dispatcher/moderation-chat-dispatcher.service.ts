@@ -6,17 +6,14 @@ import { UserService } from 'src/business-logic/user/user.service'
 import { PublicationStorageService } from 'src/business-logic/publication-storage/publication-storage.service'
 import { internalConstants } from 'src/app/app.internal-constants'
 import { logger } from 'src/app/app.logger'
-import { getLanguageFor } from 'src/utils/getLanguageForUser'
-import { SurveyFormatter } from 'src/utils/survey-formatter'
 import { PublicationDocument } from 'src/business-logic/publication-storage/schemas/publication.schema'
 import { MediaGroup } from 'node_modules/telegraf/typings/telegram-types'
-import { SurveyUsageHelpers } from 'src/business-logic/bot-content/schemas/models/bot-content.survey'
 import { InjectBot } from 'nestjs-telegraf'
 import { ModeratedPublicationsService } from 'src/presentation/publication-management/moderated-publications/moderated-publications.service'
 import { generateInlineButtonSegue } from 'src/presentation/utils/inline-button.utils'
 import { SceneCallbackAction } from 'src/presentation/scenes/models/scene-callback'
-import { getActiveUserPermissionNames } from 'src/utils/getActiveUserPermissions'
-import { User } from 'src/business-logic/user/schemas/user.schema'
+import { UserProfile } from 'src/entities/user-profile'
+import { Survey } from 'src/entities/survey'
 
 @Injectable()
 export class ModerationChatDispatcherService {
@@ -62,11 +59,10 @@ export class ModerationChatDispatcherService {
         }
 
         const user = await this.userService.findOneByTelegramId(ctx.message.from.id)
-        const activeUserPermissionNames = user ? getActiveUserPermissionNames(user) : []
+        const activePermissionNames = user ? UserProfile.Helper.getActivePermissionNames(user) : []
         if (
             !user ||
-            (!activeUserPermissionNames.includes('admin') &&
-                !activeUserPermissionNames.includes('owner'))
+            (!activePermissionNames.includes('admin') && !activePermissionNames.includes('owner'))
         ) {
             await this.sendMessageToCurrentThread(ctx, 'Access denied')
             const userJsonString = JSON.stringify(ctx.from)
@@ -112,7 +108,7 @@ export class ModerationChatDispatcherService {
     // =====================
 
     private async handleEditPublication(
-        admin: User,
+        admin: UserProfile.BaseType,
         publication: PublicationDocument,
         ctx: Context<Update>
     ) {
@@ -145,7 +141,7 @@ export class ModerationChatDispatcherService {
         ])
         await ctx.telegram.sendMessage(
             admin.telegramId,
-            `Вы перевели завяку <b>${publication.id}</b> в режим ручного редактирования. Что приступить, нажмите на кнопку ниже`,
+            `Вы перевели завяку <b>${publication._id.toString()}</b> в режим ручного редактирования. Что приступить, нажмите на кнопку ниже`,
             {
                 parse_mode: 'HTML',
                 reply_markup: {
@@ -180,13 +176,11 @@ export class ModerationChatDispatcherService {
 
         // Try to find media
         const mediaGroupArgs: MediaGroup = publication.answers
-            .filter(
-                (answer) =>
-                    answer.question.addAnswerToTelegramPublication &&
-                    SurveyUsageHelpers.isMediaType(answer.type)
-            )
             .compactMap((answer) => {
-                return 'media' in answer ? answer.media : null
+                return answer.question.addAnswerToTelegramPublication &&
+                    Survey.Helper.isPassedAnswerMediaType(answer)
+                    ? answer.media
+                    : null
             })
             .flat()
             .map((media) => {
@@ -205,7 +199,7 @@ export class ModerationChatDispatcherService {
         const botContent = await this.botContentService.getContent(
             internalConstants.defaultLanguage
         )
-        const publicationText = SurveyFormatter.publicationPublicText(
+        const publicationText = Survey.Formatter.publicationPublicText(
             publication,
             botContent.uniqueMessage
         )
@@ -363,9 +357,9 @@ export class ModerationChatDispatcherService {
             logger.error(`Cannot find user by id: ${userId} `)
             return null
         }
-        const userLanguage = getLanguageFor(user)
+        const userLanguage = UserProfile.Helper.getLanguageFor(user)
         const botContent = await this.botContentService.getContent(userLanguage)
-        const adminMessageText = SurveyFormatter.makeUserMessageWithPublicationInfo(
+        const adminMessageText = Survey.Formatter.makeUserMessageWithPublicationInfo(
             botContent.uniqueMessage.moderation.messageText,
             publication,
             botContent.uniqueMessage

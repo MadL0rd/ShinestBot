@@ -1,5 +1,4 @@
-import { Publication } from '../schemas/publication.schema'
+import { PublicationSchema } from '../schemas/publication.schema'
 
-export type PublicationCreateDto = Publication
-
-export type PublicationUpdateDto = Partial<Publication>
+export type PublicationCreateDto = PublicationSchema
+export type PublicationUpdateDto = Partial<PublicationSchema>

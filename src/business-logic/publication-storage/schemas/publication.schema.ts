@@ -1,10 +1,10 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose'
-import { Survey } from 'src/business-logic/bot-content/schemas/models/bot-content.survey'
-import { PublicationStatus } from '../enums/publication-status.enum'
-import { HydratedDocument } from 'mongoose'
+import { Survey } from 'src/entities/survey'
+import { Publication } from 'src/entities/publication'
+import { MongoDocument } from 'src/entities/common/mongo-document.type'
 
 @Schema()
-export class Publication {
+export class PublicationSchema implements Publication.BaseType {
     @Prop()
     userTelegramId: number
 
@@ -18,7 +18,7 @@ export class Publication {
     answers: Survey.PassedAnswer[]
 
     @Prop()
-    status: PublicationStatus.Union
+    status: Publication.PublicationStatus.Union
 
     @Prop()
     moderationChatThreadMessageId?: number
@@ -27,17 +27,8 @@ export class Publication {
     moderationChannelPublicationId?: number
 
     @Prop()
-    placementHistory: Placement[]
+    placementHistory: Publication.Placement.BaseType[]
 }
 
-type PlacementTelegram = {
-    type: 'telegram'
-    creationDate: Date
-    channelId: number
-    messageId: number
-}
-
-type Placement = PlacementTelegram
-
-export const PublicationSchema = SchemaFactory.createForClass(Publication)
-export type PublicationDocument = HydratedDocument<Publication>
+export const publicationSchema = SchemaFactory.createForClass(PublicationSchema)
+export type PublicationDocument = MongoDocument<PublicationSchema>

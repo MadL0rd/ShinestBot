@@ -59,7 +59,7 @@ export class AdminMenuGenerateMetricsScene extends Scene<ISceneData, SceneEnterD
         logger.log(
             `${this.name} scene handleEnterScene. User: ${this.user.telegramInfo.id} ${this.user.telegramInfo.username}`
         )
-        await this.logToUserHistory(this.historyEvent.startSceneAdminMenuGenerateMetrics)
+        await this.logToUserHistory({ type: 'startSceneAdminMenuGenerateMetrics' })
 
         await ctx.replyWithHTML(this.text.adminMenuMetrics.selectDateText, this.menuMarkup())
 

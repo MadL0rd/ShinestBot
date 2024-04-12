@@ -1,4 +1,4 @@
-export namespace PublicationStatus {
+export namespace _PublicationStatus {
     export type Union = (typeof allCases)[number]
     export const allCases = ['created', 'moderation', 'rejected', 'active', 'notRelevant'] as const
 

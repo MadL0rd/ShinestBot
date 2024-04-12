@@ -11,9 +11,9 @@ import { SceneUsagePermissionsValidator } from '../../models/scene-usage-permiss
 import { InjectableSceneConstructor } from '../../scene-factory/scene-injections-provider.service'
 import { SurveyContextProviderType } from 'src/presentation/survey-context/abstract/survey-context-provider.interface'
 import { SurveyContextProviderFactoryService } from 'src/presentation/survey-context/survey-context-provider-factory/survey-context-provider-factory.service'
-import { SurveyFormatter } from 'src/utils/survey-formatter'
 import { PublicationStorageService } from 'src/business-logic/publication-storage/publication-storage.service'
 import { BotContentService } from 'src/business-logic/bot-content/bot-content.service'
+import { Survey } from 'src/entities/survey'
 
 // =====================
 // Scene data classes
@@ -65,7 +65,7 @@ export class SurveyFinalScene extends Scene<ISceneData, SceneEnterDataType> {
         logger.log(
             `${this.name} scene handleEnterScene. User: ${this.user.telegramInfo.id} ${this.user.telegramInfo.username}`
         )
-        await this.logToUserHistory(this.historyEvent.startSceneSurveyFinal)
+        await this.logToUserHistory({ type: 'startSceneSurveyFinal' })
 
         if (!data) {
             logger.error('Scene start data corrupted')
@@ -74,7 +74,7 @@ export class SurveyFinalScene extends Scene<ISceneData, SceneEnterDataType> {
         const provider = this.dataProviderFactory.getSurveyContextProvider(data.providerType)
         const cache = await provider.getAnswersCacheStable(this.user)
 
-        const answersText = SurveyFormatter.generateTextFromPassedAnswers(cache, this.content)
+        const answersText = Survey.Formatter.generateTextFromPassedAnswers(cache, this.content)
 
         await ctx.replyWithHTML(answersText)
         await ctx.replyWithHTML(

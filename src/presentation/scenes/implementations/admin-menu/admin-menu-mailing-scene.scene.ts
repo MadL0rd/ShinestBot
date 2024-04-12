@@ -56,7 +56,7 @@ export class AdminMenuMailingSceneScene extends Scene<ISceneData, SceneEnterData
         logger.log(
             `${this.name} scene handleEnterScene. User: ${this.user.telegramInfo.id} ${this.user.telegramInfo.username}`
         )
-        await this.logToUserHistory(this.historyEvent.startSceneAdminMenuMailingScene)
+        await this.logToUserHistory({ type: 'startSceneAdminMenuMailingScene' })
 
         await ctx.replyWithHTML(this.text.adminMenu.mailingText, Markup.removeKeyboard())
 
@@ -107,10 +107,9 @@ export class AdminMenuMailingSceneScene extends Scene<ISceneData, SceneEnterData
                                 logger.log(`Пользователь ${userId} не найден!`)
                                 continue
                             }
-                            await this.userService.logToUserHistory(
-                                user,
-                                UserHistoryEvent.botIsBlockedDetected
-                            )
+                            await this.userService.logToUserHistory(user, {
+                                type: 'botIsBlockedDetected',
+                            })
                         }
                         if (index % 10 == 0) {
                             await ctx.telegram.editMessageText(

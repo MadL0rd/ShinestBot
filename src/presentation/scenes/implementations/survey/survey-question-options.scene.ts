@@ -10,8 +10,8 @@ import { Scene } from '../../models/scene.abstract'
 import { SceneUsagePermissionsValidator } from '../../models/scene-usage-permissions-validator'
 import { InjectableSceneConstructor } from '../../scene-factory/scene-injections-provider.service'
 import { SurveyContextProviderType } from 'src/presentation/survey-context/abstract/survey-context-provider.interface'
-import { Survey } from 'src/business-logic/bot-content/schemas/models/bot-content.survey'
 import { SurveyContextProviderFactoryService } from 'src/presentation/survey-context/survey-context-provider-factory/survey-context-provider-factory.service'
+import { Survey } from 'src/entities/survey'
 
 // =====================
 // Scene data classes
@@ -64,7 +64,7 @@ export class SurveyQuestionOptionsScene extends Scene<ISceneData, SceneEnterData
         logger.log(
             `${this.name} scene handleEnterScene. User: ${this.user.telegramInfo.id} ${this.user.telegramInfo.username}`
         )
-        await this.logToUserHistory(this.historyEvent.startSceneSurveyQuestionOptions)
+        await this.logToUserHistory({ type: 'startSceneSurveyQuestionOptions' })
 
         if (!data) {
             logger.error('Scene start data corrupted')

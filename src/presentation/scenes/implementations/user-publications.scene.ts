@@ -15,11 +15,11 @@ import { Scene } from '../models/scene.abstract'
 import { SceneUsagePermissionsValidator } from '../models/scene-usage-permissions-validator'
 import { InjectableSceneConstructor } from '../scene-factory/scene-injections-provider.service'
 import { PublicationStorageService } from 'src/business-logic/publication-storage/publication-storage.service'
-import { SurveyFormatter } from 'src/utils/survey-formatter'
 import { PublicationDocument } from 'src/business-logic/publication-storage/schemas/publication.schema'
 import { generateInlineButton } from 'src/presentation/utils/inline-button.utils'
 import { ModeratedPublicationsService } from 'src/presentation/publication-management/moderated-publications/moderated-publications.service'
 import { SurveyContextProviderFactoryService } from 'src/presentation/survey-context/survey-context-provider-factory/survey-context-provider-factory.service'
+import { Survey } from 'src/entities/survey'
 
 // =====================
 // Scene data classes
@@ -73,7 +73,7 @@ export class UserPublicationsScene extends Scene<ISceneData, SceneEnterDataType>
         logger.log(
             `${this.name} scene handleEnterScene. User: ${this.user.telegramInfo.id} ${this.user.telegramInfo.username}`
         )
-        await this.logToUserHistory(this.historyEvent.startSceneUserPublications)
+        await this.logToUserHistory({ type: 'startSceneUserPublications' })
 
         await this.displayUserPublications(ctx)
         return this.completion.inProgress({})
@@ -209,7 +209,7 @@ export class UserPublicationsScene extends Scene<ISceneData, SceneEnterDataType>
                 ),
             ])
 
-            const tgLinkList = SurveyFormatter.publicationTelegramLinks(publication)
+            const tgLinkList = Survey.Formatter.publicationTelegramLinks(publication)
             if (tgLinkList) {
                 inlineKeyboard.push(
                     tgLinkList.map((link) =>
@@ -228,7 +228,7 @@ export class UserPublicationsScene extends Scene<ISceneData, SceneEnterDataType>
     }
 
     private generateAdvertInfoText(publication: PublicationDocument): string {
-        return `\n\n${SurveyFormatter.makeUserMessageWithPublicationInfo(
+        return `\n\n${Survey.Formatter.makeUserMessageWithPublicationInfo(
             this.text.userPublications.advertInfoFormat,
             publication,
             this.text

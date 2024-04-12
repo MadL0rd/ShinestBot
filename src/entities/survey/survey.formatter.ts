@@ -1,29 +1,27 @@
 import moment from 'moment'
 import { internalConstants } from 'src/app/app.internal-constants'
-import { BotContent } from 'src/business-logic/bot-content/schemas/bot-content.schema'
-import {
-    Survey,
-    SurveyUsageHelpers,
-} from 'src/business-logic/bot-content/schemas/models/bot-content.survey'
-import { UniqueMessage } from 'src/business-logic/bot-content/schemas/models/bot-content.unique-message'
-import { PublicationStatus } from 'src/business-logic/publication-storage/enums/publication-status.enum'
-import {
-    Publication,
-    PublicationDocument,
-} from 'src/business-logic/publication-storage/schemas/publication.schema'
-import { User } from 'src/business-logic/user/schemas/user.schema'
+import { PublicationDocument } from 'src/business-logic/publication-storage/schemas/publication.schema'
+import { Survey } from '.'
+import { BotContent } from '../bot-content'
+import { UniqueMessage } from '../bot-content/nested/unique-message.entity'
+import { Publication } from '../publication'
+import { UserProfile } from '../user-profile'
 
-export namespace SurveyFormatter {
+/**
+ * Namespace for survey entity formatter functions.
+ * This namespace should contain functions responsible for formatting entity data.
+ */
+export namespace _SurveyFormatter {
     export function generateTextFromPassedAnswers(
         answers: Survey.PassedAnswersCache,
-        botContent: BotContent
+        botContent: BotContent.BaseType
     ) {
         const text = botContent.uniqueMessage
         let result = ''
         for (let i = 0; i < answers.passedAnswers.length; i++) {
             const answer = answers.passedAnswers[i]
             const answerStringValue =
-                SurveyUsageHelpers.getAnswerStringValue(answer, text) ??
+                Survey.Helper.getAnswerStringValue(answer, text) ??
                 text.surveyFinal.textOptionalAnswerIsNull
             result += `${i + 1}.\t${answer.question.publicTitle}: <b>${answerStringValue}</b>\n`
         }
@@ -32,7 +30,7 @@ export namespace SurveyFormatter {
 
     export function moderationPreSynchronizedText(
         publication: PublicationDocument,
-        botContent: BotContent
+        botContent: BotContent.BaseType
     ): string {
         const prefix =
             internalConstants.loadingServiceChatMessagePrefix + publication._id.toString()
@@ -51,13 +49,13 @@ export namespace SurveyFormatter {
     export function moderationSynchronizedText(
         publication: PublicationDocument,
         text: UniqueMessage,
-        author: User
+        author: UserProfile.BaseType
     ): string {
         let PublicationText = ''
         for (let i = 0; i < publication.answers.length; i++) {
             const answer = publication.answers[i]
             const answerValue =
-                SurveyUsageHelpers.getAnswerStringValue(answer, text) ??
+                Survey.Helper.getAnswerStringValue(answer, text) ??
                 text.userPublications.finalOptionalAnswerIsNull
             PublicationText += `${i + 1}.\t${answer.question.publicTitle}: <b>${answerValue}</b>`
             PublicationText += '\n'
@@ -99,6 +97,7 @@ export namespace SurveyFormatter {
                     )
             }
         }
+        const publicationStatus = publicationStatusString(publication.status, text)
         return messageText
             .replace(text.moderation.messageAdvertIdPlaceholder, publication._id.toString())
             .replace(
@@ -107,10 +106,7 @@ export namespace SurveyFormatter {
                     .utcOffset('Europe/Moscow')
                     .format('DD.MM.yyyy HH:mm')
             )
-            .replace(
-                text.moderation.messagePostStatusPlaceholder,
-                publicationStatusString(publication.status, text)
-            )
+            .replace(text.moderation.messagePostStatusPlaceholder, publicationStatus)
     }
 
     export function getPublicationTagsString(publication: PublicationDocument): string {
@@ -133,13 +129,11 @@ export namespace SurveyFormatter {
     ): string {
         let publicationText = ''
 
-        for (let i = 0; i < publication.answers.length; i++) {
-            const answer = publication.answers[i]
+        for (const answer of publication.answers) {
             if (answer.question.addAnswerToTelegramPublication == false) continue
+            if (Survey.Helper.isPassedAnswerMediaType(answer)) continue
 
-            const answerStringValue = SurveyUsageHelpers.getAnswerStringValue(answer, text)
-            if (!answerStringValue || SurveyUsageHelpers.isMediaType(answer.question.type)) continue
-
+            const answerStringValue = Survey.Helper.getAnswerStringValue(answer, text)
             publicationText += `${answer.question.publicTitle}: <b>${answerStringValue}</b>\n`
         }
 
@@ -152,10 +146,12 @@ export namespace SurveyFormatter {
     }
 
     export function publicationStatusString(
-        status: PublicationStatus.Union,
+        status: Publication.PublicationStatus.Union,
         text: UniqueMessage
     ): string {
         switch (status) {
+            case 'created':
+                return text.moderation.publicationStatusCreated
             case 'moderation':
                 return text.moderation.publicationStatusModeration
             case 'rejected':
@@ -164,12 +160,10 @@ export namespace SurveyFormatter {
                 return text.moderation.publicationStatusActive
             case 'notRelevant':
                 return text.moderation.publicationStatusNotRelevant
-            case 'created':
-                return text.moderation.publicationStatusCreated
         }
     }
 
-    export function publicationTelegramLinks(publication: Publication): string[] | null {
+    export function publicationTelegramLinks(publication: Publication.BaseType): string[] | null {
         if (publication.placementHistory) {
             return publication.placementHistory.map(
                 (event) =>

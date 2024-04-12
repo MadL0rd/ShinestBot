@@ -58,7 +58,7 @@ export class ModerationEditingScene extends Scene<ISceneData, SceneEnterDataType
         logger.log(
             `${this.name} scene handleEnterScene. User: ${this.user.telegramInfo.id} ${this.user.telegramInfo.username}`
         )
-        await this.logToUserHistory(this.historyEvent.startSceneModerationEditing)
+        await this.logToUserHistory({ type: 'startSceneModerationEditing' })
 
         const publicationId = this.user.internalInfo.adminsOnly.modifyingPublicationIdPrepared
 

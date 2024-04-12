@@ -60,7 +60,7 @@ export class LanguageSettingsSceneScene extends Scene<ISceneData, SceneEnterData
         logger.log(
             `${this.name} scene handleEnterScene. User: ${this.user.telegramInfo.id} ${this.user.telegramInfo.username}`
         )
-        await this.logToUserHistory(this.historyEvent.startSceneLanguageSettingsScene)
+        await this.logToUserHistory({ type: 'startSceneLanguageSettingsScene' })
 
         const languages = await this.botContentService.getLocalLanguages()
         const languagesButtons = languages.map((code) => LanguageCode.getLanguageName(code))

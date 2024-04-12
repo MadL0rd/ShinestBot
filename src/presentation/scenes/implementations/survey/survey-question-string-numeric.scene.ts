@@ -10,12 +10,9 @@ import { Scene } from '../../models/scene.abstract'
 import { SceneUsagePermissionsValidator } from '../../models/scene-usage-permissions-validator'
 import { InjectableSceneConstructor } from '../../scene-factory/scene-injections-provider.service'
 import { SurveyContextProviderType } from 'src/presentation/survey-context/abstract/survey-context-provider.interface'
-import {
-    Survey,
-    SurveyUsageHelpers,
-} from 'src/business-logic/bot-content/schemas/models/bot-content.survey'
 import { SurveyContextProviderFactoryService } from 'src/presentation/survey-context/survey-context-provider-factory/survey-context-provider-factory.service'
 import { removeKeyboard } from 'telegraf/markup'
+import { Survey } from 'src/entities/survey'
 
 // =====================
 // Scene data classes
@@ -75,7 +72,7 @@ export class SurveyQuestionStringNumericScene extends Scene<ISceneData, SceneEnt
         logger.log(
             `${this.name} scene handleEnterScene. User: ${this.user.telegramInfo.id} ${this.user.telegramInfo.username}`
         )
-        await this.logToUserHistory(this.historyEvent.startSceneSurveyQuestionStringNumeric)
+        await this.logToUserHistory({ type: 'startSceneSurveyQuestionStringNumeric' })
 
         if (!data) {
             logger.error('Scene start data corrupted')
@@ -194,7 +191,7 @@ export class SurveyQuestionStringNumericScene extends Scene<ISceneData, SceneEnt
         const answerId = inlineButtonData.a
         const cache = await provider.getAnswersCache(this.user)
         const surveySource = await provider.getSurvey(this.user)
-        const nextQuestion = SurveyUsageHelpers.findNextQuestion(surveySource, cache.passedAnswers)
+        const nextQuestion = Survey.Helper.findNextQuestion(surveySource, cache.passedAnswers)
         if (nextQuestion?.id != answerId) return this.completion.canNotHandleUnsafe()
 
         switch (data.action) {
@@ -210,7 +207,7 @@ export class SurveyQuestionStringNumericScene extends Scene<ISceneData, SceneEnt
                 })
 
             case SceneCallbackAction.surveySkipQuestion:
-                const answer = SurveyUsageHelpers.getEmptyAnswerForQuestion(nextQuestion)
+                const answer = Survey.Helper.getEmptyAnswerForQuestion(nextQuestion)
                 await provider.pushAnswerToCache(this.user, answer)
                 await ctx.replyWithHTML(this.text.survey.textAditionaltInlineMenuSkipEventLog)
                 return this.completion.complete({
