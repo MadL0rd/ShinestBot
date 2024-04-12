@@ -1,10 +1,10 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose'
-import { HydratedDocument } from 'mongoose'
 import { Survey } from 'src/entities/survey'
-import { PublicationEntity } from 'src/entities/publication'
+import { Publication } from 'src/entities/publication'
+import { MongoDocument } from 'src/entities/common/mongo-document.type'
 
 @Schema()
-export class Publication implements PublicationEntity.BaseType {
+export class PublicationSchema implements Publication.BaseType {
     @Prop()
     userTelegramId: number
 
@@ -18,7 +18,7 @@ export class Publication implements PublicationEntity.BaseType {
     answers: Survey.PassedAnswer[]
 
     @Prop()
-    status: PublicationEntity.PublicationStatus.Union
+    status: Publication.PublicationStatus.Union
 
     @Prop()
     moderationChatThreadMessageId?: number
@@ -27,8 +27,8 @@ export class Publication implements PublicationEntity.BaseType {
     moderationChannelPublicationId?: number
 
     @Prop()
-    placementHistory: PublicationEntity.Placement.BaseType[]
+    placementHistory: Publication.Placement.BaseType[]
 }
 
-export const PublicationSchema = SchemaFactory.createForClass(Publication)
-export type PublicationDocument = HydratedDocument<Publication>
+export const publicationSchema = SchemaFactory.createForClass(PublicationSchema)
+export type PublicationDocument = MongoDocument<PublicationSchema>

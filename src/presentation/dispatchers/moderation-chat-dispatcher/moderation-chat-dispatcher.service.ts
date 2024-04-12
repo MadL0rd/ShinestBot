@@ -6,7 +6,6 @@ import { UserService } from 'src/business-logic/user/user.service'
 import { PublicationStorageService } from 'src/business-logic/publication-storage/publication-storage.service'
 import { internalConstants } from 'src/app/app.internal-constants'
 import { logger } from 'src/app/app.logger'
-import { SurveyFormatter } from 'src/utils/survey-formatter'
 import { PublicationDocument } from 'src/business-logic/publication-storage/schemas/publication.schema'
 import { MediaGroup } from 'node_modules/telegraf/typings/telegram-types'
 import { InjectBot } from 'nestjs-telegraf'
@@ -142,7 +141,7 @@ export class ModerationChatDispatcherService {
         ])
         await ctx.telegram.sendMessage(
             admin.telegramId,
-            `Вы перевели завяку <b>${publication.id}</b> в режим ручного редактирования. Что приступить, нажмите на кнопку ниже`,
+            `Вы перевели завяку <b>${publication._id.toString()}</b> в режим ручного редактирования. Что приступить, нажмите на кнопку ниже`,
             {
                 parse_mode: 'HTML',
                 reply_markup: {
@@ -200,7 +199,7 @@ export class ModerationChatDispatcherService {
         const botContent = await this.botContentService.getContent(
             internalConstants.defaultLanguage
         )
-        const publicationText = SurveyFormatter.publicationPublicText(
+        const publicationText = Survey.Formatter.publicationPublicText(
             publication,
             botContent.uniqueMessage
         )
@@ -360,12 +359,11 @@ export class ModerationChatDispatcherService {
         }
         const userLanguage = UserProfile.Helper.getLanguageFor(user)
         const botContent = await this.botContentService.getContent(userLanguage)
-        const adminMessageText = SurveyFormatter.makeUserMessageWithPublicationInfo(
+        const adminMessageText = Survey.Formatter.makeUserMessageWithPublicationInfo(
             botContent.uniqueMessage.moderation.messageText,
             publication,
             botContent.uniqueMessage
         )
-        if (!adminMessageText) return ''
         await this.bot.telegram.sendMessage(userId, adminMessageText, {
             parse_mode: 'HTML',
         })

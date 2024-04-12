@@ -8,10 +8,9 @@ import { PublicationCreateDto } from 'src/business-logic/publication-storage/dto
 import { PublicationStorageService } from 'src/business-logic/publication-storage/publication-storage.service'
 import { PublicationDocument } from 'src/business-logic/publication-storage/schemas/publication.schema'
 import { UserService } from 'src/business-logic/user/user.service'
-import { PublicationEntity } from 'src/entities/publication'
+import { Publication } from 'src/entities/publication'
 import { Survey } from 'src/entities/survey'
 import { sleep } from 'src/utils/sleep'
-import { SurveyFormatter } from 'src/utils/survey-formatter'
 import { Markup, Telegraf } from 'telegraf'
 import { InlineKeyboardButton, Message } from 'telegraf/types'
 
@@ -36,7 +35,7 @@ export class ModeratedPublicationsService {
         const publication = await this.publicationStorageService.create(createDto)
 
         const moderationChannelId = internalConstants.moderationChannelId
-        const answersText = SurveyFormatter.moderationPreSynchronizedText(publication, botContent)
+        const answersText = Survey.Formatter.moderationPreSynchronizedText(publication, botContent)
         const moderationChannelMessage = await this.bot.telegram.sendMessage(
             moderationChannelId,
             answersText,
@@ -105,7 +104,7 @@ export class ModeratedPublicationsService {
 
         const language = internalConstants.defaultLanguage
         const botContent = await this.botContentService.getContent(language)
-        const editedText = SurveyFormatter.moderationSynchronizedText(
+        const editedText = Survey.Formatter.moderationSynchronizedText(
             publication,
             botContent.uniqueMessage,
             user
@@ -166,7 +165,7 @@ export class ModeratedPublicationsService {
                     internalConstants.moderationChannelId,
                     publicationDocument.moderationChannelPublicationId,
                     undefined,
-                    SurveyFormatter.moderationSynchronizedText(publicationDocument, text, user),
+                    Survey.Formatter.moderationSynchronizedText(publicationDocument, text, user),
                     {
                         parse_mode: 'HTML',
                         link_preview_options: { is_disabled: true },
@@ -174,7 +173,7 @@ export class ModeratedPublicationsService {
                 )
 
                 const inlineKeyboard: InlineKeyboardButton[][] = []
-                const tgLinkList = SurveyFormatter.publicationTelegramLinks(publicationDocument)
+                const tgLinkList = Survey.Formatter.publicationTelegramLinks(publicationDocument)
 
                 if (tgLinkList) {
                     inlineKeyboard.push(
@@ -221,7 +220,7 @@ export class ModeratedPublicationsService {
                             placement.channelId,
                             placement.messageId,
                             undefined,
-                            SurveyFormatter.publicationPublicText(publicationDocument, text),
+                            Survey.Formatter.publicationPublicText(publicationDocument, text),
                             {
                                 parse_mode: 'HTML',
                                 reply_markup: {
@@ -241,7 +240,7 @@ export class ModeratedPublicationsService {
                             placement.channelId,
                             placement.messageId,
                             undefined,
-                            SurveyFormatter.publicationPublicText(publicationDocument, text),
+                            Survey.Formatter.publicationPublicText(publicationDocument, text),
                             {
                                 parse_mode: 'HTML',
                                 link_preview_options: { is_disabled: true },
@@ -262,7 +261,7 @@ export class ModeratedPublicationsService {
 
     async updatePublicationStatus(
         publicationDocumentId: string,
-        status: PublicationEntity.PublicationStatus.Union
+        status: Publication.PublicationStatus.Union
     ) {
         await this.updatePublication(publicationDocumentId, {
             status: status,
@@ -300,12 +299,12 @@ export class ModeratedPublicationsService {
                 textForUser = text.moderation.messageTextNotRelevant
                 break
         }
-        const moderationMessageText = SurveyFormatter.makeUserMessageWithPublicationInfo(
+        const moderationMessageText = Survey.Formatter.makeUserMessageWithPublicationInfo(
             textForUser,
             publicationDocument,
             text
         )
-        if (!moderationMessageText) return
+
         await this.bot.telegram.sendMessage(
             publicationDocument.userTelegramId,
             moderationMessageText,
