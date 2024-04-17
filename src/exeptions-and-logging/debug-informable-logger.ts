@@ -1,14 +1,14 @@
 import * as winston from 'winston'
-import { WinstonModule } from 'nest-winston'
-import DailyRotateFile from 'winston-daily-rotate-file'
+import chalk from 'chalk'
 import * as path from 'path'
+import DailyRotateFile from 'winston-daily-rotate-file'
+import { WinstonModule } from 'nest-winston'
 import { internalConstants } from '../app/app.internal-constants'
 import { LoggerService } from '@nestjs/common'
+import { DebugLineInfo, sourceFileLayerPrefix } from './debug-line-info.model'
+
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const https = require('https')
-
-import chalk from 'chalk'
-import { DebugLineInfo, sourceFileLayerPrefix } from './debug-line-info.model'
 
 const baseDir = process.cwd()
 
