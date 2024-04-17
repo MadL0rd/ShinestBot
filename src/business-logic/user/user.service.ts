@@ -27,8 +27,11 @@ export class UserService {
             return existingUser
         }
 
-        const createdUser = new this.userModel(createUserDto)
-        await this.logToUserHistory(createdUser, { type: 'start', startParam: null })
+        const createdUser = await this.userModel.create(createUserDto)
+        await this.logToUserHistory(createdUser, {
+            type: 'start',
+            startParam: createdUser.internalInfo.startParam,
+        })
         logger.log('Create user', createUserDto)
         return createdUser
     }

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
-import { LocalizedGroup } from './schemas/localization.schema'
+import { LocalizedGroup, LocalizedGroupSchema } from './schemas/localization.schema'
 import { Model } from 'mongoose'
 import { LocalizedGroupDto } from './dto/localized-group.dto'
 import { LocalizedString } from './schemas/models/localization.localized-string'
@@ -13,7 +13,7 @@ import { LanguageCode } from 'src/utils/languages-info/getLanguageName'
 @Injectable()
 export class LocalizationService {
     constructor(
-        @InjectModel(LocalizedGroup.name) private model: Model<LocalizedGroup>,
+        @InjectModel(LocalizedGroupSchema.name) private model: Model<LocalizedGroupSchema>,
         private readonly sheetDataProvider: SheetDataProviderService
     ) {}
 

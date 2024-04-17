@@ -1,3 +1,3 @@
-import { LocalizedGroupStable } from '../schemas/localization.schema'
+import { LocalizedGroupSchema } from '../schemas/localization.schema'
 
-export interface LocalizedGroupDto extends LocalizedGroupStable {}
+export interface LocalizedGroupDto extends LocalizedGroupSchema {}

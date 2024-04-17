@@ -4,7 +4,7 @@ import { MongoDocument } from 'src/entities/common/mongo-document.type'
 import { BotContent } from 'src/entities/bot-content'
 import { Survey } from 'src/entities/survey'
 
-@Schema()
+@Schema({ collection: 'bot-content' })
 export class BotContentSchema implements BotContent.BaseType {
     @Prop()
     language: string

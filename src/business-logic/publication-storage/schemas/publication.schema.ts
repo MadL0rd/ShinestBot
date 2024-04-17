@@ -3,7 +3,7 @@ import { Survey } from 'src/entities/survey'
 import { Publication } from 'src/entities/publication'
 import { MongoDocument } from 'src/entities/common/mongo-document.type'
 
-@Schema()
+@Schema({ collection: 'publications' })
 export class PublicationSchema implements Publication.BaseType {
     @Prop()
     userTelegramId: number
