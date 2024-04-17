@@ -1,15 +1,15 @@
 import { Module } from '@nestjs/common'
 import { MongooseModule } from '@nestjs/mongoose'
 import { LocalizationService } from './localization.service'
-import { LocalizedGroup, LocalizedationSchema } from './schemas/localization.schema'
+import { LocalizedGroupSchema, localizedGroupSchema } from './schemas/localization.schema'
 import { SheetDataProviderModule } from '../sheet-data-provider/sheet-data-provider.module'
 
 @Module({
     imports: [
         MongooseModule.forFeature([
             {
-                name: LocalizedGroup.name,
-                schema: LocalizedationSchema,
+                name: LocalizedGroupSchema.name,
+                schema: localizedGroupSchema,
             },
         ]),
         SheetDataProviderModule,
