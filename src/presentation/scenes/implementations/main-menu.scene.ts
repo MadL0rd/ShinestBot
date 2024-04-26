@@ -123,13 +123,17 @@ export class MainMenuScene extends Scene<ISceneData, SceneEnterDataType> {
         const ownerOrAdmin =
             this.userActivePermissions.includes('admin') ||
             this.userActivePermissions.includes('owner')
+        const canEditPublicationAsAdmin =
+            typeof this.user.internalInfo.adminsOnly?.modifyingPublicationIdPrepared === 'string'
         return this.keyboardMarkupWithAutoLayoutFor(
             [
                 this.text.mainMenu.buttonAbout,
                 this.text.mainMenu.buttonSurvey,
                 this.text.mainMenu.buttonLanguageSettings,
                 this.text.mainMenu.userPublications,
-                ownerOrAdmin ? this.text.mainMenu.editPublicationAsAdmin : null,
+                ownerOrAdmin && canEditPublicationAsAdmin
+                    ? this.text.mainMenu.editPublicationAsAdmin
+                    : null,
                 ownerOrAdmin ? this.text.mainMenu.buttonAdminMenu : null,
             ].compact
         )
