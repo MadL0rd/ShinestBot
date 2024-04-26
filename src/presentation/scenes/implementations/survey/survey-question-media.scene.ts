@@ -21,6 +21,7 @@ export class SurveyQuestionMediaSceneEntranceDto implements SceneEntrance.Dto {
     readonly providerType: SurveyContextProviderType.Union
     readonly question: Survey.QuestionMedia
     readonly isQuestionFirst: boolean
+    readonly oldData: Survey.TelegramFileData[]
 }
 type SceneEnterDataType = SurveyQuestionMediaSceneEntranceDto
 interface ISceneData {
@@ -80,7 +81,7 @@ export class SurveyQuestionMediaScene extends Scene<ISceneData, SceneEnterDataTy
             providerType: data.providerType,
             question: data.question,
             isQuestionFirst: data.isQuestionFirst,
-            mediaGroupBuffer: [],
+            mediaGroupBuffer: data.oldData,
         }
         await this.showMediaUploadingMenu(ctx, sceneData)
 

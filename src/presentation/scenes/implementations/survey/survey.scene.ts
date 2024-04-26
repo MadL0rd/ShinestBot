@@ -20,6 +20,7 @@ export class SurveySceneEntranceDto implements SceneEntrance.Dto {
     readonly sceneName = 'survey'
     readonly providerType: SurveyContextProviderType.Union
     readonly allowContinueQuestion: boolean
+    readonly oldData?: Survey.TelegramFileData[]
 }
 type SceneEnterDataType = SurveySceneEntranceDto
 interface ISceneData {
@@ -131,6 +132,7 @@ export class SurveyScene extends Scene<ISceneData, SceneEnterDataType> {
                     providerType: data.providerType,
                     question: nextQuestion,
                     isQuestionFirst: isQuestionFirst,
+                    oldData: data.oldData ?? [],
                 })
         }
     }
