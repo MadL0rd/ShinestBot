@@ -17,6 +17,10 @@ import { SurveyQuestionStringNumericScene } from 'src/presentation/scenes/implem
 import { SurveyQuestionMediaScene } from 'src/presentation/scenes/implementations/survey/survey-question-media.scene'
 import { UserPublicationsScene } from 'src/presentation/scenes/implementations/user-publications.scene'
 import { ModerationEditingScene } from 'src/presentation/scenes/implementations/moderation-editing.scene'
+import { SurveyQuestionStringGptTipsScene } from '../implementations/survey/survey-question-string-gpt-tips/survey-question-string-gpt-tips.scene'
+import { SurveyDescriptionScene } from '../implementations/survey-description.scene'
+import { SurveyQuestionStringGptTipsAnswerEditingScene } from '../implementations/survey/survey-question-string-gpt-tips/survey-question-string-gpt-tips-answer-editing.scene'
+import { SurveyQuestionStringGptTipsUpdateWithGptScene } from '../implementations/survey/survey-question-string-gpt-tips/survey-question-string-gpt-tips-update-with-gpt.scene'
 /** New scene import placeholder */
 
 @Injectable()
@@ -55,6 +59,18 @@ export class SceneFactoryService {
                 return this.injectionsProvider.resolve(UserPublicationsScene)
             case 'moderationEditing':
                 return this.injectionsProvider.resolve(ModerationEditingScene)
+            case 'surveyDescription':
+                return this.injectionsProvider.resolve(SurveyDescriptionScene)
+            case 'surveyQuestionStringGptTips':
+                return this.injectionsProvider.resolve(SurveyQuestionStringGptTipsScene)
+            case 'surveyQuestionStringGptTipsAnswerEditing':
+                return this.injectionsProvider.resolve(
+                    SurveyQuestionStringGptTipsAnswerEditingScene
+                )
+            case 'surveyQuestionStringGptTipsUpdateWithGpt':
+                return this.injectionsProvider.resolve(
+                    SurveyQuestionStringGptTipsUpdateWithGptScene
+                )
             /** New scene generation placeholder */
         }
         return null

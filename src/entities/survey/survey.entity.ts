@@ -39,6 +39,7 @@ export namespace _SurveyEntity {
     export type QuestionWithOptions = QuestionCommonFields & AnswerTypeWithOptions
     export type QuestionNumeric = QuestionCommonFields & AnswerTypeNumeric
     export type QuestionString = QuestionCommonFields & AnswerTypeString
+    export type QuestionStringGptTips = QuestionCommonFields & AnswerTypeStringGptTips
     export type QuestionImage = QuestionCommonFields & AnswerTypeImage
     export type QuestionVideo = QuestionCommonFields & AnswerTypeVideo
     export type QuestionMediaGroup = QuestionCommonFields & AnswerTypeMediaGroup
@@ -47,6 +48,7 @@ export namespace _SurveyEntity {
         | QuestionWithOptions
         | QuestionNumeric
         | QuestionString
+        | QuestionStringGptTips
         | QuestionImage
         | QuestionVideo
         | QuestionMediaGroup
@@ -75,6 +77,10 @@ export namespace _SurveyEntity {
         readonly type: 'string'
     }
 
+    type AnswerTypeStringGptTips = {
+        readonly type: 'stringGptTips'
+    }
+
     type AnswerTypeImage = {
         readonly type: 'image'
         readonly mediaMaxCount: number
@@ -95,6 +101,7 @@ export namespace _SurveyEntity {
         | AnswerTypeWithOptions
         | AnswerTypeNumeric
         | AnswerTypeString
+        | AnswerTypeStringGptTips
         | AnswerTypeMedia
 
     export type AnswerTypeName = AnswerType['type']
@@ -105,19 +112,25 @@ export namespace _SurveyEntity {
     export type PassedAnswerWithOptions = {
         readonly type: 'options'
         question: QuestionWithOptions
-        selectedOptionId?: string
+        selectedOptionId: string | null
     }
 
     export type PassedAnswerNumeric = {
         readonly type: 'numeric'
         question: QuestionNumeric
-        selectedNumber?: number
+        selectedNumber: number | null
     }
 
     export type PassedAnswerString = {
         readonly type: 'string'
         question: QuestionString
-        selectedString?: string
+        selectedString: string | null
+    }
+
+    export type PassedAnswerStringGptTips = {
+        readonly type: 'stringGptTips'
+        question: QuestionStringGptTips
+        selectedString: string | null
     }
 
     export type PassedAnswerImage = {
@@ -149,6 +162,7 @@ export namespace _SurveyEntity {
         | PassedAnswerWithOptions
         | PassedAnswerNumeric
         | PassedAnswerString
+        | PassedAnswerStringGptTips
         | PassedAnswerImage
         | PassedAnswerVideo
         | PassedAnswerMediaGroup

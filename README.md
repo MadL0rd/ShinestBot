@@ -43,7 +43,7 @@ $ docker-compose up -d mongodb
 $ npm run start:dev
 ```
 
-### Lounch with ontainer build
+### Lounch with container build
 ```bash
 docker-compose up -d --build
 ```

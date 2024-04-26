@@ -207,6 +207,8 @@ export class SurveyQuestionStringNumericScene extends Scene<ISceneData, SceneEnt
                 })
 
             case SceneCallbackAction.surveySkipQuestion:
+                if (nextQuestion.isRequired) return this.completion.canNotHandleUnsafe()
+
                 const answer = Survey.Helper.getEmptyAnswerForQuestion(nextQuestion)
                 await provider.pushAnswerToCache(this.user, answer)
                 await ctx.replyWithHTML(this.text.survey.textAditionaltInlineMenuSkipEventLog)

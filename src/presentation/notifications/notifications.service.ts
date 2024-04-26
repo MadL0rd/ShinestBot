@@ -37,7 +37,7 @@ export class NotificationsService {
         let notificationText = await this.gptService.gptAnswer([
             {
                 role: `system`,
-                content: text.notification.morningTextGptPromt,
+                text: text.notification.morningTextGptPromt,
             },
         ])
         if (!notificationText) notificationText = text.notification.morningTextDefault
@@ -95,7 +95,7 @@ export class NotificationsService {
         let notificationText = await this.gptService.gptAnswer([
             {
                 role: 'system',
-                content: text.notification.eveningTextGptPromt,
+                text: text.notification.eveningTextGptPromt,
             },
         ])
         if (!notificationText) notificationText = text.notification.eveningTextDefault

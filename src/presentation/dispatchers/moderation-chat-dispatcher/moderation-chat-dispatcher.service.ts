@@ -14,6 +14,7 @@ import { generateInlineButtonSegue } from 'src/presentation/utils/inline-button.
 import { SceneCallbackAction } from 'src/presentation/scenes/models/scene-callback'
 import { UserProfile } from 'src/entities/user-profile'
 import { Survey } from 'src/entities/survey'
+import { Publication } from 'src/entities/publication'
 
 @Injectable()
 export class ModerationChatDispatcherService {
@@ -50,9 +51,8 @@ export class ModerationChatDispatcherService {
         const threadMessageId = ctx.message?.message_thread_id
         if (!threadMessageId) return
 
-        const publication = await this.publicationStorageService.findByRepliedMessageThreadId(
-            threadMessageId
-        )
+        const publication =
+            await this.publicationStorageService.findByRepliedMessageThreadId(threadMessageId)
         if (!publication) {
             logger.log(`Cannot find publication with thread message id ${threadMessageId}`)
             return
@@ -75,8 +75,22 @@ export class ModerationChatDispatcherService {
         const botContent = await this.botContentService.getContent(
             internalConstants.defaultLanguage
         )
+
+        const moderationCommands = Object.values(
+            botContent.uniqueMessage.moderationCommand
+        ).compactMap((command) => `${command}`)
+
+        let command = messageText?.split(' ').first ?? ''
+        const commandIndex = Number.parseInt(command)
+        if (
+            !Number.isNaN(commandIndex) &&
+            moderationCommands.length >= commandIndex &&
+            commandIndex > 0
+        ) {
+            command = moderationCommands[commandIndex - 1]
+        }
         if (messageText) {
-            switch (messageText) {
+            switch (command) {
                 case botContent.uniqueMessage.moderationCommand.approve:
                     await this.handlePublicationApprove(publication, ctx)
                     return
@@ -92,12 +106,11 @@ export class ModerationChatDispatcherService {
                 case botContent.uniqueMessage.moderationCommand.edit:
                     await this.handleEditPublication(user, publication, ctx)
                     return
-            }
-        }
 
-        if (messageText?.split(' ').first == botContent.uniqueMessage.moderationCommand.place) {
-            await this.handlePlacePublication(publication, ctx)
-            return
+                case botContent.uniqueMessage.moderationCommand.place:
+                    await this.handlePlacePublication(publication, ctx)
+                    return
+            }
         }
 
         await this.sendAdminMessageTextForPublication(publication)
@@ -164,11 +177,7 @@ export class ModerationChatDispatcherService {
         const message = ctx.message as Message.TextMessage
         const channelIdList = message.text.split(' ').slice(1)
         if (channelIdList.isEmpty) {
-            await this.sendMessageToCurrentThread(
-                ctx,
-                'Не удалось распознать id канала для публикации'
-            )
-            return
+            channelIdList.push(internalConstants.publicationMainChannelId.toString())
         }
 
         // Create main channel publication
@@ -199,7 +208,7 @@ export class ModerationChatDispatcherService {
         const botContent = await this.botContentService.getContent(
             internalConstants.defaultLanguage
         )
-        const publicationText = Survey.Formatter.publicationPublicText(
+        const publicationText = Publication.Formatter.publicationPublicText(
             publication,
             botContent.uniqueMessage
         )
@@ -237,6 +246,10 @@ export class ModerationChatDispatcherService {
                     creationDate: new Date(),
                     messageId: mainChannelPost.message_id,
                 })
+                await this.sendMessageToCurrentThread(
+                    ctx,
+                    `Сделана публикация.\nСсылка: https://t.me/c/${mainChannelPost.chat.id.toString().replace('-100', '')}/${mainChannelPost.message_id}`
+                )
             } catch {
                 await this.sendMessageToCurrentThread(
                     ctx,
@@ -359,7 +372,7 @@ export class ModerationChatDispatcherService {
         }
         const userLanguage = UserProfile.Helper.getLanguageFor(user)
         const botContent = await this.botContentService.getContent(userLanguage)
-        const adminMessageText = Survey.Formatter.makeUserMessageWithPublicationInfo(
+        const adminMessageText = Publication.Formatter.makeUserMessageWithPublicationInfo(
             botContent.uniqueMessage.moderation.messageText,
             publication,
             botContent.uniqueMessage

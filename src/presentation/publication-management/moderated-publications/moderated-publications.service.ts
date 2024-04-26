@@ -35,7 +35,10 @@ export class ModeratedPublicationsService {
         const publication = await this.publicationStorageService.create(createDto)
 
         const moderationChannelId = internalConstants.moderationChannelId
-        const answersText = Survey.Formatter.moderationPreSynchronizedText(publication, botContent)
+        const answersText = Publication.Formatter.moderationPreSynchronizedText(
+            publication,
+            botContent.uniqueMessage
+        )
         const moderationChannelMessage = await this.bot.telegram.sendMessage(
             moderationChannelId,
             answersText,
@@ -104,7 +107,7 @@ export class ModeratedPublicationsService {
 
         const language = internalConstants.defaultLanguage
         const botContent = await this.botContentService.getContent(language)
-        const editedText = Survey.Formatter.moderationSynchronizedText(
+        const editedText = Publication.Formatter.moderationSynchronizedText(
             publication,
             botContent.uniqueMessage,
             user
@@ -122,9 +125,11 @@ export class ModeratedPublicationsService {
         await this.sendPublicationsMediaToModerationThread(publication)
 
         let moderationCommandsText = `Актуальные на данный момент комманды:\n`
-        moderationCommandsText += Object.values(botContent.uniqueMessage.moderationCommand)
-            .map((command) => `- ${command}`)
+        const moderationCommands = Object.values(botContent.uniqueMessage.moderationCommand)
+        moderationCommandsText += moderationCommands
+            .map((command) => `${moderationCommands.indexOf(command) + 1}. ${command}`)
             .join('\n')
+        moderationCommandsText += `\n\n${botContent.uniqueMessage.moderation.commandPlaceDescriptionText}`
 
         await this.bot.telegram.sendMessage(message.chat.id, moderationCommandsText, {
             reply_parameters: { message_id: message.message_id },
@@ -165,7 +170,11 @@ export class ModeratedPublicationsService {
                     internalConstants.moderationChannelId,
                     publicationDocument.moderationChannelPublicationId,
                     undefined,
-                    Survey.Formatter.moderationSynchronizedText(publicationDocument, text, user),
+                    Publication.Formatter.moderationSynchronizedText(
+                        publicationDocument,
+                        text,
+                        user
+                    ),
                     {
                         parse_mode: 'HTML',
                         link_preview_options: { is_disabled: true },
@@ -173,7 +182,8 @@ export class ModeratedPublicationsService {
                 )
 
                 const inlineKeyboard: InlineKeyboardButton[][] = []
-                const tgLinkList = Survey.Formatter.publicationTelegramLinks(publicationDocument)
+                const tgLinkList =
+                    Publication.Formatter.publicationTelegramLinks(publicationDocument)
 
                 if (tgLinkList) {
                     inlineKeyboard.push(
@@ -220,7 +230,7 @@ export class ModeratedPublicationsService {
                             placement.channelId,
                             placement.messageId,
                             undefined,
-                            Survey.Formatter.publicationPublicText(publicationDocument, text),
+                            Publication.Formatter.publicationPublicText(publicationDocument, text),
                             {
                                 parse_mode: 'HTML',
                                 reply_markup: {
@@ -240,7 +250,7 @@ export class ModeratedPublicationsService {
                             placement.channelId,
                             placement.messageId,
                             undefined,
-                            Survey.Formatter.publicationPublicText(publicationDocument, text),
+                            Publication.Formatter.publicationPublicText(publicationDocument, text),
                             {
                                 parse_mode: 'HTML',
                                 link_preview_options: { is_disabled: true },
@@ -266,9 +276,8 @@ export class ModeratedPublicationsService {
         await this.updatePublication(publicationDocumentId, {
             status: status,
         })
-        const publicationDocument = await this.publicationStorageService.findById(
-            publicationDocumentId
-        )
+        const publicationDocument =
+            await this.publicationStorageService.findById(publicationDocumentId)
         if (!publicationDocument)
             throw Error(
                 `Fail to update publication status: publication with id '${publicationDocumentId}' does not exists`
@@ -299,7 +308,7 @@ export class ModeratedPublicationsService {
                 textForUser = text.moderation.messageTextNotRelevant
                 break
         }
-        const moderationMessageText = Survey.Formatter.makeUserMessageWithPublicationInfo(
+        const moderationMessageText = Publication.Formatter.makeUserMessageWithPublicationInfo(
             textForUser,
             publicationDocument,
             text

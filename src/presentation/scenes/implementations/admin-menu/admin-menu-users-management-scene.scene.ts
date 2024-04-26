@@ -10,7 +10,7 @@ import { Scene } from '../../models/scene.abstract'
 import { SceneUsagePermissionsValidator } from '../../models/scene-usage-permissions-validator'
 import { InjectableSceneConstructor } from '../../scene-factory/scene-injections-provider.service'
 import { UserProfileDocument } from 'src/business-logic/user/schemas/user.schema'
-import { replaceMarkdownWithHtml } from 'src/utils/replaceMarkdownWithHtml'
+import { replaceMarkdownWithHtml } from 'src/utils/replace-markdown-with-html'
 import { UserProfile } from 'src/entities/user-profile'
 
 // =====================
