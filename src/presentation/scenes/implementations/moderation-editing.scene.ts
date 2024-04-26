@@ -60,7 +60,7 @@ export class ModerationEditingScene extends Scene<ISceneData, SceneEnterDataType
         )
         await this.logToUserHistory({ type: 'startSceneModerationEditing' })
 
-        const publicationId = this.user.internalInfo.adminsOnly.modifyingPublicationIdPrepared
+        const publicationId = this.user.internalInfo.adminsOnly?.modifyingPublicationIdPrepared
 
         if (!publicationId) {
             await ctx.replyWithHTML(this.text.moderationEditing.textEmpty)

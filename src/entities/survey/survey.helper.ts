@@ -1,5 +1,5 @@
+import { Survey } from '.'
 import { BotContent } from '../bot-content'
-import { _SurveyEntity as SurveyEntity } from './survey.entity'
 
 /**
  * Namespace for survey entity helper functions.
@@ -19,9 +19,7 @@ export namespace _SurveyHelper {
         mediaGroup: 'Медиа группа',
     }
 
-    export const answerTypeNameAllCases = Object.keys(
-        answerTypeNames
-    ) as SurveyEntity.AnswerTypeName[]
+    export const answerTypeNameAllCases = Object.keys(answerTypeNames) as Survey.AnswerTypeName[]
 
     const swapFn = <T extends Record<string, S>, S extends string>(obj: T) => {
         const res = {} as any // I'm not worried about impl safety
@@ -32,7 +30,7 @@ export namespace _SurveyHelper {
     }
     export const answerTypeNameByPublicName = swapFn(answerTypeNames)
 
-    export function getAnswerTypePublicName(type: SurveyEntity.AnswerTypeName) {
+    export function getAnswerTypePublicName(type: Survey.AnswerTypeName) {
         return answerTypeNames[type]
     }
     export function getAnswerTypeByPublicName(publicName: string) {
@@ -44,8 +42,8 @@ export namespace _SurveyHelper {
     // =====================
 
     export function isPassedAnswerMediaType(
-        answer: SurveyEntity.PassedAnswer
-    ): answer is SurveyEntity.PassedAnswerMedia {
+        answer: Survey.PassedAnswer
+    ): answer is Survey.PassedAnswerMedia {
         switch (answer.type) {
             case 'string':
             case 'stringGptTips':
@@ -59,9 +57,9 @@ export namespace _SurveyHelper {
         }
     }
     export function findNextQuestion(
-        survey: SurveyEntity.BaseType,
-        passedQuestionAnswers: SurveyEntity.PassedAnswer[]
-    ): SurveyEntity.Question | null {
+        survey: Survey.BaseType,
+        passedQuestionAnswers: Survey.PassedAnswer[]
+    ): Survey.Question | null {
         const allQuestions = survey.questions.filter(function (question) {
             for (const filter of question.filters) {
                 const targetAnswer = passedQuestionAnswers.find(
@@ -87,20 +85,21 @@ export namespace _SurveyHelper {
     }
 
     export function getAnswerStringValue(
-        answer: SurveyEntity.PassedAnswer,
+        answer: Survey.PassedAnswer,
         text: BotContent.UniqueMessage
-    ): string | undefined {
+    ): string | null {
         switch (answer.type) {
             case 'options':
-                return answer.question.options.find(
-                    (option) => option.id == answer.selectedOptionId
-                )?.text
+                return (
+                    answer.question.options.find((option) => option.id == answer.selectedOptionId)
+                        ?.text ?? null
+                )
             case 'numeric':
                 const unitLabel = answer.question.unit
                 if (unitLabel && answer.selectedNumber) {
                     return `${answer.selectedNumber.toStringWithSpaces} ${unitLabel}`
                 } else {
-                    return answer.selectedNumber?.toStringWithSpaces
+                    return answer.selectedNumber?.toStringWithSpaces ?? null
                 }
 
             case 'string':
@@ -114,33 +113,67 @@ export namespace _SurveyHelper {
         }
     }
 
-    export function getEmptyAnswerForQuestion(
-        question: SurveyEntity.Question
-    ): SurveyEntity.PassedAnswer {
+    export function isAnswerSpecified(answer: Survey.PassedAnswer): boolean {
+        switch (answer.type) {
+            case 'options':
+                return typeof answer.selectedOptionId === 'string'
+
+            case 'numeric':
+                return typeof answer.selectedNumber === 'number'
+
+            case 'string':
+            case 'stringGptTips':
+                return typeof answer.selectedString === 'string'
+
+            case 'image':
+            case 'video':
+            case 'mediaGroup':
+                return answer.media.isNotEmpty
+        }
+    }
+
+    export function isAnswerSpecifiedCorrectly(answer: Survey.PassedAnswer): boolean {
+        // Is required but not specified
+        if (answer.question.isRequired && Survey.Helper.isAnswerSpecified(answer).isFalse) {
+            return false
+        }
+        // Legacy option selected
+        if (
+            answer.type === 'options' &&
+            Survey.Helper.isAnswerSpecified(answer) &&
+            !answer.question.options.some((option) => option.id === answer.selectedOptionId)
+        ) {
+            return false
+        }
+
+        return true
+    }
+
+    export function getEmptyAnswerForQuestion(question: Survey.Question): Survey.PassedAnswer {
         switch (question.type) {
             case 'string':
                 return {
                     type: 'string',
                     question: question,
-                    selectedString: undefined,
+                    selectedString: null,
                 }
             case 'stringGptTips':
                 return {
                     type: 'stringGptTips',
                     question: question,
-                    selectedString: undefined,
+                    selectedString: null,
                 }
             case 'options':
                 return {
                     type: 'options',
                     question: question,
-                    selectedOptionId: undefined,
+                    selectedOptionId: null,
                 }
             case 'numeric':
                 return {
                     type: 'numeric',
                     question: question,
-                    selectedNumber: undefined,
+                    selectedNumber: null,
                 }
             case 'image':
                 return {
@@ -161,5 +194,19 @@ export namespace _SurveyHelper {
                     media: [],
                 }
         }
+    }
+
+    export function localizePassedAnswers(
+        passedAnswers: Survey.PassedAnswer[],
+        survey: Survey.BaseType
+    ): Survey.PassedAnswer[] {
+        return passedAnswers.compactMap((answer) => {
+            const localizedQuesion = survey.questions.find(
+                (question) => question.id == answer.question.id
+            )
+            if (!localizedQuesion) return null
+            answer.question = localizedQuesion
+            return answer
+        })
     }
 }

@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common'
 import {
     replaceMarkdownWithHtml,
     validateStringHtmlTagsAll,
-} from 'src/utils/replaceMarkdownWithHtml'
+} from 'src/utils/replace-markdown-with-html'
 
 @Injectable()
 export class SheetStringsMarkdownValidatorService {

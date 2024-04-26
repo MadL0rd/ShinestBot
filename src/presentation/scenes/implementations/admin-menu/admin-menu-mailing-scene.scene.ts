@@ -9,7 +9,7 @@ import { SceneHandlerCompletion } from '../../models/scene.interface'
 import { Scene } from '../../models/scene.abstract'
 import { SceneUsagePermissionsValidator } from '../../models/scene-usage-permissions-validator'
 import { InjectableSceneConstructor } from '../../scene-factory/scene-injections-provider.service'
-import { replaceMarkdownWithHtml } from 'src/utils/replaceMarkdownWithHtml'
+import { replaceMarkdownWithHtml } from 'src/utils/replace-markdown-with-html'
 import { UserHistoryEvent } from 'src/business-logic/user/enums/user-history-event.enum'
 
 // =====================
