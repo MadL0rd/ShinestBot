@@ -6,19 +6,46 @@ import { BotContent } from '../bot-content'
  * This namespace should contain functions responsible for formatting entity data.
  */
 export namespace _SurveyFormatter {
-    export function generateTextFromPassedAnswers(
-        answers: Survey.PassedAnswersCache,
-        botContent: BotContent.BaseType
-    ) {
-        const text = botContent.uniqueMessage
-        let result = ''
-        for (let i = 0; i < answers.passedAnswers.length; i++) {
-            const answer = answers.passedAnswers[i]
-            const answerStringValue =
-                Survey.Helper.getAnswerStringValue(answer, text) ??
-                text.surveyFinal.textOptionalAnswerIsNull
-            result += `${i + 1}.\t${answer.question.publicTitle}: <b>${answerStringValue}</b>\n`
-        }
-        return result
+    type GenerateTextFromPassedAnswersArgs = {
+        readonly answers: Survey.PassedAnswer[]
+        readonly text: BotContent.UniqueMessage
+        readonly filtrationMode: 'allAnswers' | 'publicAnswers' | 'publicAndSpecified'
+        readonly omitAnswerTyes?: Survey.AnswerTypeName[]
+        readonly putIndexes: boolean
+    }
+    export function generateTextFromPassedAnswers(args: GenerateTextFromPassedAnswersArgs) {
+        const text = args.text
+
+        return args.answers
+            .filter((answer) => {
+                if (args.omitAnswerTyes?.includes(answer.type)) return false
+
+                switch (args.filtrationMode) {
+                    case 'allAnswers':
+                        return true
+                    case 'publicAnswers':
+                        return answer.question.addAnswerToTelegramPublication
+                    case 'publicAndSpecified':
+                        return (
+                            answer.question.addAnswerToTelegramPublication &&
+                            Survey.Helper.getAnswerStringValue(answer, text)
+                        )
+                }
+            })
+            .map((answer, index) => {
+                let result = ''
+
+                if (args.putIndexes) result += `${index + 1}.\t`
+
+                result += answer.question.publicTitle + ': '
+
+                const answerStringValue =
+                    Survey.Helper.getAnswerStringValue(answer, text) ??
+                    text.surveyFinal.textOptionalAnswerIsNull
+                result += `<b>${answerStringValue}</b>`
+
+                return result
+            })
+            .join('\n')
     }
 }

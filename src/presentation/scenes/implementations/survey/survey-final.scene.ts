@@ -74,7 +74,12 @@ export class SurveyFinalScene extends Scene<ISceneData, SceneEnterDataType> {
         const provider = this.dataProviderFactory.getSurveyContextProvider(data.providerType)
         const cache = await provider.prepareConsistentAnswersCache(this.user)
 
-        const answersText = Survey.Formatter.generateTextFromPassedAnswers(cache, this.content)
+        const answersText = Survey.Formatter.generateTextFromPassedAnswers({
+            answers: cache.passedAnswers,
+            text: this.text,
+            filtrationMode: 'allAnswers',
+            putIndexes: true,
+        })
 
         await ctx.replyWithHTML(answersText)
         await ctx.replyWithHTML(

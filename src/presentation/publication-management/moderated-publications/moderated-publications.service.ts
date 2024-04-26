@@ -37,7 +37,7 @@ export class ModeratedPublicationsService {
         const moderationChannelId = internalConstants.moderationChannelId
         const answersText = Publication.Formatter.moderationPreSynchronizedText(
             publication,
-            botContent
+            botContent.uniqueMessage
         )
         const moderationChannelMessage = await this.bot.telegram.sendMessage(
             moderationChannelId,

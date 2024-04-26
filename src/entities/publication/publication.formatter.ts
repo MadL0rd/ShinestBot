@@ -16,20 +16,18 @@ export namespace _PublicationFormatter {
 
     export function moderationPreSynchronizedText(
         publication: PublicationDocument,
-        botContent: BotContent.BaseType
+        text: BotContent.UniqueMessage
     ): string {
         const prefix =
             internalConstants.loadingServiceChatMessagePrefix + publication._id.toString()
 
-        const publicationModerationText = Survey.Formatter.generateTextFromPassedAnswers(
-            {
-                contentLanguage: publication.language,
-                passedAnswers: publication.answers,
-            },
-            botContent
-        )
-
-        return `${prefix}\n\n${publicationModerationText}`
+        const answersText = Survey.Formatter.generateTextFromPassedAnswers({
+            answers: publication.answers,
+            text: text,
+            filtrationMode: 'allAnswers',
+            putIndexes: true,
+        })
+        return `${prefix}\n\n${answersText}`
     }
 
     export function moderationSynchronizedText(
@@ -37,32 +35,39 @@ export namespace _PublicationFormatter {
         text: UniqueMessage,
         author: UserProfile.BaseType
     ): string {
-        let PublicationText = ''
-        for (let i = 0; i < publication.answers.length; i++) {
-            const answer = publication.answers[i]
-            const answerValue =
-                Survey.Helper.getAnswerStringValue(answer, text) ??
-                text.userPublications.finalOptionalAnswerIsNull
-            PublicationText += `${i + 1}.\t${answer.question.publicTitle}: <b>${answerValue}</b>`
-            PublicationText += '\n'
-        }
-
+        // Head part
         let prefix = `<b>id ${publication._id.toString()}</b>\n`
         prefix += `Автор: ID ${author.telegramId}`
         if (author.telegramInfo.username) prefix += ` @${author.telegramInfo.username}`
 
         let statusString = publicationStatusString(publication.status, text)
         statusString = `${statusString} #${publication.status}`
-        const mainText = `${PublicationText}`
+
         prefix += '\n\n'
         prefix += statusString
 
-        const tgLink = publicationTelegramLinks(publication)
-        if (tgLink) prefix += `\n\n<a href="${tgLink}">Ссылка на пост</a>`
+        // Content part
+        const answersText = Survey.Formatter.generateTextFromPassedAnswers({
+            answers: publication.answers,
+            text: text,
+            filtrationMode: 'allAnswers',
+            putIndexes: true,
+        })
 
+        const tgLinks = publicationTelegramLinks(publication)
+            ?.map((tgLink) =>
+                text.moderation.publicationTextLink.replace(
+                    text.moderation.messagePostLinkPlaceholder,
+                    tgLink
+                )
+            )
+            .join('\n')
+        if (tgLinks) prefix += `\n\n${tgLinks}`
+
+        // Footer
         const publicationTagsText = getPublicationTagsString(publication)
 
-        return `${prefix}\n\n${mainText}\n${publicationTagsText}`
+        return `${prefix}\n\n${answersText}\n${publicationTagsText}`
     }
 
     export function makeUserMessageWithPublicationInfo(
@@ -113,15 +118,13 @@ export namespace _PublicationFormatter {
         publication: PublicationDocument,
         text: UniqueMessage
     ): string {
-        let publicationText = ''
-
-        for (const answer of publication.answers) {
-            if (answer.question.addAnswerToTelegramPublication == false) continue
-            if (Survey.Helper.isPassedAnswerMediaType(answer)) continue
-
-            const answerStringValue = Survey.Helper.getAnswerStringValue(answer, text)
-            publicationText += `${answer.question.publicTitle}: <b>${answerStringValue}</b>\n`
-        }
+        const publicationText = Survey.Formatter.generateTextFromPassedAnswers({
+            answers: publication.answers,
+            text: text,
+            filtrationMode: 'publicAndSpecified',
+            putIndexes: false,
+            omitAnswerTyes: ['video', 'image', 'mediaGroup'],
+        })
 
         const publicationTagsText = getPublicationTagsString(publication)
         const statusString = publicationStatusString(publication.status, text)
