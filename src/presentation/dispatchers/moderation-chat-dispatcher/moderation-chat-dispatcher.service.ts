@@ -246,6 +246,10 @@ export class ModerationChatDispatcherService {
                     creationDate: new Date(),
                     messageId: mainChannelPost.message_id,
                 })
+                await this.sendMessageToCurrentThread(
+                    ctx,
+                    `Сделана публикация.\nСсылка: https://t.me/c/${mainChannelPost.chat.id.toString().replace('-100', '')}/${mainChannelPost.message_id}`
+                )
             } catch {
                 await this.sendMessageToCurrentThread(
                     ctx,

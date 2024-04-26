@@ -38,7 +38,9 @@ export namespace _PublicationFormatter {
         // Head part
         let prefix = `<b>id ${publication._id.toString()}</b>\n`
         prefix += `Автор: ID ${author.telegramId}`
-        if (author.telegramInfo.username) prefix += ` @${author.telegramInfo.username}`
+        if (author.telegramInfo.username) prefix += ` @${author.telegramInfo.username}\n`
+        if (author.telegramInfo.first_name) prefix += author.telegramInfo.first_name + ' '
+        if (author.telegramInfo.last_name) prefix += author.telegramInfo.last_name
 
         let statusString = publicationStatusString(publication.status, text)
         statusString = `${statusString} #${publication.status}`
