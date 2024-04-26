@@ -96,6 +96,10 @@ export class SurveyScene extends Scene<ISceneData, SceneEnterDataType> {
         }
 
         const isQuestionFirst = cache.passedAnswers.isEmpty
+        await this.logToUserHistory({
+            type: 'surveyQuestionStartAnswering',
+            questionId: nextQuestion.id,
+        })
         switch (nextQuestion.type) {
             case 'options':
                 return this.completion.complete({
@@ -108,6 +112,13 @@ export class SurveyScene extends Scene<ISceneData, SceneEnterDataType> {
             case 'string':
                 return this.completion.complete({
                     sceneName: 'surveyQuestionStringNumeric',
+                    providerType: data.providerType,
+                    question: nextQuestion,
+                    isQuestionFirst: isQuestionFirst,
+                })
+            case 'stringGptTips':
+                return this.completion.complete({
+                    sceneName: 'surveyQuestionStringGptTips',
                     providerType: data.providerType,
                     question: nextQuestion,
                     isQuestionFirst: isQuestionFirst,

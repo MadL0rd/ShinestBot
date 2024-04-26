@@ -6,6 +6,8 @@ import { SceneInjectionsProviderService } from './scene-factory/scene-injections
 import { SurveyContextProviderModule } from '../survey-context/survey-context.module'
 import { PublicationStorageModule } from 'src/business-logic/publication-storage/publication-storage.module'
 import { PublicationManagementModule } from '../publication-management/publication-management.module'
+import { GptApiModule } from 'src/business-logic/gpt-api/gpt-api.module'
+import { YandexSpeechKitModule } from 'src/business-logic/yandex-speech-kit/yandex-speech-kit.module'
 
 @Module({
     imports: [
@@ -14,6 +16,8 @@ import { PublicationManagementModule } from '../publication-management/publicati
         SurveyContextProviderModule,
         PublicationStorageModule,
         PublicationManagementModule,
+        GptApiModule,
+        YandexSpeechKitModule,
     ],
     providers: [SceneFactoryService, SceneInjectionsProviderService],
     exports: [SceneFactoryService],

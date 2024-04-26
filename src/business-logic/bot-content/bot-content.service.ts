@@ -387,6 +387,12 @@ export class BotContentService implements OnModuleInit {
                             type: 'string',
                         }
                         break
+
+                    case 'stringGptTips':
+                        answerType = {
+                            type: 'stringGptTips',
+                        }
+                        break
                     case 'options':
                         if (answerParams.isEmpty) {
                             throw Error(

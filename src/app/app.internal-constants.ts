@@ -27,10 +27,10 @@ enum EnvKeys {
 
     // GPT
     gptApiKey = 'GPT_API_KEY',
-    gptModel = 'GPT_MODEL',
-    gptMaxTokens = 'GPT_MAX_TOKENS',
-    gptModelTemperature = 'GPT_MODEL_TEMPERATURE',
-    gptProxyUrl = 'GPT_PROXY_URL',
+    gptModelUri = 'GPT_MODEL_URI',
+
+    // Yandex SpeechKit
+    yandexApiKey = 'YANDEX_API_KEY',
 
     // Payment
     paymentProviderToken = 'PAYMENT_PROVIDER_TOKEN',
@@ -111,17 +111,13 @@ class InternalConstants {
     get gptApiKey(): string {
         return this.getEnvString(EnvKeys.gptApiKey)
     }
-    get gptModel(): string {
-        return this.getEnvString(EnvKeys.gptModel)
+    get gptModelUri(): string {
+        return this.getEnvString(EnvKeys.gptModelUri)
     }
-    get gptMaxTokens(): string {
-        return this.getEnvString(EnvKeys.gptMaxTokens)
-    }
-    get gptModelTemperature(): number {
-        return this.getEnvNumber(EnvKeys.gptModelTemperature)
-    }
-    get gptProxyUrl(): string {
-        return this.getEnvString(EnvKeys.gptProxyUrl)
+
+    // YandexSpeechKit
+    get yandexApiKey(): string {
+        return this.getEnvString(EnvKeys.yandexApiKey)
     }
 
     // Other

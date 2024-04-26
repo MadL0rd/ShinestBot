@@ -14,6 +14,10 @@ import { SurveyQuestionStringNumericSceneEntranceDto } from '../implementations/
 import { SurveyQuestionMediaSceneEntranceDto } from 'src/presentation/scenes/implementations/survey/survey-question-media.scene'
 import { UserPublicationsSceneEntranceDto } from 'src/presentation/scenes/implementations/user-publications.scene'
 import { ModerationEditingSceneEntranceDto } from 'src/presentation/scenes/implementations/moderation-editing.scene'
+import { SurveyDescriptionSceneEntranceDto } from '../implementations/survey-description.scene'
+import { SurveyQuestionStringGptTipsAnswerEditingSceneEntranceDto } from '../implementations/survey/survey-question-string-gpt-tips/survey-question-string-gpt-tips-answer-editing.scene'
+import { SurveyQuestionStringGptTipsUpdateWithGptSceneEntranceDto } from '../implementations/survey/survey-question-string-gpt-tips/survey-question-string-gpt-tips-update-with-gpt.scene'
+import { SurveyQuestionStringGptTipsSceneEntranceDto } from '../implementations/survey/survey-question-string-gpt-tips/survey-question-string-gpt-tips.scene'
 /** New scene entrance dto import placeholder */
 
 export namespace SceneEntrance {
@@ -46,5 +50,9 @@ export namespace SceneEntrance {
         | SurveyQuestionMediaSceneEntranceDto
         | UserPublicationsSceneEntranceDto
         | ModerationEditingSceneEntranceDto
+        | SurveyDescriptionSceneEntranceDto
+        | SurveyQuestionStringGptTipsSceneEntranceDto
+        | SurveyQuestionStringGptTipsAnswerEditingSceneEntranceDto
+        | SurveyQuestionStringGptTipsUpdateWithGptSceneEntranceDto
     /** New scene entrance dto placeholder */
 }

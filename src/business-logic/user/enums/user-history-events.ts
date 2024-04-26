@@ -19,6 +19,12 @@ export const eventsSchema = {
         data: undefined as string | undefined,
     },
 
+    surveyQuestionStartAnswering: {
+        type: 'surveyQuestionStartAnswering',
+        localizedTitle: 'Начал отвечать на вопрос',
+        questionId: '' as string,
+    },
+
     failedToSendMessage: {
         type: 'failedToSendMessage',
         localizedTitle: 'Не удалось отправить сообщение пользователю',
@@ -84,6 +90,22 @@ export const eventsSchema = {
     startSceneModerationEditing: {
         type: 'startSceneModerationEditing',
         localizedTitle: 'Перешел к сцене moderationEditing',
+    },
+    startSceneSurveyDescription: {
+        type: 'startSceneSurveyDescription',
+        localizedTitle: 'Перешел к сцене surveyDescription',
+    },
+    startSceneSurveyQuestionStringGptTips: {
+        type: 'startSceneSurveyQuestionStringGptTips',
+        localizedTitle: 'Перешел к сцене surveyQuestionStringGptTips',
+    },
+    startSceneSurveyQuestionStringGptTipsAnswerEditing: {
+        type: 'startSceneSurveyQuestionStringGptTipsAnswerEditing',
+        localizedTitle: 'Перешел к сцене surveyQuestionStringGptTipsAnswerEditing',
+    },
+    startSceneSurveyQuestionStringGptTipsUpdateWithGpt: {
+        type: 'startSceneSurveyQuestionStringGptTipsUpdateWithGpt',
+        localizedTitle: 'Перешел к сцене surveyQuestionStringGptTipsUpdateWithGpt',
     },
     /** New scene event placeholder */
 } as const
