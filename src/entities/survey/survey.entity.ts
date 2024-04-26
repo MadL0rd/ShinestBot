@@ -112,25 +112,25 @@ export namespace _SurveyEntity {
     export type PassedAnswerWithOptions = {
         readonly type: 'options'
         question: QuestionWithOptions
-        selectedOptionId?: string
+        selectedOptionId: string | null
     }
 
     export type PassedAnswerNumeric = {
         readonly type: 'numeric'
         question: QuestionNumeric
-        selectedNumber?: number
+        selectedNumber: number | null
     }
 
     export type PassedAnswerString = {
         readonly type: 'string'
         question: QuestionString
-        selectedString?: string
+        selectedString: string | null
     }
 
     export type PassedAnswerStringGptTips = {
         readonly type: 'stringGptTips'
         question: QuestionStringGptTips
-        selectedString?: string
+        selectedString: string | null
     }
 
     export type PassedAnswerImage = {

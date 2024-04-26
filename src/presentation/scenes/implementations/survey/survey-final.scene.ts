@@ -72,9 +72,14 @@ export class SurveyFinalScene extends Scene<ISceneData, SceneEnterDataType> {
             return this.completion.complete()
         }
         const provider = this.dataProviderFactory.getSurveyContextProvider(data.providerType)
-        const cache = await provider.getAnswersCacheStable(this.user)
+        const cache = await provider.prepareConsistentAnswersCache(this.user)
 
-        const answersText = Survey.Formatter.generateTextFromPassedAnswers(cache, this.content)
+        const answersText = Survey.Formatter.generateTextFromPassedAnswers({
+            answers: cache.passedAnswers,
+            text: this.text,
+            filtrationMode: 'allAnswers',
+            putIndexes: true,
+        })
 
         await ctx.replyWithHTML(answersText)
         await ctx.replyWithHTML(
@@ -115,7 +120,7 @@ export class SurveyFinalScene extends Scene<ISceneData, SceneEnterDataType> {
                 return this.completion.complete({ sceneName: 'mainMenu' })
         }
 
-        const cache = await provider.getAnswersCacheStable(this.user)
+        const cache = await provider.prepareConsistentAnswersCache(this.user)
         const questionIndex = parseInt(message.text)
         if (
             questionIndex &&

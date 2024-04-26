@@ -19,7 +19,7 @@ import { PublicationDocument } from 'src/business-logic/publication-storage/sche
 import { generateInlineButton } from 'src/presentation/utils/inline-button.utils'
 import { ModeratedPublicationsService } from 'src/presentation/publication-management/moderated-publications/moderated-publications.service'
 import { SurveyContextProviderFactoryService } from 'src/presentation/survey-context/survey-context-provider-factory/survey-context-provider-factory.service'
-import { Survey } from 'src/entities/survey'
+import { Publication } from 'src/entities/publication'
 
 // =====================
 // Scene data classes
@@ -141,7 +141,7 @@ export class UserPublicationsScene extends Scene<ISceneData, SceneEnterDataType>
                 }
                 const contextService =
                     this.contextProviderFactory.getSurveyContextProvider('default')
-                await contextService.setAnswersCache(this.user, {
+                await contextService.setAnswersCacheWithLegacyQuestionsValidation(this.user, {
                     contentLanguage: publicationDocument.language,
                     passedAnswers: publicationDocument.answers,
                 })
@@ -209,7 +209,7 @@ export class UserPublicationsScene extends Scene<ISceneData, SceneEnterDataType>
                 ),
             ])
 
-            const tgLinkList = Survey.Formatter.publicationTelegramLinks(publication)
+            const tgLinkList = Publication.Formatter.publicationTelegramLinks(publication)
             if (tgLinkList) {
                 inlineKeyboard.push(
                     tgLinkList.map((link) =>
@@ -228,7 +228,7 @@ export class UserPublicationsScene extends Scene<ISceneData, SceneEnterDataType>
     }
 
     private generateAdvertInfoText(publication: PublicationDocument): string {
-        return `\n\n${Survey.Formatter.makeUserMessageWithPublicationInfo(
+        return `\n\n${Publication.Formatter.makeUserMessageWithPublicationInfo(
             this.text.userPublications.advertInfoFormat,
             publication,
             this.text

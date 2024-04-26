@@ -106,7 +106,7 @@ export class SurveyQuestionOptionsScene extends Scene<ISceneData, SceneEnterData
                 await provider.pushAnswerToCache(this.user, {
                     type: 'options',
                     question: data.question,
-                    selectedOptionId: undefined,
+                    selectedOptionId: null,
                 })
                 return this.completion.complete({
                     sceneName: 'survey',
