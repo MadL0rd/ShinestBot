@@ -1,29 +1,64 @@
 import { Injectable } from '@nestjs/common'
-import { OpenAI } from 'openai'
 import { internalConstants } from 'src/app/app.internal-constants'
 import { GptContextElement } from './entities/gpt-context-element'
-import { ChatCompletionMessageParam } from 'node_modules/openai/resources'
 import { logger } from 'src/app/app.logger'
+import axios from 'axios'
 
 @Injectable()
 export class GptApiService {
-    private readonly openai = new OpenAI({
-        apiKey: internalConstants.gptApiKey,
-        baseURL: internalConstants.gptProxyUrl,
-    })
-
-    async gptAnswer(contextMessages: GptContextElement[]): Promise<string | null> {
-        const params: OpenAI.Chat.ChatCompletionCreateParams = {
-            messages: contextMessages as ChatCompletionMessageParam[],
-            model: internalConstants.gptModel,
-            temperature: internalConstants.gptModelTemperature,
-        }
+    async gptAnswer(
+        contextMessages: GptContextElement[],
+        temperature: number | undefined = 0.6
+    ): Promise<string | undefined> {
+        temperature = temperature ? temperature : 0.6
         try {
-            const completion = await this.openai.chat.completions.create(params)
-            return completion.choices.last?.message.content ?? ''
+            const apiKey = internalConstants.gptApiKey
+            const modelUri = internalConstants.gptModelUri
+            const response = await axios.request<ExercisesModel>({
+                url: 'https://llm.api.cloud.yandex.net/foundationModels/v1/completion',
+                method: 'POST',
+                data: {
+                    modelUri: modelUri,
+                    completionOptions: {
+                        stream: false,
+                        temperature: temperature,
+                    },
+                    messages: contextMessages,
+                },
+                headers: {
+                    Authorization: `Api-Key ${apiKey}`,
+                },
+            })
+            return response.data.result?.alternatives?.first?.message?.text?.replaceAll('*', '')
         } catch (error) {
-            logger.error('Open AI api request failed', error)
-            return null
+            console.error('Error sending completion request:', error)
+            return undefined
         }
     }
+}
+
+export interface ExercisesModel {
+    result?: Result
+}
+
+export interface Result {
+    alternatives?: Alternative[]
+    usage?: Usage
+    modelVersion?: string
+}
+
+export interface Alternative {
+    message?: Message
+    status?: string
+}
+
+export interface Message {
+    role?: string
+    text?: string
+}
+
+export interface Usage {
+    inputTextTokens?: string
+    completionTokens?: string
+    totalTokens?: string
 }

@@ -70,8 +70,8 @@ export class MainMenuScene extends Scene<ISceneData, SceneEnterDataType> {
         const message = ctx.message as Message.TextMessage
 
         switch (message?.text) {
-            case this.text.mainMenu.buttonRepoLink:
-                await ctx.replyWithHTML(this.text.mainMenu.textRepoLink)
+            case this.text.mainMenu.buttonAbout:
+                await ctx.replyWithHTML(this.text.mainMenu.textAbout)
                 return this.completion.inProgress({})
 
             case this.text.mainMenu.buttonLanguageSettings:
@@ -125,7 +125,7 @@ export class MainMenuScene extends Scene<ISceneData, SceneEnterDataType> {
             this.userActivePermissions.includes('owner')
         return this.keyboardMarkupWithAutoLayoutFor(
             [
-                this.text.mainMenu.buttonRepoLink,
+                this.text.mainMenu.buttonAbout,
                 this.text.mainMenu.buttonSurvey,
                 this.text.mainMenu.buttonLanguageSettings,
                 this.text.mainMenu.userPublications,
