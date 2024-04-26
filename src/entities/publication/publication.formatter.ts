@@ -131,7 +131,7 @@ export namespace _PublicationFormatter {
 
         const prefix = `<b>${statusString}</b>\n`
 
-        return `${prefix}\n${publicationText}\n${publicationTagsText}`
+        return `${prefix}\n${publicationText}\n\n${publicationTagsText}`
     }
 
     export function publicationStatusString(

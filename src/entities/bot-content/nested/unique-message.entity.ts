@@ -178,6 +178,8 @@ export class ModerationCommand {
 }
 
 export class Moderation {
+    /** Описание команды Опубликовать */
+    readonly commandPlaceDescriptionText = 'Команда *Опубликовать* позволяет выложить пост в канал, имя которого будет указано после команды (или цифры, под которой значится эта команда)\n\nПример: Опубликовать @MostRentChannel'
     /** Плейсхолдер */
     readonly messageAdvertIdPlaceholder = 'advertIdPlaceholder'
     /** Плейсхолдер */

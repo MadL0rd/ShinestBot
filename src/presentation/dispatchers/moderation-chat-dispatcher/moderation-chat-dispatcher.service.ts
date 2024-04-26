@@ -75,8 +75,22 @@ export class ModerationChatDispatcherService {
         const botContent = await this.botContentService.getContent(
             internalConstants.defaultLanguage
         )
+
+        const moderationCommands = Object.values(
+            botContent.uniqueMessage.moderationCommand
+        ).compactMap((command) => `${command}`)
+
+        let command = messageText?.split(' ').first ?? ''
+        const commandIndex = Number.parseInt(command)
+        if (
+            !Number.isNaN(commandIndex) &&
+            moderationCommands.length >= commandIndex &&
+            commandIndex > 0
+        ) {
+            command = moderationCommands[commandIndex - 1]
+        }
         if (messageText) {
-            switch (messageText) {
+            switch (command) {
                 case botContent.uniqueMessage.moderationCommand.approve:
                     await this.handlePublicationApprove(publication, ctx)
                     return
@@ -92,12 +106,11 @@ export class ModerationChatDispatcherService {
                 case botContent.uniqueMessage.moderationCommand.edit:
                     await this.handleEditPublication(user, publication, ctx)
                     return
-            }
-        }
 
-        if (messageText?.split(' ').first == botContent.uniqueMessage.moderationCommand.place) {
-            await this.handlePlacePublication(publication, ctx)
-            return
+                case botContent.uniqueMessage.moderationCommand.place:
+                    await this.handlePlacePublication(publication, ctx)
+                    return
+            }
         }
 
         await this.sendAdminMessageTextForPublication(publication)
@@ -164,11 +177,7 @@ export class ModerationChatDispatcherService {
         const message = ctx.message as Message.TextMessage
         const channelIdList = message.text.split(' ').slice(1)
         if (channelIdList.isEmpty) {
-            await this.sendMessageToCurrentThread(
-                ctx,
-                'Не удалось распознать id канала для публикации'
-            )
-            return
+            channelIdList.push(internalConstants.publicationMainChannelId.toString())
         }
 
         // Create main channel publication

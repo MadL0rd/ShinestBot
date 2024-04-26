@@ -125,9 +125,11 @@ export class ModeratedPublicationsService {
         await this.sendPublicationsMediaToModerationThread(publication)
 
         let moderationCommandsText = `Актуальные на данный момент комманды:\n`
-        moderationCommandsText += Object.values(botContent.uniqueMessage.moderationCommand)
-            .map((command) => `- ${command}`)
+        const moderationCommands = Object.values(botContent.uniqueMessage.moderationCommand)
+        moderationCommandsText += moderationCommands
+            .map((command) => `${moderationCommands.indexOf(command) + 1}. ${command}`)
             .join('\n')
+        moderationCommandsText += `\n\n${botContent.uniqueMessage.moderation.commandPlaceDescriptionText}`
 
         await this.bot.telegram.sendMessage(message.chat.id, moderationCommandsText, {
             reply_parameters: { message_id: message.message_id },
