@@ -21,6 +21,7 @@ import { SurveyQuestionStringGptTipsScene } from '../implementations/survey/surv
 import { SurveyDescriptionScene } from '../implementations/survey-description.scene'
 import { SurveyQuestionStringGptTipsAnswerEditingScene } from '../implementations/survey/survey-question-string-gpt-tips/survey-question-string-gpt-tips-answer-editing.scene'
 import { SurveyQuestionStringGptTipsUpdateWithGptScene } from '../implementations/survey/survey-question-string-gpt-tips/survey-question-string-gpt-tips-update-with-gpt.scene'
+import { SurveyQuestionMultipleChoiceScene } from 'src/presentation/scenes/implementations/survey/survey-question-multiple-choice.scene'
 /** New scene import placeholder */
 
 @Injectable()
@@ -71,6 +72,8 @@ export class SceneFactoryService {
                 return this.injectionsProvider.resolve(
                     SurveyQuestionStringGptTipsUpdateWithGptScene
                 )
+            case 'surveyQuestionMultipleChoice':
+                return this.injectionsProvider.resolve(SurveyQuestionMultipleChoiceScene)
             /** New scene generation placeholder */
         }
         return null

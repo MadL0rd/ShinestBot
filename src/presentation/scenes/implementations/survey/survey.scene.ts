@@ -121,12 +121,16 @@ export class SurveyScene extends Scene<ISceneData, SceneEnterDataType> {
         }
 
         let mediaGroupBufferCache: Survey.TelegramFileData[] = []
+        let multipleChoiceBufferCache: string[] = []
         if (previousAnswer && nextQuestion.id == previousAnswer.question.id) {
             switch (previousAnswer.type) {
                 case 'string':
                 case 'options':
                 case 'numeric':
                 case 'stringGptTips':
+                    break
+                case 'multipleChoice':
+                    multipleChoiceBufferCache = previousAnswer.selectedOptionsIds
                     break
                 case 'image':
                 case 'video':
@@ -147,6 +151,14 @@ export class SurveyScene extends Scene<ISceneData, SceneEnterDataType> {
                     providerType: data.providerType,
                     question: nextQuestion,
                     isQuestionFirst: isQuestionFirst,
+                })
+            case 'multipleChoice':
+                return this.completion.complete({
+                    sceneName: 'surveyQuestionMultipleChoice',
+                    providerType: data.providerType,
+                    question: nextQuestion,
+                    isQuestionFirst: isQuestionFirst,
+                    selectedOptionsIdsList: multipleChoiceBufferCache,
                 })
             case 'numeric':
             case 'string':

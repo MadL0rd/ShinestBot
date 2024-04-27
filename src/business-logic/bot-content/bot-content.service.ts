@@ -393,6 +393,49 @@ export class BotContentService implements OnModuleInit {
                             type: 'stringGptTips',
                         }
                         break
+
+                    case 'multipleChoice':
+                        if (answerParams.isEmpty) {
+                            throw Error(
+                                `Question with type answerOptions does not contains options\n${rowItemString}`
+                            )
+                        }
+                        const answerOptionsList = answerParams.map((answerParam) => {
+                            if (answerParam.value.isEmpty) {
+                                throw Error(
+                                    `Question with type answerOptions contains empty option with id: ${answerParam.id}\n${rowItemString}`
+                                )
+                            }
+                            const option: Survey.AnswerOption = {
+                                id: answerParam.id,
+                                text: answerParam.value,
+                            }
+                            return option
+                        })
+                        const optionIdsDuplicates = answerOptionsList.map(
+                            (option) => option.id
+                        ).justNotUnique
+                        if (optionIdsDuplicates.isNotEmpty) {
+                            throw Error(
+                                `Question with type answerOptions contains options with same id\n${rowItemString}`
+                            )
+                        }
+                        const optionsTextDuplicates = answerOptionsList.map(
+                            (option) => option.text
+                        ).justNotUnique
+                        if (optionsTextDuplicates.isNotEmpty) {
+                            throw Error(
+                                `Question with type answerOptions contains options with same text\n${rowItemString}`
+                            )
+                        }
+
+                        answerType = {
+                            type: 'multipleChoice',
+                            options: answerOptionsList,
+                            useIdAsPublicationTag: useIdAsPublicationTag ?? false,
+                        }
+                        break
+
                     case 'options':
                         if (answerParams.isEmpty) {
                             throw Error(
