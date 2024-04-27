@@ -128,22 +128,14 @@ export class SurveyFinalScene extends Scene<ISceneData, SceneEnterDataType> {
             questionIndex <= cache.passedAnswers.length &&
             questionIndex >= 1
         ) {
-            let oldData: Survey.TelegramFileData[] | []
-            const targetAnswer = cache.passedAnswers[questionIndex - 1]
-            if (
-                targetAnswer.type == 'image' ||
-                targetAnswer.type == 'mediaGroup' ||
-                targetAnswer.type == 'video'
-            ) {
-                oldData = targetAnswer.media
-            } else oldData = []
-            cache.passedAnswers.splice(questionIndex - 1, 1)
-            await provider.setAnswersCache(this.user, cache)
             return this.completion.complete({
                 sceneName: 'survey',
                 providerType: data.providerType,
                 allowContinueQuestion: false,
-                oldData: oldData,
+                popAnswerOnStart: {
+                    type: 'byQuestionIndex',
+                    questionIndex: questionIndex - 1,
+                },
             })
         }
 

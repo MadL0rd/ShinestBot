@@ -123,11 +123,14 @@ export class SurveyQuestionStringGptTipsAnswerEditingScene extends Scene<
                 })
 
             case this.text.survey.buttonBackToPreviousQuestion:
-                await provider.popAnswerFromCache(this.user)
                 return this.completion.complete({
                     sceneName: 'survey',
                     providerType: data.providerType,
                     allowContinueQuestion: false,
+                    popAnswerOnStart: {
+                        type: 'beforeQuestionWithId',
+                        questionId: data.question.id,
+                    },
                 })
 
             case this.text.surveyQuestionGptTip.buttonAnswerEditingDone:

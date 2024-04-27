@@ -21,7 +21,7 @@ export class SurveyQuestionMediaSceneEntranceDto implements SceneEntrance.Dto {
     readonly providerType: SurveyContextProviderType.Union
     readonly question: Survey.QuestionMedia
     readonly isQuestionFirst: boolean
-    readonly oldData: Survey.TelegramFileData[]
+    readonly mediaGroupBuffer: Survey.TelegramFileData[]
 }
 type SceneEnterDataType = SurveyQuestionMediaSceneEntranceDto
 interface ISceneData {
@@ -81,7 +81,7 @@ export class SurveyQuestionMediaScene extends Scene<ISceneData, SceneEnterDataTy
             providerType: data.providerType,
             question: data.question,
             isQuestionFirst: data.isQuestionFirst,
-            mediaGroupBuffer: data.oldData,
+            mediaGroupBuffer: data.mediaGroupBuffer,
         }
         await this.showMediaUploadingMenu(ctx, sceneData)
 
@@ -119,11 +119,14 @@ export class SurveyQuestionMediaScene extends Scene<ISceneData, SceneEnterDataTy
                 }
 
                 case this.text.survey.buttonBackToPreviousQuestion: {
-                    await provider.popAnswerFromCache(this.user)
                     return this.completion.complete({
                         sceneName: 'survey',
                         providerType: data.providerType,
                         allowContinueQuestion: false,
+                        popAnswerOnStart: {
+                            type: 'beforeQuestionWithId',
+                            questionId: data.question.id,
+                        },
                     })
                 }
 

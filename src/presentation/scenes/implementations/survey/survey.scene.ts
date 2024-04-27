@@ -20,7 +20,10 @@ export class SurveySceneEntranceDto implements SceneEntrance.Dto {
     readonly sceneName = 'survey'
     readonly providerType: SurveyContextProviderType.Union
     readonly allowContinueQuestion: boolean
-    readonly oldData?: Survey.TelegramFileData[]
+    readonly popAnswerOnStart?:
+        | { type: 'popLastAnswer' }
+        | { type: 'beforeQuestionWithId'; questionId: string }
+        | { type: 'byQuestionIndex'; questionIndex: number }
 }
 type SceneEnterDataType = SurveySceneEntranceDto
 interface ISceneData {
@@ -80,6 +83,27 @@ export class SurveyScene extends Scene<ISceneData, SceneEnterDataType> {
         }
 
         const cache = await provider.getAnswersCache(this.user)
+
+        let previousAnswer: Survey.PassedAnswer | undefined
+        if (data.popAnswerOnStart) {
+            switch (data.popAnswerOnStart.type) {
+                case 'popLastAnswer':
+                    previousAnswer = await provider.popAnswerFromCache(this.user)
+                    break
+                case 'beforeQuestionWithId':
+                    previousAnswer = await provider.popAnswerFromCache(
+                        this.user,
+                        data.popAnswerOnStart.questionId
+                    )
+                    break
+                case 'byQuestionIndex':
+                    previousAnswer = cache.passedAnswers[data.popAnswerOnStart.questionIndex]
+                    cache.passedAnswers.splice(data.popAnswerOnStart.questionIndex, 1)
+                    await provider.setAnswersCache(this.user, cache)
+                    break
+            }
+        }
+
         if (data.allowContinueQuestion && cache.passedAnswers.isNotEmpty) {
             return this.completion.complete({
                 sceneName: 'surveyContinue',
@@ -94,6 +118,21 @@ export class SurveyScene extends Scene<ISceneData, SceneEnterDataType> {
                 sceneName: 'surveyFinal',
                 providerType: data.providerType,
             })
+        }
+
+        let mediaGroupBufferCache: Survey.TelegramFileData[] = []
+        if (previousAnswer && nextQuestion.id == previousAnswer.question.id) {
+            switch (previousAnswer.type) {
+                case 'string':
+                case 'options':
+                case 'numeric':
+                case 'stringGptTips':
+                    break
+                case 'image':
+                case 'video':
+                case 'mediaGroup':
+                    mediaGroupBufferCache = previousAnswer.media
+            }
         }
 
         const isQuestionFirst = cache.passedAnswers.isEmpty
@@ -132,7 +171,7 @@ export class SurveyScene extends Scene<ISceneData, SceneEnterDataType> {
                     providerType: data.providerType,
                     question: nextQuestion,
                     isQuestionFirst: isQuestionFirst,
-                    oldData: data.oldData ?? [],
+                    mediaGroupBuffer: mediaGroupBufferCache,
                 })
         }
     }

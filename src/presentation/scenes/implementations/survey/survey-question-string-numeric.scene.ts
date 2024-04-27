@@ -188,15 +188,14 @@ export class SurveyQuestionStringNumericScene extends Scene<ISceneData, SceneEnt
         const provider = this.dataProviderFactory.getSurveyContextProvider(providerType)
         if (!provider) return this.completion.canNotHandleUnsafe()
 
-        const answerId = inlineButtonData.a
+        const questionId = inlineButtonData.a
         const cache = await provider.getAnswersCache(this.user)
         const surveySource = await provider.getSurvey(this.user)
         const nextQuestion = Survey.Helper.findNextQuestion(surveySource, cache.passedAnswers)
-        if (nextQuestion?.id != answerId) return this.completion.canNotHandleUnsafe()
+        if (nextQuestion?.id != questionId) return this.completion.canNotHandleUnsafe()
 
         switch (data.action) {
             case SceneCallbackAction.surveyBackToPreviousQuestion:
-                await provider.popAnswerFromCache(this.user)
                 await ctx.replyWithHTML(
                     this.text.survey.textAditionaltInlineMenuBackToPreviousEventLog
                 )
@@ -204,6 +203,10 @@ export class SurveyQuestionStringNumericScene extends Scene<ISceneData, SceneEnt
                     sceneName: 'survey',
                     providerType: providerType,
                     allowContinueQuestion: false,
+                    popAnswerOnStart: {
+                        type: 'beforeQuestionWithId',
+                        questionId: questionId,
+                    },
                 })
 
             case SceneCallbackAction.surveySkipQuestion:
