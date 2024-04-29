@@ -1,7 +1,7 @@
 import { logger } from 'src/app/app.logger'
 import { UserService } from 'src/business-logic/user/user.service'
 import { Markup, Context } from 'telegraf'
-import { Update } from 'telegraf/types'
+import { ReplyKeyboardMarkup, ReplyKeyboardRemove, Update } from 'telegraf/types'
 import { SceneCallbackData } from '../../models/scene-callback'
 import { SceneEntrance } from '../../models/scene-entrance.interface'
 import { SceneName } from '../../models/scene-name.enum'
@@ -76,17 +76,7 @@ export class SurveyQuestionMultipleChoiceScene extends Scene<ISceneData, SceneEn
 
         await ctx.replyWithHTML(
             data.question.questionText,
-            super.keyboardMarkupWithAutoLayoutFor(
-                [
-                    ...data.question.options.map((option) => {
-                        if (data.selectedOptionsIdsList?.includes(option.id))
-                            return `✅ ${option.text}`
-                        else return `❌ ${option.text}`
-                    }),
-                    data.question.isRequired ? null : this.text.survey.buttonOptionalQuestionSkip,
-                    data.isQuestionFirst ? null : this.text.survey.buttonBackToPreviousQuestion,
-                ].compact
-            )
+            this.optionstMarkup(data.question, data.selectedOptionsIdsList, data.isQuestionFirst)
         )
 
         return this.completion.inProgress({
@@ -129,6 +119,7 @@ export class SurveyQuestionMultipleChoiceScene extends Scene<ISceneData, SceneEn
                 })
 
             case this.text.survey.buttonBackToPreviousQuestion:
+                if (data.isQuestionFirst) break
                 return this.completion.complete({
                     sceneName: 'survey',
                     providerType: data.providerType,
@@ -139,6 +130,7 @@ export class SurveyQuestionMultipleChoiceScene extends Scene<ISceneData, SceneEn
                     },
                 })
             case this.text.surveyQuestionMedia.buttonDone:
+                if (data.selectedOptionsIdsList.isEmpty) break
                 await provider.pushAnswerToCache(this.user, {
                     type: 'multipleChoice',
                     question: data.question,
@@ -151,7 +143,11 @@ export class SurveyQuestionMultipleChoiceScene extends Scene<ISceneData, SceneEn
                 })
         }
         const selectedOption = data.question.options.find(
-            (option) => option.text == message.text.replace('❌ ', '').replace('✅ ', '')
+            (option) =>
+                option.text ==
+                message.text
+                    .replace(`${this.text.common.symbolCross} `, '')
+                    .replace(`${this.text.common.symbolCheckMark} `, '')
         )
         if (!selectedOption) return this.completion.canNotHandle(data)
         const optionIndex = data.selectedOptionsIdsList?.indexOf(selectedOption.id)
@@ -162,18 +158,7 @@ export class SurveyQuestionMultipleChoiceScene extends Scene<ISceneData, SceneEn
         }
         await ctx.replyWithHTML(
             data.question.questionText,
-            super.keyboardMarkupWithAutoLayoutFor(
-                [
-                    ...data.question.options.map((option) => {
-                        if (data.selectedOptionsIdsList?.includes(option.id))
-                            return `✅ ${option.text}`
-                        else return `❌ ${option.text}`
-                    }),
-                    this.text.surveyQuestionMedia.buttonDone,
-                    data.question.isRequired ? null : this.text.survey.buttonOptionalQuestionSkip,
-                    data.isQuestionFirst ? null : this.text.survey.buttonBackToPreviousQuestion,
-                ].compact
-            )
+            this.optionstMarkup(data.question, data.selectedOptionsIdsList, data.isQuestionFirst)
         )
 
         return this.completion.inProgress(data)
@@ -189,4 +174,28 @@ export class SurveyQuestionMultipleChoiceScene extends Scene<ISceneData, SceneEn
     // =====================
     // Private methods
     // =====================
+    private optionstMarkup(
+        question: Survey.QuestionWithMultipleChoice,
+        selectedOptionsIdsList: string[],
+        isQuestionFirst: boolean
+    ): Markup.Markup<ReplyKeyboardMarkup | ReplyKeyboardRemove> {
+        return super.keyboardMarkupWithAutoLayoutFor(
+            [
+                selectedOptionsIdsList.isEmpty ? null : this.text.surveyQuestionMedia.buttonDone,
+                ...this.optionsButtonsList(question.options, selectedOptionsIdsList),
+                question.isRequired ? null : this.text.survey.buttonOptionalQuestionSkip,
+                isQuestionFirst ? null : this.text.survey.buttonBackToPreviousQuestion,
+            ].compact
+        )
+    }
+    private optionsButtonsList(
+        options: Survey.AnswerOption[],
+        selectedOptionsIdsList: string[]
+    ): string[] {
+        return options.map((option) => {
+            if (selectedOptionsIdsList?.includes(option.id))
+                return `${this.text.common.symbolCheckMark} ${option.text}`
+            else return `${this.text.common.symbolCross} ${option.text}`
+        })
+    }
 }

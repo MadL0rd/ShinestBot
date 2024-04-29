@@ -31,6 +31,8 @@ export class Common {
     readonly comingSoon = 'Эта функция скоро появится'
     readonly selectLanguageText = 'Выберите язык'
     readonly errorMessage = 'Кажется, что-то пошло не по плану 🙄'
+    readonly symbolCross = '❌'
+    readonly symbolCheckMark = '✅'
 }
 
 export class MainMenu {
@@ -115,7 +117,7 @@ export class SurveyDescription {
 export class Survey {
     readonly buttonOptionalQuestionSkip = '👀 Пропустить'
     readonly buttonBackToPreviousQuestion = '⬅️ Вернуться к предыдущему вопросу'
-    readonly texMessageAditionaltInlineMenu = 'Также вы можете'
+    readonly texMessageAditionaltInlineMenu = '🧭 Навигация'
     readonly buttonAditionaltInlineMenuSkip = '👀 Пропустить'
     readonly buttonAditionaltInlineMenuBackToPrevious = '⬆️ Вернуться'
     readonly textAditionaltInlineMenuSkipEventLog = '<i>👀 Вопрос пропущен</i>'
