@@ -12,6 +12,7 @@ import {
     InputMediaAudio,
     InputMediaDocument,
     InlineKeyboardButton,
+    KeyboardButton,
 } from 'telegraf/types'
 import { SceneEntrance } from './scene-entrance.interface'
 import { SceneName } from './scene-name.enum'
@@ -125,13 +126,12 @@ export abstract class Scene<SceneDataType extends object, SceneEnterDataType ext
     }
 
     protected keyboardMarkupWithAutoLayoutFor(
-        keyboard: string[],
+        keyboard: KeyboardButton[],
         twoColumnsForce: boolean = false
     ): Markup.Markup<ReplyKeyboardMarkup | ReplyKeyboardRemove> {
-        keyboard = keyboard.compact
         if (keyboard.length == 0) return Markup.removeKeyboard()
 
-        let keyboardWithAutoLayout: string[][]
+        let keyboardWithAutoLayout: KeyboardButton[][]
 
         if (keyboard.length < 5 && !twoColumnsForce) {
             // For short keyboards place 1 button on every row
@@ -147,8 +147,7 @@ export abstract class Scene<SceneDataType extends object, SceneEnterDataType ext
                 }
             })
         }
-
-        return this.keyboardMarkupFor(keyboardWithAutoLayout)
+        return Markup.keyboard(keyboard).resize()
     }
 
     protected async logToUserHistory<EventName extends UserHistoryEvent.EventTypeName>(
