@@ -341,6 +341,7 @@ export class BotContentService implements OnModuleInit {
 
                 let useIdAsPublicationTag: boolean | undefined
                 let unit: string | undefined
+                let minCount: number | undefined
                 let maxCount: number | undefined
 
                 const answerParams =
@@ -400,18 +401,28 @@ export class BotContentService implements OnModuleInit {
                                 `Question with type answerOptions does not contains options\n${rowItemString}`
                             )
                         }
-                        const answerOptionsList = answerParams.map((answerParam) => {
-                            if (answerParam.value.isEmpty) {
+                        const answerOptionsList: Survey.AnswerOption[] = []
+
+                        for (const param of answerParams) {
+                            if (param.value.isEmpty) {
                                 throw Error(
-                                    `Question with type answerOptions contains empty option with id: ${answerParam.id}\n${rowItemString}`
+                                    `Question with type answerOptions contains empty option with id: ${param.id}\n${rowItemString}`
                                 )
                             }
-                            const option: Survey.AnswerOption = {
-                                id: answerParam.id,
-                                text: answerParam.value,
+                            if (param.id == 'maxCount') {
+                                maxCount = Number(param.value)
+                                continue
                             }
-                            return option
-                        })
+                            if (param.id == 'minCount') {
+                                minCount = Number(param.value)
+                                continue
+                            }
+                            const option: Survey.AnswerOption = {
+                                id: param.id,
+                                text: param.value,
+                            }
+                            answerOptionsList.push(option)
+                        }
                         const optionIdsDuplicates = answerOptionsList.map(
                             (option) => option.id
                         ).justNotUnique
@@ -432,6 +443,8 @@ export class BotContentService implements OnModuleInit {
                         answerType = {
                             type: 'multipleChoice',
                             options: answerOptionsList,
+                            minCount: minCount ?? 1,
+                            maxCount: maxCount ?? answerOptionsList.length,
                             useIdAsPublicationTag: useIdAsPublicationTag ?? false,
                         }
                         break

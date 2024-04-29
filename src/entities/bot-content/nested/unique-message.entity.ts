@@ -124,6 +124,10 @@ export class Survey {
     readonly textAditionaltInlineMenuBackToPreviousEventLog = '<i>⬆️ Возврат к предыдущему вопросу</i>'
     /** Сообщение, которое будет выведено пользователю, если он ввёл текст в ответ на вопрос, где надо дать число */
     readonly errorMessageAnswerIsNotNumber = 'Введите число\nЕсли вам нужно указать дробное значение, то отделите его точкой или запятой\n\n<i>Пример: 123.4</i>'
+    /** Текст, который будет добавлен к вопросу типа multipleChoice.
+minCount - минимальное количество пунктов, которые надо выбрать
+maxCount - максимальное количество пунктов, которые можно выбрать */
+    readonly textDescriptionQuestionMultipleChoice = 'Вам нужно выбрать от minCount до maxCount пунктов'
 }
 
 export class SurveyQuestionMedia {

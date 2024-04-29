@@ -75,7 +75,7 @@ export class SurveyQuestionMultipleChoiceScene extends Scene<ISceneData, SceneEn
         }
 
         await ctx.replyWithHTML(
-            data.question.questionText,
+            this.questionMessageText(data.question),
             this.optionstMarkup(data.question, data.selectedOptionsIdsList, data.isQuestionFirst)
         )
 
@@ -130,7 +130,8 @@ export class SurveyQuestionMultipleChoiceScene extends Scene<ISceneData, SceneEn
                     },
                 })
             case this.text.surveyQuestionMedia.buttonDone:
-                if (data.selectedOptionsIdsList.isEmpty) break
+                if (this.isDoneButtonAvailable(data.question, data.selectedOptionsIdsList).isFalse)
+                    break
                 await provider.pushAnswerToCache(this.user, {
                     type: 'multipleChoice',
                     question: data.question,
@@ -151,13 +152,14 @@ export class SurveyQuestionMultipleChoiceScene extends Scene<ISceneData, SceneEn
         )
         if (!selectedOption) return this.completion.canNotHandle(data)
         const optionIndex = data.selectedOptionsIdsList?.indexOf(selectedOption.id)
-        if (optionIndex == -1) {
+        if (optionIndex == -1 && data.selectedOptionsIdsList.length < data.question.maxCount) {
             data.selectedOptionsIdsList?.push(selectedOption.id)
-        } else {
+        }
+        if (optionIndex != -1) {
             data.selectedOptionsIdsList?.splice(optionIndex, 1)
         }
         await ctx.replyWithHTML(
-            data.question.questionText,
+            this.questionMessageText(data.question),
             this.optionstMarkup(data.question, data.selectedOptionsIdsList, data.isQuestionFirst)
         )
 
@@ -174,6 +176,11 @@ export class SurveyQuestionMultipleChoiceScene extends Scene<ISceneData, SceneEn
     // =====================
     // Private methods
     // =====================
+    private questionMessageText(question: Survey.QuestionWithMultipleChoice): string {
+        return `${question.questionText}\n\n${this.text.survey.textDescriptionQuestionMultipleChoice
+            .replace('minCount', question.minCount.toString())
+            .replace('maxCount', question.maxCount.toString())}`
+    }
     private optionstMarkup(
         question: Survey.QuestionWithMultipleChoice,
         selectedOptionsIdsList: string[],
@@ -181,13 +188,26 @@ export class SurveyQuestionMultipleChoiceScene extends Scene<ISceneData, SceneEn
     ): Markup.Markup<ReplyKeyboardMarkup | ReplyKeyboardRemove> {
         return super.keyboardMarkupWithAutoLayoutFor(
             [
-                selectedOptionsIdsList.isEmpty ? null : this.text.surveyQuestionMedia.buttonDone,
+                this.isDoneButtonAvailable(question, selectedOptionsIdsList)
+                    ? this.text.surveyQuestionMedia.buttonDone
+                    : null,
                 ...this.optionsButtonsList(question.options, selectedOptionsIdsList),
                 question.isRequired ? null : this.text.survey.buttonOptionalQuestionSkip,
                 isQuestionFirst ? null : this.text.survey.buttonBackToPreviousQuestion,
             ].compact
         )
     }
+
+    private isDoneButtonAvailable(
+        question: Survey.QuestionWithMultipleChoice,
+        selectedOptionsIdsList: string[]
+    ): boolean {
+        return (
+            selectedOptionsIdsList.length >= question.minCount &&
+            selectedOptionsIdsList.length <= question.maxCount
+        )
+    }
+
     private optionsButtonsList(
         options: Survey.AnswerOption[],
         selectedOptionsIdsList: string[]

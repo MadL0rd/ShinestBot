@@ -68,6 +68,8 @@ export namespace _SurveyEntity {
     export type AnswerTypeWithMultipleChoice = {
         readonly type: 'multipleChoice'
         readonly options: AnswerOption[]
+        readonly minCount: number
+        readonly maxCount: number
         readonly useIdAsPublicationTag: boolean
     }
     export type AnswerOption = {
