@@ -97,9 +97,13 @@ export namespace _SurveyHelper {
                         ?.text ?? null
                 )
             case 'multipleChoice':
-                return answer.selectedOptionsIds
-                    .map((id) => answer.question.options.find((option) => option.id == id)?.text)
-                    .join(', ')
+                return answer.selectedOptionsIds.isEmpty
+                    ? null
+                    : answer.question.options
+                          .filter((option) => answer.selectedOptionsIds.includes(option.id))
+                          .map((option) => option.text)
+                          .join(', ')
+
             case 'numeric':
                 const unitLabel = answer.question.unit
                 if (unitLabel && answer.selectedNumber) {
