@@ -75,7 +75,7 @@ export class SurveyQuestionMultipleChoiceScene extends Scene<ISceneData, SceneEn
         }
 
         await ctx.replyWithHTML(
-            this.questionMessageText(data.question),
+            this.questionMessageText(data.question, data.selectedOptionsIdsList),
             this.optionstMarkup(data.question, data.selectedOptionsIdsList, data.isQuestionFirst)
         )
 
@@ -159,7 +159,7 @@ export class SurveyQuestionMultipleChoiceScene extends Scene<ISceneData, SceneEn
             data.selectedOptionsIdsList?.splice(optionIndex, 1)
         }
         await ctx.replyWithHTML(
-            this.questionMessageText(data.question),
+            this.questionMessageText(data.question, data.selectedOptionsIdsList),
             this.optionstMarkup(data.question, data.selectedOptionsIdsList, data.isQuestionFirst)
         )
 
@@ -176,26 +176,39 @@ export class SurveyQuestionMultipleChoiceScene extends Scene<ISceneData, SceneEn
     // =====================
     // Private methods
     // =====================
-    private questionMessageText(question: Survey.QuestionWithMultipleChoice): string {
+    private questionMessageText(
+        question: Survey.QuestionWithMultipleChoice,
+        selectedOptionsIdsList: string[]
+    ): string {
+        const selectedOptionsText = question.options
+            .filter((option) => selectedOptionsIdsList.includes(option.id))
+            .map((option) => `<b>${option.text}</b>`)
+            .join(', ')
         return `${question.questionText}\n\n${this.text.survey.textDescriptionQuestionMultipleChoice
             .replace('minCount', question.minCount.toString())
-            .replace('maxCount', question.maxCount.toString())}`
+            .replace('maxCount', question.maxCount.toString())}\n${selectedOptionsText}`
     }
     private optionstMarkup(
         question: Survey.QuestionWithMultipleChoice,
         selectedOptionsIdsList: string[],
         isQuestionFirst: boolean
     ): Markup.Markup<ReplyKeyboardMarkup | ReplyKeyboardRemove> {
-        return super.keyboardMarkupWithAutoLayoutFor(
-            [
-                this.isDoneButtonAvailable(question, selectedOptionsIdsList)
-                    ? this.text.surveyQuestionMedia.buttonDone
-                    : null,
-                ...this.optionsButtonsList(question.options, selectedOptionsIdsList),
-                question.isRequired ? null : this.text.survey.buttonOptionalQuestionSkip,
-                isQuestionFirst ? null : this.text.survey.buttonBackToPreviousQuestion,
-            ].compact
+        const markup = this.keyboardMarkupWithAutoLayoutFor(
+            this.optionsButtonsList(question.options, selectedOptionsIdsList)
         )
+        if ('keyboard' in markup.reply_markup) {
+            markup.reply_markup.keyboard = [
+                [
+                    this.isDoneButtonAvailable(question, selectedOptionsIdsList)
+                        ? this.text.surveyQuestionMedia.buttonDone
+                        : null,
+                    question.isRequired ? null : this.text.survey.buttonOptionalQuestionSkip,
+                ].compact,
+                ...markup.reply_markup.keyboard,
+                [isQuestionFirst ? null : this.text.survey.buttonBackToPreviousQuestion].compact,
+            ]
+        }
+        return markup
     }
 
     private isDoneButtonAvailable(
@@ -213,9 +226,9 @@ export class SurveyQuestionMultipleChoiceScene extends Scene<ISceneData, SceneEn
         selectedOptionsIdsList: string[]
     ): string[] {
         return options.map((option) => {
-            if (selectedOptionsIdsList?.includes(option.id))
-                return `${this.text.common.symbolCheckMark} ${option.text}`
-            else return `${this.text.common.symbolCross} ${option.text}`
+            return selectedOptionsIdsList.includes(option.id)
+                ? `${this.text.common.symbolCheckMark} ${option.text}`
+                : `${this.text.common.symbolCross} ${option.text}`
         })
     }
 }
