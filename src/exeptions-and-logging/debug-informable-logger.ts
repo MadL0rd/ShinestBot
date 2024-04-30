@@ -154,7 +154,11 @@ export class DebugInformableLogger implements LoggerService {
         if (error) {
             try {
                 message = this.clipLogMessage(`Message: ${message}\nError: ${error}`)
-                debugLine = this.getLineFromTrceback(message) ?? debugLine
+                if (error.stack) {
+                    debugLine = this.getLineFromTrceback(error.stack) ?? debugLine
+                } else {
+                    debugLine = this.getLineFromTrceback(message) ?? debugLine
+                }
             } catch (error) {
                 loggerWinston.error('Logger error info convertation failed', error)
             }
@@ -180,7 +184,11 @@ export class DebugInformableLogger implements LoggerService {
                 message = this.clipLogMessage(
                     `Message: ${message}\nError: ${error}`.replace('Error: Error:', 'Error:\t')
                 )
-                debugLine = this.getLineFromTrceback(message) ?? debugLine
+                if (error.stack) {
+                    debugLine = this.getLineFromTrceback(error.stack) ?? debugLine
+                } else {
+                    debugLine = this.getLineFromTrceback(message) ?? debugLine
+                }
             } catch (error) {
                 loggerWinston.error('Logger error info convertation failed', error)
             }
@@ -208,7 +216,11 @@ export class DebugInformableLogger implements LoggerService {
         if (error) {
             try {
                 message = this.clipLogMessage(`Message: ${message}\nError: ${error}`)
-                debugLine = this.getLineFromTrceback(message) ?? debugLine
+                if (error.stack) {
+                    debugLine = this.getLineFromTrceback(error.stack) ?? debugLine
+                } else {
+                    debugLine = this.getLineFromTrceback(message) ?? debugLine
+                }
             } catch (error) {
                 loggerWinston.error('Logger error info convertation failed', error)
             }

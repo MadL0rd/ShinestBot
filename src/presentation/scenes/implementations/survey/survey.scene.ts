@@ -20,6 +20,11 @@ export class SurveySceneEntranceDto implements SceneEntrance.Dto {
     readonly sceneName = 'survey'
     readonly providerType: SurveyContextProviderType.Union
     readonly allowContinueQuestion: boolean
+    readonly allowBackToPreviousQuestion?: boolean
+    readonly popAnswerOnStart?:
+        | { type: 'popLastAnswer' }
+        | { type: 'beforeQuestionWithId'; questionId: string }
+        | { type: 'byQuestionIndex'; questionIndex: number }
 }
 type SceneEnterDataType = SurveySceneEntranceDto
 interface ISceneData {
@@ -79,6 +84,27 @@ export class SurveyScene extends Scene<ISceneData, SceneEnterDataType> {
         }
 
         const cache = await provider.getAnswersCache(this.user)
+
+        let previousAnswer: Survey.PassedAnswer | undefined
+        if (data.popAnswerOnStart) {
+            switch (data.popAnswerOnStart.type) {
+                case 'popLastAnswer':
+                    previousAnswer = await provider.popAnswerFromCache(this.user)
+                    break
+                case 'beforeQuestionWithId':
+                    previousAnswer = await provider.popAnswerFromCache(
+                        this.user,
+                        data.popAnswerOnStart.questionId
+                    )
+                    break
+                case 'byQuestionIndex':
+                    previousAnswer = cache.passedAnswers[data.popAnswerOnStart.questionIndex]
+                    cache.passedAnswers.splice(data.popAnswerOnStart.questionIndex, 1)
+                    await provider.setAnswersCache(this.user, cache)
+                    break
+            }
+        }
+
         if (data.allowContinueQuestion && cache.passedAnswers.isNotEmpty) {
             return this.completion.complete({
                 sceneName: 'surveyContinue',
@@ -87,7 +113,7 @@ export class SurveyScene extends Scene<ISceneData, SceneEnterDataType> {
         }
 
         const surveySource = await provider.getSurvey(this.user)
-        const nextQuestion = Survey.Helper.findNextQuestion(surveySource, cache.passedAnswers)
+        const nextQuestion = await provider.getNextQuestion(this.user)
         if (!nextQuestion) {
             return this.completion.complete({
                 sceneName: 'surveyFinal',
@@ -95,7 +121,29 @@ export class SurveyScene extends Scene<ISceneData, SceneEnterDataType> {
             })
         }
 
-        const isQuestionFirst = cache.passedAnswers.isEmpty
+        let mediaGroupBufferCache: Survey.TelegramFileData[] = []
+        let multipleChoiceBufferCache: string[] = []
+        if (previousAnswer && nextQuestion.id == previousAnswer.question.id) {
+            switch (previousAnswer.type) {
+                case 'string':
+                case 'options':
+                case 'numeric':
+                case 'stringGptTips':
+                    break
+                case 'multipleChoice':
+                    multipleChoiceBufferCache = previousAnswer.selectedOptionsIds
+                    break
+                case 'image':
+                case 'video':
+                case 'mediaGroup':
+                    mediaGroupBufferCache = previousAnswer.media
+            }
+        }
+
+        const isQuestionFirst =
+            cache.passedAnswers.isEmpty || surveySource.questions.first?.id == nextQuestion.id
+        const allowBackToPreviousQuestion =
+            data.allowBackToPreviousQuestion === false ? false : !isQuestionFirst
         await this.logToUserHistory({
             type: 'surveyQuestionStartAnswering',
             questionId: nextQuestion.id,
@@ -106,7 +154,15 @@ export class SurveyScene extends Scene<ISceneData, SceneEnterDataType> {
                     sceneName: 'surveyQuestionOptions',
                     providerType: data.providerType,
                     question: nextQuestion,
-                    isQuestionFirst: isQuestionFirst,
+                    allowBackToPreviousQuestion: allowBackToPreviousQuestion,
+                })
+            case 'multipleChoice':
+                return this.completion.complete({
+                    sceneName: 'surveyQuestionMultipleChoice',
+                    providerType: data.providerType,
+                    question: nextQuestion,
+                    allowBackToPreviousQuestion: allowBackToPreviousQuestion,
+                    selectedOptionsIdsList: multipleChoiceBufferCache,
                 })
             case 'numeric':
             case 'string':
@@ -114,14 +170,14 @@ export class SurveyScene extends Scene<ISceneData, SceneEnterDataType> {
                     sceneName: 'surveyQuestionStringNumeric',
                     providerType: data.providerType,
                     question: nextQuestion,
-                    isQuestionFirst: isQuestionFirst,
+                    allowBackToPreviousQuestion: allowBackToPreviousQuestion,
                 })
             case 'stringGptTips':
                 return this.completion.complete({
                     sceneName: 'surveyQuestionStringGptTips',
                     providerType: data.providerType,
                     question: nextQuestion,
-                    isQuestionFirst: isQuestionFirst,
+                    allowBackToPreviousQuestion: allowBackToPreviousQuestion,
                 })
             case 'image':
             case 'video':
@@ -130,7 +186,8 @@ export class SurveyScene extends Scene<ISceneData, SceneEnterDataType> {
                     sceneName: 'surveyQuestionMedia',
                     providerType: data.providerType,
                     question: nextQuestion,
-                    isQuestionFirst: isQuestionFirst,
+                    allowBackToPreviousQuestion: allowBackToPreviousQuestion,
+                    mediaGroupBuffer: mediaGroupBufferCache,
                 })
         }
     }

@@ -23,13 +23,13 @@ export class SurveyQuestionStringGptTipsSceneEntranceDto implements SceneEntranc
     readonly sceneName = 'surveyQuestionStringGptTips'
     readonly providerType: SurveyContextProviderType.Union
     readonly question: Survey.QuestionStringGptTips
-    readonly isQuestionFirst: boolean
+    readonly allowBackToPreviousQuestion: boolean
 }
 type SceneEnterDataType = SurveyQuestionStringGptTipsSceneEntranceDto
 interface ISceneData {
     readonly providerType: SurveyContextProviderType.Union
     readonly question: Survey.QuestionStringGptTips
-    readonly isQuestionFirst: boolean
+    readonly allowBackToPreviousQuestion: boolean
     state: 'startMenu' | 'waitingForUserAnswer'
 }
 
@@ -86,7 +86,9 @@ export class SurveyQuestionStringGptTipsScene extends Scene<ISceneData, SceneEnt
                     this.text.surveyQuestionGptTip.buttonStartMenuContinue,
                     this.text.surveyQuestionGptTip.buttonStartMenuGptTip,
                     data.question.isRequired ? null : this.text.survey.buttonOptionalQuestionSkip,
-                    data.isQuestionFirst ? null : this.text.survey.buttonBackToPreviousQuestion,
+                    data.allowBackToPreviousQuestion
+                        ? this.text.survey.buttonBackToPreviousQuestion
+                        : null,
                 ].compact
             )
         )
@@ -152,11 +154,14 @@ export class SurveyQuestionStringGptTipsScene extends Scene<ISceneData, SceneEnt
                 })
             }
             case this.text.survey.buttonBackToPreviousQuestion: {
-                await provider.popAnswerFromCache(this.user)
                 return this.completion.complete({
                     sceneName: 'survey',
                     providerType: data.providerType,
                     allowContinueQuestion: false,
+                    popAnswerOnStart: {
+                        type: 'beforeQuestionWithId',
+                        questionId: data.question.id,
+                    },
                 })
             }
 
@@ -211,7 +216,7 @@ export class SurveyQuestionStringGptTipsScene extends Scene<ISceneData, SceneEnt
             sceneName: 'surveyQuestionStringGptTipsAnswerEditing',
             providerType: data.providerType,
             question: data.question,
-            isQuestionFirst: data.isQuestionFirst,
+            allowBackToPreviousQuestion: data.allowBackToPreviousQuestion,
             currentAnswer: message.text,
         })
     }
@@ -242,7 +247,7 @@ export class SurveyQuestionStringGptTipsScene extends Scene<ISceneData, SceneEnt
             sceneName: 'surveyQuestionStringGptTipsAnswerEditing',
             providerType: data.providerType,
             question: data.question,
-            isQuestionFirst: data.isQuestionFirst,
+            allowBackToPreviousQuestion: data.allowBackToPreviousQuestion,
             currentAnswer: textFromMessage,
         })
     }

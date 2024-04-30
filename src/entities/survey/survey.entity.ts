@@ -37,6 +37,7 @@ export namespace _SurveyEntity {
     }
 
     export type QuestionWithOptions = QuestionCommonFields & AnswerTypeWithOptions
+    export type QuestionWithMultipleChoice = QuestionCommonFields & AnswerTypeWithMultipleChoice
     export type QuestionNumeric = QuestionCommonFields & AnswerTypeNumeric
     export type QuestionString = QuestionCommonFields & AnswerTypeString
     export type QuestionStringGptTips = QuestionCommonFields & AnswerTypeStringGptTips
@@ -46,6 +47,7 @@ export namespace _SurveyEntity {
 
     export type Question =
         | QuestionWithOptions
+        | QuestionWithMultipleChoice
         | QuestionNumeric
         | QuestionString
         | QuestionStringGptTips
@@ -61,6 +63,13 @@ export namespace _SurveyEntity {
     export type AnswerTypeWithOptions = {
         readonly type: 'options'
         readonly options: AnswerOption[]
+        readonly useIdAsPublicationTag: boolean
+    }
+    export type AnswerTypeWithMultipleChoice = {
+        readonly type: 'multipleChoice'
+        readonly options: AnswerOption[]
+        readonly minCount: number
+        readonly maxCount: number
         readonly useIdAsPublicationTag: boolean
     }
     export type AnswerOption = {
@@ -99,6 +108,7 @@ export namespace _SurveyEntity {
     export type AnswerTypeMedia = AnswerTypeImage | AnswerTypeVideo | AnswerTypeMediaGroup
     export type AnswerType =
         | AnswerTypeWithOptions
+        | AnswerTypeWithMultipleChoice
         | AnswerTypeNumeric
         | AnswerTypeString
         | AnswerTypeStringGptTips
@@ -113,6 +123,11 @@ export namespace _SurveyEntity {
         readonly type: 'options'
         question: QuestionWithOptions
         selectedOptionId: string | null
+    }
+    export type PassedAnswerWhithMultipleChoice = {
+        readonly type: 'multipleChoice'
+        question: QuestionWithMultipleChoice
+        selectedOptionsIds: string[]
     }
 
     export type PassedAnswerNumeric = {
@@ -160,6 +175,7 @@ export namespace _SurveyEntity {
 
     export type PassedAnswer =
         | PassedAnswerWithOptions
+        | PassedAnswerWhithMultipleChoice
         | PassedAnswerNumeric
         | PassedAnswerString
         | PassedAnswerStringGptTips

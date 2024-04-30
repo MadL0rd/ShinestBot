@@ -21,7 +21,7 @@ export class SurveyQuestionStringNumericSceneEntranceDto implements SceneEntranc
     readonly sceneName = 'surveyQuestionStringNumeric'
     readonly providerType: SurveyContextProviderType.Union
     readonly question: Survey.QuestionString | Survey.QuestionNumeric
-    readonly isQuestionFirst: boolean
+    readonly allowBackToPreviousQuestion: boolean
 }
 type SceneEnterDataType = SurveyQuestionStringNumericSceneEntranceDto
 interface ISceneData {
@@ -79,7 +79,7 @@ export class SurveyQuestionStringNumericScene extends Scene<ISceneData, SceneEnt
             return this.completion.complete()
         }
 
-        if (!data.question.isRequired || !data.isQuestionFirst) {
+        if (!data.question.isRequired || data.allowBackToPreviousQuestion) {
             const inlineButtonData: CallbackDataType = {
                 p: SurveyContextProviderType.getId(data.providerType),
                 a: data.question.id,
@@ -95,14 +95,14 @@ export class SurveyQuestionStringNumericScene extends Scene<ISceneData, SceneEnt
                                       action: SceneCallbackAction.surveySkipQuestion,
                                       data: inlineButtonData,
                                   }),
-                            data.isQuestionFirst
-                                ? null
-                                : this.inlineButton({
+                            data.allowBackToPreviousQuestion
+                                ? this.inlineButton({
                                       text: this.text.survey
                                           .buttonAditionaltInlineMenuBackToPrevious,
                                       action: SceneCallbackAction.surveyBackToPreviousQuestion,
                                       data: inlineButtonData,
-                                  }),
+                                  })
+                                : null,
                         ].compact,
                     ],
                 },
@@ -188,15 +188,12 @@ export class SurveyQuestionStringNumericScene extends Scene<ISceneData, SceneEnt
         const provider = this.dataProviderFactory.getSurveyContextProvider(providerType)
         if (!provider) return this.completion.canNotHandleUnsafe()
 
-        const answerId = inlineButtonData.a
-        const cache = await provider.getAnswersCache(this.user)
-        const surveySource = await provider.getSurvey(this.user)
-        const nextQuestion = Survey.Helper.findNextQuestion(surveySource, cache.passedAnswers)
-        if (nextQuestion?.id != answerId) return this.completion.canNotHandleUnsafe()
+        const questionId = inlineButtonData.a
+        const nextQuestion = await provider.getNextQuestion(this.user)
+        if (nextQuestion?.id != questionId) return this.completion.canNotHandleUnsafe()
 
         switch (data.action) {
             case SceneCallbackAction.surveyBackToPreviousQuestion:
-                await provider.popAnswerFromCache(this.user)
                 await ctx.replyWithHTML(
                     this.text.survey.textAditionaltInlineMenuBackToPreviousEventLog
                 )
@@ -204,6 +201,10 @@ export class SurveyQuestionStringNumericScene extends Scene<ISceneData, SceneEnt
                     sceneName: 'survey',
                     providerType: providerType,
                     allowContinueQuestion: false,
+                    popAnswerOnStart: {
+                        type: 'beforeQuestionWithId',
+                        questionId: questionId,
+                    },
                 })
 
             case SceneCallbackAction.surveySkipQuestion:

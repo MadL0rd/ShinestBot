@@ -18,6 +18,8 @@
 
 ### Local:
 ```bash
+npm i -g @nestjs/cli
+npm i -g env-cmd
 npm i
 ```
 
@@ -59,7 +61,8 @@ docker-compose logs --tail 50
 ## Nest cli tips
 
 ```sh
-nest g resource core/users --no-spec
+nest g mo business-logic/module-name
+nest g s business-logic/module-name --no-spec
 ```
 
 ## License

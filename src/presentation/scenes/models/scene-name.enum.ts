@@ -20,10 +20,11 @@ export namespace SceneName {
         'surveyQuestionStringGptTips',
         'surveyQuestionStringGptTipsAnswerEditing',
         'surveyQuestionStringGptTipsUpdateWithGpt',
+        'surveyQuestionMultipleChoice',
         /** New scene name placeholder */
     ] as const
 
-    export function includes(value: string | Union): boolean {
+    export function includes(value: string | Union): value is Union {
         return allCases.includes(value)
     }
 

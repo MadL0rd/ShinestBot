@@ -128,12 +128,15 @@ export class SurveyFinalScene extends Scene<ISceneData, SceneEnterDataType> {
             questionIndex <= cache.passedAnswers.length &&
             questionIndex >= 1
         ) {
-            cache.passedAnswers.splice(questionIndex - 1, 1)
-            await provider.setAnswersCache(this.user, cache)
             return this.completion.complete({
                 sceneName: 'survey',
                 providerType: data.providerType,
                 allowContinueQuestion: false,
+                allowBackToPreviousQuestion: false,
+                popAnswerOnStart: {
+                    type: 'byQuestionIndex',
+                    questionIndex: questionIndex - 1,
+                },
             })
         }
 

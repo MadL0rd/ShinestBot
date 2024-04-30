@@ -50,6 +50,13 @@ export class SurveyContextServiceAbstract implements ISurveyContextProviderPubli
     // Public reusable methods
     // =====================
 
+    async getNextQuestion(user: UserProfile.BaseType): Promise<Survey.Question | null> {
+        const cache = await this.getAnswersCache(user)
+        const surveySource = await this.getSurvey(user)
+        const nextQuestion = Survey.Helper.findNextQuestion(surveySource, cache.passedAnswers)
+        return nextQuestion
+    }
+
     async getAnswersCache(user: UserProfile.BaseType): Promise<Survey.PassedAnswersCache> {
         const botContent = await this.getBotContentFor(user)
         const cache = await this.getRawAnswersCache(user)
