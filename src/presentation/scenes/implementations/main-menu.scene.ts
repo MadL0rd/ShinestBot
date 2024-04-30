@@ -127,10 +127,10 @@ export class MainMenuScene extends Scene<ISceneData, SceneEnterDataType> {
             typeof this.user.internalInfo.adminsOnly?.modifyingPublicationIdPrepared === 'string'
         return this.keyboardMarkupWithAutoLayoutFor(
             [
-                this.text.mainMenu.buttonAbout,
                 this.text.mainMenu.buttonSurvey,
                 this.text.mainMenu.buttonLanguageSettings,
                 this.text.mainMenu.userPublications,
+                this.text.mainMenu.buttonAbout,
                 ownerOrAdmin && canEditPublicationAsAdmin
                     ? this.text.mainMenu.editPublicationAsAdmin
                     : null,

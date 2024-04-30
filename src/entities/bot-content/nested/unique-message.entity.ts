@@ -13,6 +13,7 @@ export class UniqueMessage {
     readonly surveyDescription = new SurveyDescription()
     readonly survey = new Survey()
     readonly surveyQuestionMedia = new SurveyQuestionMedia()
+    readonly surveyQuestionMultipleChoice = new SurveyQuestionMultipleChoice()
     readonly surveyFinal = new SurveyFinal()
     readonly surveyQuestionGptTip = new SurveyQuestionGptTip()
     readonly moderationCommand = new ModerationCommand()
@@ -31,8 +32,6 @@ export class Common {
     readonly comingSoon = 'Эта функция скоро появится'
     readonly selectLanguageText = 'Выберите язык'
     readonly errorMessage = 'Кажется, что-то пошло не по плану 🙄'
-    readonly symbolCross = '❌'
-    readonly symbolCheckMark = '✅'
 }
 
 export class MainMenu {
@@ -124,10 +123,6 @@ export class Survey {
     readonly textAditionaltInlineMenuBackToPreviousEventLog = '<i>⬆️ Возврат к предыдущему вопросу</i>'
     /** Сообщение, которое будет выведено пользователю, если он ввёл текст в ответ на вопрос, где надо дать число */
     readonly errorMessageAnswerIsNotNumber = 'Введите число\nЕсли вам нужно указать дробное значение, то отделите его точкой или запятой\n\n<i>Пример: 123.4</i>'
-    /** Текст, который будет добавлен к вопросу типа multipleChoice.
-minCount - минимальное количество пунктов, которые надо выбрать
-maxCount - максимальное количество пунктов, которые можно выбрать */
-    readonly textDescriptionQuestionMultipleChoice = 'Вам нужно выбрать от minCount до maxCount пунктов'
 }
 
 export class SurveyQuestionMedia {
@@ -136,6 +131,18 @@ export class SurveyQuestionMedia {
     readonly buttonEditModeExit = 'Отмена'
     readonly textFilesCountPrefix = 'Загружено файлов:'
     readonly textEditMode = 'Выберите файл, который хотите удалить'
+}
+
+export class SurveyQuestionMultipleChoice {
+    readonly textSelectionFalse = '⬜'
+    readonly textSelectionTrue = '✅'
+    /** Текст, который будет добавлен к вопросу типа multipleChoice.
+minCount - минимальное количество пунктов, которые надо выбрать
+maxCount - максимальное количество пунктов, которые можно выбрать */
+    readonly textDescription = 'Вы можете выбрать от minCount до maxCount пунктов'
+    readonly textSelectionPrefix = 'Вы выбрали:'
+    readonly textMaxCountReached = 'Вы выбрали максимальное число вариантов'
+    readonly textMinCountdoesNotReached = 'Вам нужно выбрать еще несколько вариантов чтобы продолжить'
 }
 
 export class SurveyFinal {

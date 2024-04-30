@@ -74,8 +74,9 @@ export class SurveyQuestionMultipleChoiceScene extends Scene<ISceneData, SceneEn
             return this.completion.complete()
         }
 
+        await ctx.replyWithHTML(data.question.questionText)
         await ctx.replyWithHTML(
-            this.questionMessageText(data.question, data.selectedOptionsIdsList),
+            this.questionSelectionMenuText(data.question, data.selectedOptionsIdsList),
             this.optionstMarkup(data.question, data.selectedOptionsIdsList, data.isQuestionFirst)
         )
 
@@ -147,8 +148,8 @@ export class SurveyQuestionMultipleChoiceScene extends Scene<ISceneData, SceneEn
             (option) =>
                 option.text ==
                 message.text
-                    .replace(`${this.text.common.symbolCross} `, '')
-                    .replace(`${this.text.common.symbolCheckMark} `, '')
+                    .replace(`${this.text.surveyQuestionMultipleChoice.textSelectionTrue} `, '')
+                    .replace(`${this.text.surveyQuestionMultipleChoice.textSelectionFalse} `, '')
         )
         if (!selectedOption) return this.completion.canNotHandle(data)
         const optionIndex = data.selectedOptionsIdsList?.indexOf(selectedOption.id)
@@ -159,7 +160,7 @@ export class SurveyQuestionMultipleChoiceScene extends Scene<ISceneData, SceneEn
             data.selectedOptionsIdsList?.splice(optionIndex, 1)
         }
         await ctx.replyWithHTML(
-            this.questionMessageText(data.question, data.selectedOptionsIdsList),
+            this.questionSelectionMenuText(data.question, data.selectedOptionsIdsList),
             this.optionstMarkup(data.question, data.selectedOptionsIdsList, data.isQuestionFirst)
         )
 
@@ -176,17 +177,34 @@ export class SurveyQuestionMultipleChoiceScene extends Scene<ISceneData, SceneEn
     // =====================
     // Private methods
     // =====================
-    private questionMessageText(
+    private questionSelectionMenuText(
         question: Survey.QuestionWithMultipleChoice,
         selectedOptionsIdsList: string[]
     ): string {
-        const selectedOptionsText = question.options
-            .filter((option) => selectedOptionsIdsList.includes(option.id))
-            .map((option) => `<b>${option.text}</b>`)
-            .join(', ')
-        return `${question.questionText}\n\n${this.text.survey.textDescriptionQuestionMultipleChoice
+        const description = this.text.surveyQuestionMultipleChoice.textDescription
             .replace('minCount', question.minCount.toString())
-            .replace('maxCount', question.maxCount.toString())}\n${selectedOptionsText}`
+            .replace('maxCount', question.maxCount.toString())
+
+        let result = description
+
+        const separator = '\n\n'
+
+        if (selectedOptionsIdsList.isNotEmpty) {
+            const selectedOptionsText = question.options
+                .filter((option) => selectedOptionsIdsList.includes(option.id))
+                .map((option) => `<b>${option.text}</b>`)
+                .join(', ')
+            result += `${separator}${this.text.surveyQuestionMultipleChoice.textSelectionPrefix}\n${selectedOptionsText}`
+        }
+
+        if (question.maxCount === selectedOptionsIdsList.length) {
+            result += separator + this.text.surveyQuestionMultipleChoice.textMaxCountReached
+        }
+        if (question.minCount > selectedOptionsIdsList.length) {
+            result += separator + this.text.surveyQuestionMultipleChoice.textMinCountdoesNotReached
+        }
+
+        return result
     }
     private optionstMarkup(
         question: Survey.QuestionWithMultipleChoice,
@@ -227,8 +245,8 @@ export class SurveyQuestionMultipleChoiceScene extends Scene<ISceneData, SceneEn
     ): string[] {
         return options.map((option) => {
             return selectedOptionsIdsList.includes(option.id)
-                ? `${this.text.common.symbolCheckMark} ${option.text}`
-                : `${this.text.common.symbolCross} ${option.text}`
+                ? `${this.text.surveyQuestionMultipleChoice.textSelectionTrue} ${option.text}`
+                : `${this.text.surveyQuestionMultipleChoice.textSelectionFalse} ${option.text}`
         })
     }
 }
