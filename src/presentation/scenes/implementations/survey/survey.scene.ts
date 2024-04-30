@@ -113,7 +113,7 @@ export class SurveyScene extends Scene<ISceneData, SceneEnterDataType> {
         }
 
         const surveySource = await provider.getSurvey(this.user)
-        const nextQuestion = Survey.Helper.findNextQuestion(surveySource, cache.passedAnswers)
+        const nextQuestion = await provider.getNextQuestion(this.user)
         if (!nextQuestion) {
             return this.completion.complete({
                 sceneName: 'surveyFinal',

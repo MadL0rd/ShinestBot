@@ -54,6 +54,11 @@ export interface ISurveyContextProviderPublicMethods {
     getAnswersCache(user: UserProfile.BaseType): Promise<Survey.PassedAnswersCache>
 
     /**
+     * Get next question
+     */
+    getNextQuestion(user: UserProfile.BaseType): Promise<Survey.Question | null>
+
+    /**
      * __! Use with caution !__
      *
      * Returns the __question-ordered__ portion of the answers
