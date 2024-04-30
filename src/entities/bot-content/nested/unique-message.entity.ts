@@ -13,6 +13,7 @@ export class UniqueMessage {
     readonly surveyDescription = new SurveyDescription()
     readonly survey = new Survey()
     readonly surveyQuestionMedia = new SurveyQuestionMedia()
+    readonly surveyQuestionMultipleChoice = new SurveyQuestionMultipleChoice()
     readonly surveyFinal = new SurveyFinal()
     readonly surveyQuestionGptTip = new SurveyQuestionGptTip()
     readonly moderationCommand = new ModerationCommand()
@@ -115,7 +116,7 @@ export class SurveyDescription {
 export class Survey {
     readonly buttonOptionalQuestionSkip = '👀 Пропустить'
     readonly buttonBackToPreviousQuestion = '⬅️ Вернуться к предыдущему вопросу'
-    readonly texMessageAditionaltInlineMenu = 'Также вы можете'
+    readonly texMessageAditionaltInlineMenu = '🧭 Навигация'
     readonly buttonAditionaltInlineMenuSkip = '👀 Пропустить'
     readonly buttonAditionaltInlineMenuBackToPrevious = '⬆️ Вернуться'
     readonly textAditionaltInlineMenuSkipEventLog = '<i>👀 Вопрос пропущен</i>'
@@ -130,6 +131,18 @@ export class SurveyQuestionMedia {
     readonly buttonEditModeExit = 'Отмена'
     readonly textFilesCountPrefix = 'Загружено файлов:'
     readonly textEditMode = 'Выберите файл, который хотите удалить'
+}
+
+export class SurveyQuestionMultipleChoice {
+    readonly textSelectionFalse = '⬜'
+    readonly textSelectionTrue = '✅'
+    /** Текст, который будет добавлен к вопросу типа multipleChoice.
+minCount - минимальное количество пунктов, которые надо выбрать
+maxCount - максимальное количество пунктов, которые можно выбрать */
+    readonly textDescription = 'Вы можете выбрать от minCount до maxCount пунктов'
+    readonly textSelectionPrefix = 'Вы выбрали:'
+    readonly textMaxCountReached = 'Вы выбрали максимальное число вариантов'
+    readonly textMinCountdoesNotReached = 'Вам нужно выбрать еще несколько вариантов чтобы продолжить'
 }
 
 export class SurveyFinal {

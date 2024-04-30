@@ -333,7 +333,7 @@ export class BotContentService implements OnModuleInit {
             }
             const resultContent = contentRowsLocalized.map((rowItem) => {
                 const rowAnswerType = Survey.Helper.answerTypeNameByPublicName[rowItem.answerType]
-                const rowItemString = JSON.stringify(rowItem, null, 2)
+                const rowItemString = JSON.stringify(rowItem, null, 2).replaceAll('\\n', '\n')
                 if (!rowAnswerType) {
                     throw Error(`Unsupported unser type: ${rowItem.answerType}\n${rowItemString}`)
                 }
@@ -341,6 +341,7 @@ export class BotContentService implements OnModuleInit {
 
                 let useIdAsPublicationTag: boolean | undefined
                 let unit: string | undefined
+                let minCount: number | undefined
                 let maxCount: number | undefined
 
                 const answerParams =
@@ -377,6 +378,15 @@ export class BotContentService implements OnModuleInit {
                                         )
                                     }
                                     return false
+
+                                case 'minCount':
+                                    minCount = Number(answerParam.value)
+                                    if (Number.isNaN(minCount) || !minCount || minCount < 1) {
+                                        throw Error(
+                                            `Question answerOptions contains wrong option 'minCount'\n${rowItemString}`
+                                        )
+                                    }
+                                    return false
                             }
                             return true
                         }) ?? []
@@ -393,6 +403,59 @@ export class BotContentService implements OnModuleInit {
                             type: 'stringGptTips',
                         }
                         break
+
+                    case 'multipleChoice':
+                        if (answerParams.isEmpty) {
+                            throw Error(
+                                `Question with type multipleChoice does not contains options\n${rowItemString}`
+                            )
+                        }
+                        const answerOptionsList: Survey.AnswerOption[] = []
+
+                        for (const param of answerParams) {
+                            if (param.value.isEmpty) {
+                                throw Error(
+                                    `Question with type multipleChoice contains empty option with id: ${param.id}\n${rowItemString}`
+                                )
+                            }
+                            const option: Survey.AnswerOption = {
+                                id: param.id,
+                                text: param.value,
+                            }
+                            answerOptionsList.push(option)
+                        }
+                        const optionIdsDuplicates = answerOptionsList.map(
+                            (option) => option.id
+                        ).justNotUnique
+                        if (optionIdsDuplicates.isNotEmpty) {
+                            throw Error(
+                                `Question with type multipleChoice contains options with same id\n${rowItemString}`
+                            )
+                        }
+                        const optionsTextDuplicates = answerOptionsList.map(
+                            (option) => option.text
+                        ).justNotUnique
+                        if (optionsTextDuplicates.isNotEmpty) {
+                            throw Error(
+                                `Question with type multipleChoice contains options with same text\n${rowItemString}`
+                            )
+                        }
+
+                        if (minCount && maxCount && minCount > maxCount) {
+                            throw Error(
+                                `Question with type multipleChoice params error\n'minCount' must be lower then 'maxCount'\n\n${rowItemString}`
+                            )
+                        }
+
+                        answerType = {
+                            type: 'multipleChoice',
+                            options: answerOptionsList,
+                            minCount: minCount ?? 1,
+                            maxCount: maxCount ?? answerOptionsList.length,
+                            useIdAsPublicationTag: useIdAsPublicationTag ?? false,
+                        }
+                        break
+
                     case 'options':
                         if (answerParams.isEmpty) {
                             throw Error(

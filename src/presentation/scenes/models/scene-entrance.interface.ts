@@ -18,6 +18,7 @@ import { SurveyDescriptionSceneEntranceDto } from '../implementations/survey-des
 import { SurveyQuestionStringGptTipsAnswerEditingSceneEntranceDto } from '../implementations/survey/survey-question-string-gpt-tips/survey-question-string-gpt-tips-answer-editing.scene'
 import { SurveyQuestionStringGptTipsUpdateWithGptSceneEntranceDto } from '../implementations/survey/survey-question-string-gpt-tips/survey-question-string-gpt-tips-update-with-gpt.scene'
 import { SurveyQuestionStringGptTipsSceneEntranceDto } from '../implementations/survey/survey-question-string-gpt-tips/survey-question-string-gpt-tips.scene'
+import { SurveyQuestionMultipleChoiceSceneEntranceDto } from 'src/presentation/scenes/implementations/survey/survey-question-multiple-choice.scene'
 /** New scene entrance dto import placeholder */
 
 export namespace SceneEntrance {
@@ -54,5 +55,6 @@ export namespace SceneEntrance {
         | SurveyQuestionStringGptTipsSceneEntranceDto
         | SurveyQuestionStringGptTipsAnswerEditingSceneEntranceDto
         | SurveyQuestionStringGptTipsUpdateWithGptSceneEntranceDto
+        | SurveyQuestionMultipleChoiceSceneEntranceDto
     /** New scene entrance dto placeholder */
 }

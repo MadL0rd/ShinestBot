@@ -17,6 +17,7 @@ export namespace _SurveyHelper {
         image: 'Изображение',
         video: 'Видео',
         mediaGroup: 'Медиа группа',
+        multipleChoice: 'Множественный выбор',
     }
 
     export const answerTypeNameAllCases = Object.keys(answerTypeNames) as Survey.AnswerTypeName[]
@@ -49,6 +50,7 @@ export namespace _SurveyHelper {
             case 'stringGptTips':
             case 'options':
             case 'numeric':
+            case 'multipleChoice':
                 return false
             case 'image':
             case 'video':
@@ -94,6 +96,14 @@ export namespace _SurveyHelper {
                     answer.question.options.find((option) => option.id == answer.selectedOptionId)
                         ?.text ?? null
                 )
+            case 'multipleChoice':
+                return answer.selectedOptionsIds.isEmpty
+                    ? null
+                    : answer.question.options
+                          .filter((option) => answer.selectedOptionsIds.includes(option.id))
+                          .map((option) => option.text)
+                          .join(', ')
+
             case 'numeric':
                 const unitLabel = answer.question.unit
                 if (unitLabel && answer.selectedNumber) {
@@ -117,6 +127,9 @@ export namespace _SurveyHelper {
         switch (answer.type) {
             case 'options':
                 return typeof answer.selectedOptionId === 'string'
+
+            case 'multipleChoice':
+                return answer.selectedOptionsIds.isNotEmpty
 
             case 'numeric':
                 return typeof answer.selectedNumber === 'number'
@@ -168,6 +181,12 @@ export namespace _SurveyHelper {
                     type: 'options',
                     question: question,
                     selectedOptionId: null,
+                }
+            case 'multipleChoice':
+                return {
+                    type: 'multipleChoice',
+                    question: question,
+                    selectedOptionsIds: [],
                 }
             case 'numeric':
                 return {

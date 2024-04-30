@@ -107,5 +107,9 @@ export const eventsSchema = {
         type: 'startSceneSurveyQuestionStringGptTipsUpdateWithGpt',
         localizedTitle: 'Перешел к сцене surveyQuestionStringGptTipsUpdateWithGpt',
     },
+    startSceneSurveyQuestionMultipleChoice: {
+        type: 'startSceneSurveyQuestionMultipleChoice',
+        localizedTitle: 'Перешел к сцене surveyQuestionMultipleChoice',
+    },
     /** New scene event placeholder */
 } as const
