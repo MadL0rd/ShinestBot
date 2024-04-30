@@ -333,7 +333,7 @@ export class BotContentService implements OnModuleInit {
             }
             const resultContent = contentRowsLocalized.map((rowItem) => {
                 const rowAnswerType = Survey.Helper.answerTypeNameByPublicName[rowItem.answerType]
-                const rowItemString = JSON.stringify(rowItem, null, 2)
+                const rowItemString = JSON.stringify(rowItem, null, 2).replaceAll('\\n', '\n')
                 if (!rowAnswerType) {
                     throw Error(`Unsupported unser type: ${rowItem.answerType}\n${rowItemString}`)
                 }
@@ -378,6 +378,15 @@ export class BotContentService implements OnModuleInit {
                                         )
                                     }
                                     return false
+
+                                case 'minCount':
+                                    minCount = Number(answerParam.value)
+                                    if (Number.isNaN(minCount) || !minCount || minCount < 1) {
+                                        throw Error(
+                                            `Question answerOptions contains wrong option 'minCount'\n${rowItemString}`
+                                        )
+                                    }
+                                    return false
                             }
                             return true
                         }) ?? []
@@ -398,7 +407,7 @@ export class BotContentService implements OnModuleInit {
                     case 'multipleChoice':
                         if (answerParams.isEmpty) {
                             throw Error(
-                                `Question with type answerOptions does not contains options\n${rowItemString}`
+                                `Question with type multipleChoice does not contains options\n${rowItemString}`
                             )
                         }
                         const answerOptionsList: Survey.AnswerOption[] = []
@@ -406,16 +415,8 @@ export class BotContentService implements OnModuleInit {
                         for (const param of answerParams) {
                             if (param.value.isEmpty) {
                                 throw Error(
-                                    `Question with type answerOptions contains empty option with id: ${param.id}\n${rowItemString}`
+                                    `Question with type multipleChoice contains empty option with id: ${param.id}\n${rowItemString}`
                                 )
-                            }
-                            if (param.id == 'maxCount') {
-                                maxCount = Number(param.value)
-                                continue
-                            }
-                            if (param.id == 'minCount') {
-                                minCount = Number(param.value)
-                                continue
                             }
                             const option: Survey.AnswerOption = {
                                 id: param.id,
@@ -428,7 +429,7 @@ export class BotContentService implements OnModuleInit {
                         ).justNotUnique
                         if (optionIdsDuplicates.isNotEmpty) {
                             throw Error(
-                                `Question with type answerOptions contains options with same id\n${rowItemString}`
+                                `Question with type multipleChoice contains options with same id\n${rowItemString}`
                             )
                         }
                         const optionsTextDuplicates = answerOptionsList.map(
@@ -436,7 +437,13 @@ export class BotContentService implements OnModuleInit {
                         ).justNotUnique
                         if (optionsTextDuplicates.isNotEmpty) {
                             throw Error(
-                                `Question with type answerOptions contains options with same text\n${rowItemString}`
+                                `Question with type multipleChoice contains options with same text\n${rowItemString}`
+                            )
+                        }
+
+                        if (minCount && maxCount && minCount > maxCount) {
+                            throw Error(
+                                `Question with type multipleChoice params error\n'minCount' must be lower then 'maxCount'\n\n${rowItemString}`
                             )
                         }
 
