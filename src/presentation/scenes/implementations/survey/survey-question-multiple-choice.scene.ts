@@ -21,14 +21,14 @@ export class SurveyQuestionMultipleChoiceSceneEntranceDto implements SceneEntran
     readonly providerType: SurveyContextProviderType.Union
     readonly question: Survey.QuestionWithMultipleChoice
     readonly selectedOptionsIdsList: string[]
-    readonly isQuestionFirst: boolean
+    readonly allowBackToPreviousQuestion: boolean
 }
 type SceneEnterDataType = SurveyQuestionMultipleChoiceSceneEntranceDto
 interface ISceneData {
     readonly providerType: SurveyContextProviderType.Union
     readonly question: Survey.QuestionWithMultipleChoice
     selectedOptionsIdsList: string[]
-    readonly isQuestionFirst: boolean
+    readonly allowBackToPreviousQuestion: boolean
 }
 
 // =====================
@@ -77,14 +77,18 @@ export class SurveyQuestionMultipleChoiceScene extends Scene<ISceneData, SceneEn
         await ctx.replyWithHTML(data.question.questionText)
         await ctx.replyWithHTML(
             this.questionSelectionMenuText(data.question, data.selectedOptionsIdsList),
-            this.optionstMarkup(data.question, data.selectedOptionsIdsList, data.isQuestionFirst)
+            this.optionstMarkup(
+                data.question,
+                data.selectedOptionsIdsList,
+                data.allowBackToPreviousQuestion
+            )
         )
 
         return this.completion.inProgress({
             providerType: data.providerType,
             question: data.question,
             selectedOptionsIdsList: data.selectedOptionsIdsList,
-            isQuestionFirst: data.isQuestionFirst,
+            allowBackToPreviousQuestion: data.allowBackToPreviousQuestion,
         })
     }
 
@@ -120,7 +124,7 @@ export class SurveyQuestionMultipleChoiceScene extends Scene<ISceneData, SceneEn
                 })
 
             case this.text.survey.buttonBackToPreviousQuestion:
-                if (data.isQuestionFirst) break
+                if (!data.allowBackToPreviousQuestion) break
                 return this.completion.complete({
                     sceneName: 'survey',
                     providerType: data.providerType,
@@ -161,7 +165,11 @@ export class SurveyQuestionMultipleChoiceScene extends Scene<ISceneData, SceneEn
         }
         await ctx.replyWithHTML(
             this.questionSelectionMenuText(data.question, data.selectedOptionsIdsList),
-            this.optionstMarkup(data.question, data.selectedOptionsIdsList, data.isQuestionFirst)
+            this.optionstMarkup(
+                data.question,
+                data.selectedOptionsIdsList,
+                data.allowBackToPreviousQuestion
+            )
         )
 
         return this.completion.inProgress(data)
@@ -209,7 +217,7 @@ export class SurveyQuestionMultipleChoiceScene extends Scene<ISceneData, SceneEn
     private optionstMarkup(
         question: Survey.QuestionWithMultipleChoice,
         selectedOptionsIdsList: string[],
-        isQuestionFirst: boolean
+        allowBackToPreviousQuestion: boolean
     ): Markup.Markup<ReplyKeyboardMarkup | ReplyKeyboardRemove> {
         const markup = this.keyboardMarkupWithAutoLayoutFor(
             this.optionsButtonsList(question.options, selectedOptionsIdsList)
@@ -223,7 +231,8 @@ export class SurveyQuestionMultipleChoiceScene extends Scene<ISceneData, SceneEn
                     question.isRequired ? null : this.text.survey.buttonOptionalQuestionSkip,
                 ].compact,
                 ...markup.reply_markup.keyboard,
-                [isQuestionFirst ? null : this.text.survey.buttonBackToPreviousQuestion].compact,
+                [allowBackToPreviousQuestion ? this.text.survey.buttonBackToPreviousQuestion : null]
+                    .compact,
             ]
         }
         return markup

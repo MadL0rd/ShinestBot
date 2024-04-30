@@ -21,7 +21,7 @@ export class SurveyQuestionStringNumericSceneEntranceDto implements SceneEntranc
     readonly sceneName = 'surveyQuestionStringNumeric'
     readonly providerType: SurveyContextProviderType.Union
     readonly question: Survey.QuestionString | Survey.QuestionNumeric
-    readonly isQuestionFirst: boolean
+    readonly allowBackToPreviousQuestion: boolean
 }
 type SceneEnterDataType = SurveyQuestionStringNumericSceneEntranceDto
 interface ISceneData {
@@ -79,7 +79,7 @@ export class SurveyQuestionStringNumericScene extends Scene<ISceneData, SceneEnt
             return this.completion.complete()
         }
 
-        if (!data.question.isRequired || !data.isQuestionFirst) {
+        if (!data.question.isRequired || data.allowBackToPreviousQuestion) {
             const inlineButtonData: CallbackDataType = {
                 p: SurveyContextProviderType.getId(data.providerType),
                 a: data.question.id,
@@ -95,14 +95,14 @@ export class SurveyQuestionStringNumericScene extends Scene<ISceneData, SceneEnt
                                       action: SceneCallbackAction.surveySkipQuestion,
                                       data: inlineButtonData,
                                   }),
-                            data.isQuestionFirst
-                                ? null
-                                : this.inlineButton({
+                            data.allowBackToPreviousQuestion
+                                ? this.inlineButton({
                                       text: this.text.survey
                                           .buttonAditionaltInlineMenuBackToPrevious,
                                       action: SceneCallbackAction.surveyBackToPreviousQuestion,
                                       data: inlineButtonData,
-                                  }),
+                                  })
+                                : null,
                         ].compact,
                     ],
                 },

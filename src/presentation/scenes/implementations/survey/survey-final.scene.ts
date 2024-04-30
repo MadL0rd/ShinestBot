@@ -132,6 +132,7 @@ export class SurveyFinalScene extends Scene<ISceneData, SceneEnterDataType> {
                 sceneName: 'survey',
                 providerType: data.providerType,
                 allowContinueQuestion: false,
+                allowBackToPreviousQuestion: false,
                 popAnswerOnStart: {
                     type: 'byQuestionIndex',
                     questionIndex: questionIndex - 1,

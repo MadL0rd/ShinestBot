@@ -20,6 +20,7 @@ export class SurveySceneEntranceDto implements SceneEntrance.Dto {
     readonly sceneName = 'survey'
     readonly providerType: SurveyContextProviderType.Union
     readonly allowContinueQuestion: boolean
+    readonly allowBackToPreviousQuestion?: boolean
     readonly popAnswerOnStart?:
         | { type: 'popLastAnswer' }
         | { type: 'beforeQuestionWithId'; questionId: string }
@@ -139,7 +140,10 @@ export class SurveyScene extends Scene<ISceneData, SceneEnterDataType> {
             }
         }
 
-        const isQuestionFirst = cache.passedAnswers.isEmpty
+        const isQuestionFirst =
+            cache.passedAnswers.isEmpty || surveySource.questions.first?.id == nextQuestion.id
+        const allowBackToPreviousQuestion =
+            data.allowBackToPreviousQuestion === false ? false : !isQuestionFirst
         await this.logToUserHistory({
             type: 'surveyQuestionStartAnswering',
             questionId: nextQuestion.id,
@@ -150,14 +154,14 @@ export class SurveyScene extends Scene<ISceneData, SceneEnterDataType> {
                     sceneName: 'surveyQuestionOptions',
                     providerType: data.providerType,
                     question: nextQuestion,
-                    isQuestionFirst: isQuestionFirst,
+                    allowBackToPreviousQuestion: allowBackToPreviousQuestion,
                 })
             case 'multipleChoice':
                 return this.completion.complete({
                     sceneName: 'surveyQuestionMultipleChoice',
                     providerType: data.providerType,
                     question: nextQuestion,
-                    isQuestionFirst: isQuestionFirst,
+                    allowBackToPreviousQuestion: allowBackToPreviousQuestion,
                     selectedOptionsIdsList: multipleChoiceBufferCache,
                 })
             case 'numeric':
@@ -166,14 +170,14 @@ export class SurveyScene extends Scene<ISceneData, SceneEnterDataType> {
                     sceneName: 'surveyQuestionStringNumeric',
                     providerType: data.providerType,
                     question: nextQuestion,
-                    isQuestionFirst: isQuestionFirst,
+                    allowBackToPreviousQuestion: allowBackToPreviousQuestion,
                 })
             case 'stringGptTips':
                 return this.completion.complete({
                     sceneName: 'surveyQuestionStringGptTips',
                     providerType: data.providerType,
                     question: nextQuestion,
-                    isQuestionFirst: isQuestionFirst,
+                    allowBackToPreviousQuestion: allowBackToPreviousQuestion,
                 })
             case 'image':
             case 'video':
@@ -182,7 +186,7 @@ export class SurveyScene extends Scene<ISceneData, SceneEnterDataType> {
                     sceneName: 'surveyQuestionMedia',
                     providerType: data.providerType,
                     question: nextQuestion,
-                    isQuestionFirst: isQuestionFirst,
+                    allowBackToPreviousQuestion: allowBackToPreviousQuestion,
                     mediaGroupBuffer: mediaGroupBufferCache,
                 })
         }

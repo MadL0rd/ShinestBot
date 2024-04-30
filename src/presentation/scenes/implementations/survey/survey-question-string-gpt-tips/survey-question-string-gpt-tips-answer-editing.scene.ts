@@ -20,14 +20,14 @@ export class SurveyQuestionStringGptTipsAnswerEditingSceneEntranceDto implements
     readonly sceneName = 'surveyQuestionStringGptTipsAnswerEditing'
     readonly providerType: SurveyContextProviderType.Union
     readonly question: Survey.QuestionStringGptTips
-    readonly isQuestionFirst: boolean
+    readonly allowBackToPreviousQuestion: boolean
     currentAnswer: string
 }
 type SceneEnterDataType = SurveyQuestionStringGptTipsAnswerEditingSceneEntranceDto
 interface ISceneData {
     readonly providerType: SurveyContextProviderType.Union
     readonly question: Survey.QuestionStringGptTips
-    readonly isQuestionFirst: boolean
+    readonly allowBackToPreviousQuestion: boolean
     currentAnswer: string
 }
 
@@ -86,7 +86,9 @@ export class SurveyQuestionStringGptTipsAnswerEditingScene extends Scene<
                     this.text.surveyQuestionGptTip.buttonAnswerEditingUpdateWithGpt,
                     this.text.surveyQuestionGptTip.buttonAnswerEditingRestart,
                     data.question.isRequired ? null : this.text.survey.buttonOptionalQuestionSkip,
-                    data.isQuestionFirst ? null : this.text.survey.buttonBackToPreviousQuestion,
+                    data.allowBackToPreviousQuestion
+                        ? this.text.survey.buttonBackToPreviousQuestion
+                        : null,
                 ].compact
             )
         )
@@ -150,7 +152,7 @@ export class SurveyQuestionStringGptTipsAnswerEditingScene extends Scene<
                     sceneName: 'surveyQuestionStringGptTipsUpdateWithGpt',
                     providerType: data.providerType,
                     question: data.question,
-                    isQuestionFirst: data.isQuestionFirst,
+                    allowBackToPreviousQuestion: data.allowBackToPreviousQuestion,
                     currentAnswer: data.currentAnswer,
                 })
 

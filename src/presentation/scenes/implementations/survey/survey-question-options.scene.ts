@@ -20,7 +20,7 @@ export class SurveyQuestionOptionsSceneEntranceDto implements SceneEntrance.Dto 
     readonly sceneName = 'surveyQuestionOptions'
     readonly providerType: SurveyContextProviderType.Union
     readonly question: Survey.QuestionWithOptions
-    readonly isQuestionFirst: boolean
+    readonly allowBackToPreviousQuestion: boolean
 }
 type SceneEnterDataType = SurveyQuestionOptionsSceneEntranceDto
 interface ISceneData {
@@ -77,7 +77,9 @@ export class SurveyQuestionOptionsScene extends Scene<ISceneData, SceneEnterData
                 [
                     ...data.question.options.map((option) => option.text),
                     data.question.isRequired ? null : this.text.survey.buttonOptionalQuestionSkip,
-                    data.isQuestionFirst ? null : this.text.survey.buttonBackToPreviousQuestion,
+                    data.allowBackToPreviousQuestion
+                        ? this.text.survey.buttonBackToPreviousQuestion
+                        : null,
                 ].compact
             )
         )

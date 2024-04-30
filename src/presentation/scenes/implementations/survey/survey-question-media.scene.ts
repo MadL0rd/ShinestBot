@@ -20,14 +20,14 @@ export class SurveyQuestionMediaSceneEntranceDto implements SceneEntrance.Dto {
     readonly sceneName = 'surveyQuestionMedia'
     readonly providerType: SurveyContextProviderType.Union
     readonly question: Survey.QuestionMedia
-    readonly isQuestionFirst: boolean
+    readonly allowBackToPreviousQuestion: boolean
     readonly mediaGroupBuffer: Survey.TelegramFileData[]
 }
 type SceneEnterDataType = SurveyQuestionMediaSceneEntranceDto
 interface ISceneData {
     readonly providerType: SurveyContextProviderType.Union
     readonly question: Survey.QuestionMedia
-    readonly isQuestionFirst: boolean
+    readonly allowBackToPreviousQuestion: boolean
     mediaGroupBuffer: Survey.TelegramFileData[]
 }
 interface MediaGroupContext {
@@ -80,7 +80,7 @@ export class SurveyQuestionMediaScene extends Scene<ISceneData, SceneEnterDataTy
         const sceneData: ISceneData = {
             providerType: data.providerType,
             question: data.question,
-            isQuestionFirst: data.isQuestionFirst,
+            allowBackToPreviousQuestion: data.allowBackToPreviousQuestion,
             mediaGroupBuffer: data.mediaGroupBuffer,
         }
         await this.showMediaUploadingMenu(ctx, sceneData)
@@ -253,7 +253,7 @@ export class SurveyQuestionMediaScene extends Scene<ISceneData, SceneEnterDataTy
         }
 
         // Adding back button if not the first question.
-        if (data.isQuestionFirst == false) {
+        if (data.allowBackToPreviousQuestion) {
             buttons.push(this.text.survey.buttonBackToPreviousQuestion)
         }
 
