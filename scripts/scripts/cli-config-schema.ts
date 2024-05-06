@@ -34,12 +34,17 @@ export const UniqueMessagesSchema = z.object({
 })
 export type UniqueMessages = z.infer<typeof UniqueMessagesSchema>
 
+export const GitSchema = z.object({
+    commitMessage: z.string(),
+})
+
 export const OtherSchema = z.object({
     title: z.string(),
     nameQuestion: z.string(),
     namePlaceholders: NamePlaceholdersSchema,
     createFiles: z.array(CreateFileSchema),
     replacements: z.array(ReplacementSchema),
+    git: GitSchema.optional(),
 })
 export type Other = z.infer<typeof OtherSchema>
 

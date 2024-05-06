@@ -18,6 +18,9 @@
                     "casePascal": "<# SceneName #>",
                     "caseKebub": "<# scene-name #>"
                 },
+                "git": {
+                    "commitMessage": "Scene created: <# SceneName #>"
+                },
                 "createFiles": [
                     {
                         "baseDir": "src/presentation/scenes/implementations/",

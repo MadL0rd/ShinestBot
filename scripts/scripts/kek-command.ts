@@ -79,17 +79,17 @@ export class KekCommand extends CommandRunner {
         const sayGoodbye = function () {
             p.outro(chalk.greenBright('Goodbye 👋'))
         }
-        const kek = `
-|   .dSSSSb.  SSS      dSb                            SSS    SSSSSSb.            SSS           .dSSSSb.  SSS      SSSSSSS 
-|  dSSP  YSSb SSS      YSP                            SSS    SSS  "SSb           SSS          dSSP  YSSb SSS        SSS   
-|  YSSb.      SSS                                     SSS    SSS  .SSP           SSS          SSS    SSS SSS        SSS   
-|   "YSSSb.   SSSSSb.  SSS SSSSSb.   .dSSb.  .dSSSSb  SSSSSS SSSSSSSK.   .dSSb.  SSSSSS       SSS        SSS        SSS   
-|      "YSSb. SSS "SSb SSS SSS "SSb dSP  YSb SSK      SSS    SSS  "YSSb dSS""SSb SSS          SSS        SSS        SSS   
-|        "SSS SSS  SSS SSS SSS  SSS SSSSSSSS "YSSSSb. SSS    SSS    SSS SSS  SSS SSS          SSS    SSS SSS        SSS   
-|  YSSb  dSSP SSS  SSS SSS SSS  SSS YSb.          XSS YSSb.  SSS   dSSP YSS..SSP YSSb.        YSSb  dSSP SSS        SSS   
-|   "YSSSSP"  SSS  SSS SSS SSS  SSS  "YSSSS   SSSSSP'  "YSSS SSSSSSSP"   "YSSP"   "YSSS        "YSSSSP"  SSSSSSSS SSSSSSS `
+        const welcome = `
+│   .dSSSSb.  SSS      dSb                            SSS    SSSSSSb.            SSS           .dSSSSb.  SSS      SSSSSSS 
+│  dSSP  YSSb SSS      YSP                            SSS    SSS  "SSb           SSS          dSSP  YSSb SSS        SSS   
+│  YSSb.      SSS                                     SSS    SSS  .SSP           SSS          SSS    SSS SSS        SSS   
+│   "YSSSb.   SSSSSb.  SSS SSSSSb.   .dSSb.  .dSSSSb  SSSSSS SSSSSSSK.   .dSSb.  SSSSSS       SSS        SSS        SSS   
+│      "YSSb. SSS "SSb SSS SSS "SSb dSP  YSb SSK      SSS    SSS  "YSSb dSS""SSb SSS          SSS        SSS        SSS   
+│        "SSS SSS  SSS SSS SSS  SSS SSSSSSSS "YSSSSb. SSS    SSS    SSS SSS  SSS SSS          SSS    SSS SSS        SSS   
+│  YSSb  dSSP SSS  SSS SSS SSS  SSS YSb.          XSS YSSb.  SSS   dSSP YSS..SSP YSSb.        YSSb  dSSP SSS        SSS   
+│   "YSSSSP"  SSS  SSS SSS SSS  SSS  "YSSSS   SSSSSP'  "YSSS SSSSSSSP"   "YSSP"   "YSSS        "YSSSSP"  SSSSSSSS SSSSSSS `
 
-        p.intro(`${kek}\nWelcome to ShinestBot CLI!`)
+        p.intro(chalk.greenBright(welcome))
 
         const configRaw = fs.readFileSync('./shinest-cli.json', 'utf8')
         const config = CliConfigSchema.parse(JSON.parse(configRaw))
@@ -97,7 +97,7 @@ export class KekCommand extends CommandRunner {
         const uniqueMessagesGenerationOption = 'uniqueMessages'
         const exitOption = 'exit'
         const selectedOptionRaw = await p.select({
-            message: 'Kek wait zalupa?',
+            message: '🛠 Select generation option',
             initialValue: '1',
             options: [
                 {
@@ -115,6 +115,7 @@ export class KekCommand extends CommandRunner {
         switch (selectedOptionRaw) {
             case uniqueMessagesGenerationOption:
                 await this.generateUniqueMessages(config)
+                await this.formatCodeIfNeeded(config)
                 break
 
             case exitOption:
@@ -129,21 +130,25 @@ export class KekCommand extends CommandRunner {
                     sayGoodbye()
                     return
                 }
-                await this.generateCustomFile(selectedOption)
+                await this.generateCustomFile(selectedOption, config)
 
                 break
         }
 
-        if (config.format.applyOnCommandsCompletion && config.format.scrypt) {
-            const loading = p.spinner()
-            loading.start('Formatting in progress...')
-            await runScript(config.format.scrypt)
-            loading.stop('Formatting completed')
-        }
-        sayGoodbye()
+        await sayGoodbye()
     }
 
-    private async generateCustomFile(config: Other) {
+    private async formatCodeIfNeeded(config: CliConfig) {
+        if (!config.format.applyOnCommandsCompletion || !config.format.scrypt) return
+
+        const p = await import('@clack/prompts')
+        const loading = p.spinner()
+        loading.start('✨ Formatting in progress...')
+        await runScript(config.format.scrypt)
+        loading.stop('✨ Formatting completed')
+    }
+
+    private async generateCustomFile(config: Other, commonConfig: CliConfig) {
         const p = await import('@clack/prompts')
         const input = await p.text({
             message: config.nameQuestion,
@@ -192,6 +197,18 @@ export class KekCommand extends CommandRunner {
             .map((file) => chalk.blue(file.baseDir + file.name))
             .join()
         loading.stop(`Source code generated: ${createdFiles}`)
+
+        // Format source code
+        await this.formatCodeIfNeeded(commonConfig)
+
+        // Commit changes
+        if (!config.git) return
+        const shouldCommit = await p.confirm({
+            message: `👀 Commit changes? Message: ${config.git.commitMessage}`,
+        })
+        if (shouldCommit !== true) return
+
+        await runScript(`git add . && git commit -m "${config.git.commitMessage}"`)
     }
 
     private async generateUniqueMessages(config: CliConfig) {
@@ -200,9 +217,11 @@ export class KekCommand extends CommandRunner {
         let loading = p.spinner()
         loading.start('Unique messages caching in progress...')
         // runScript(configUnique.cacheConfigCommand)
-        const uniqueMessagesKek =
+
+        // TODO: use from local command
+        const uniqueMessagesCached =
             await this.sheetDataProvider.getContentFrom('uniqueMessagesContent')
-        const uniqueMessagesJson = uniqueMessagesKek
+        const uniqueMessagesJson = uniqueMessagesCached
             .filter((row) => row.isUniqueMessage === this.cachedTrueValue)
             .map((row) => {
                 const params = row.params
