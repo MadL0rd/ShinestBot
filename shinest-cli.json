@@ -1,0 +1,63 @@
+{
+    "format": {
+        "applyOnCommandsCompletion": true,
+        "scrypt": "npm run format"
+    },
+    "generationScripts": {
+        "uniqueMessages": {
+            "jsonConfigFilePath": "scripts/pizda/jopa.json",
+            "cacheConfigCommand": "echo \"pizda\"",
+            "resultSourceCodeFilePath": "src/entities/bot-content/nested/unique-message.entity.ts"
+        },
+        "other": [
+            {
+                "title": "New scene",
+                "nameQuestion": "Enter new scene name",
+                "namePlaceholders": {
+                    "caseCamel": "<# sceneName #>",
+                    "casePascal": "<# SceneName #>",
+                    "caseKebub": "<# scene-name #>"
+                },
+                "createFiles": [
+                    {
+                        "baseDir": "src/presentation/scenes/implementations/",
+                        "name": "<# scene-name #>.scene.ts",
+                        "templateFile": "scripts/templates/scene.template.txt"
+                    }
+                ],
+                "replacements": [
+                    {
+                        "filePath": "src/business-logic/user/enums/user-history-events.ts",
+                        "placeholder": "/** New scene event placeholder */",
+                        "replaceWith": "startScene<# SceneName #>: {\ntype: 'startScene<# SceneName #>',\nlocalizedTitle: 'Перешел к сцене <# sceneName #>',\n},\n/** New scene event placeholder */"
+                    },
+                    {
+                        "filePath": "src/presentation/scenes/models/scene-name.enum.ts",
+                        "placeholder": "/** New scene name placeholder */",
+                        "replaceWith": "'<# sceneName #>',\n/** New scene name placeholder */"
+                    },
+                    {
+                        "filePath": "src/presentation/scenes/scene-factory/scene-factory.service.ts",
+                        "placeholder": "/** New scene import placeholder */",
+                        "replaceWith": "import { <# SceneName #>Scene } from 'src/presentation/scenes/implementations/<# scene-name #>.scene'\n/** New scene import placeholder */"
+                    },
+                    {
+                        "filePath": "src/presentation/scenes/scene-factory/scene-factory.service.ts",
+                        "placeholder": "/** New scene generation placeholder */",
+                        "replaceWith": "case '<# sceneName #>':\n return this.injectionsProvider.resolve(<# SceneName #>Scene)\n/** New scene generation placeholder */"
+                    },
+                    {
+                        "filePath": "src/presentation/scenes/models/scene-entrance.interface.ts",
+                        "placeholder": "/** New scene entrance dto import placeholder */",
+                        "replaceWith": "import { <# SceneName #>SceneEntranceDto } from 'src/presentation/scenes/implementations/<# scene-name #>.scene'\n/** New scene entrance dto import placeholder */"
+                    },
+                    {
+                        "filePath": "src/presentation/scenes/models/scene-entrance.interface.ts",
+                        "placeholder": "/** New scene entrance dto placeholder */",
+                        "replaceWith": "| <# SceneName #>SceneEntranceDto\n/** New scene entrance dto placeholder */"
+                    }
+                ]
+            }
+        ]
+    }
+}

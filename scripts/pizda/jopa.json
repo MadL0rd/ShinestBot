@@ -1,0 +1,888 @@
+[
+  {
+    "group": "common",
+    "key": "unknownState",
+    "value": "Я тебя не понимаю 😔\n⬇️ Нажми на кнопку снизу ⬇️",
+    "params": []
+  },
+  {
+    "group": "common",
+    "key": "permissionDenied",
+    "value": "У вас нет доступа к этому разделу",
+    "params": []
+  },
+  {
+    "group": "common",
+    "key": "callbackActionFaild",
+    "value": "Не удалось совершить выбраное дейстие",
+    "params": []
+  },
+  {
+    "group": "common",
+    "key": "buttonReturnToMainMenu",
+    "value": "⬅️ В главное меню",
+    "params": []
+  },
+  {
+    "group": "common",
+    "key": "buttonBackToPreviousMenu",
+    "value": "⬅️ Вернуться в предыдущее меню",
+    "params": []
+  },
+  {
+    "group": "common",
+    "key": "bannedUserMessage",
+    "value": "Похоже, что вам больше нельзя пользоваться этим ботом",
+    "params": []
+  },
+  {
+    "group": "common",
+    "key": "comingSoon",
+    "value": "Эта функция скоро появится",
+    "params": []
+  },
+  {
+    "group": "common",
+    "key": "selectLanguageText",
+    "value": "Выберите язык",
+    "params": []
+  },
+  {
+    "group": "common",
+    "key": "errorMessage",
+    "value": "Кажется, что-то пошло не по плану 🙄",
+    "params": []
+  },
+  {
+    "group": "mainMenu",
+    "key": "text",
+    "value": "Ты оказался в главном меню 😊",
+    "params": []
+  },
+  {
+    "group": "mainMenu",
+    "key": "textAbout",
+    "value": "https://github.com/MadL0rd/ShinestBot",
+    "params": []
+  },
+  {
+    "group": "mainMenu",
+    "key": "buttonAbout",
+    "value": "📂 Репозиторий",
+    "params": []
+  },
+  {
+    "group": "mainMenu",
+    "key": "buttonAdminMenu",
+    "value": "🔐 Меню администратора",
+    "params": []
+  },
+  {
+    "group": "mainMenu",
+    "key": "buttonLanguageSettings",
+    "value": "🌎 Выбрать другой язык",
+    "params": []
+  },
+  {
+    "group": "mainMenu",
+    "key": "buttonSurvey",
+    "value": "📝 Пройти опрос",
+    "params": []
+  },
+  {
+    "group": "mainMenu",
+    "key": "userPublications",
+    "value": "📰 Управление публикациями",
+    "params": []
+  },
+  {
+    "group": "mainMenu",
+    "key": "editPublicationAsAdmin",
+    "value": "📰 Редактирование заявки",
+    "params": []
+  },
+  {
+    "group": "adminMenu",
+    "key": "text",
+    "value": "Вы в меню администратора",
+    "params": []
+  },
+  {
+    "group": "adminMenu",
+    "key": "buttonReloadData",
+    "value": "📥 Стянуть новые тексты из гугл таблицы",
+    "params": []
+  },
+  {
+    "group": "adminMenu",
+    "key": "buttonDownloadTables",
+    "value": "📊 Выгрузить данные об использовании бота",
+    "params": []
+  },
+  {
+    "group": "adminMenu",
+    "key": "buttonUsersManagement",
+    "value": "📋 Управление правами доступа пользователей",
+    "params": []
+  },
+  {
+    "group": "adminMenu",
+    "key": "buttonMailing",
+    "value": "📨 Рассылка",
+    "params": []
+  },
+  {
+    "group": "adminMenu",
+    "key": "returnBack",
+    "value": "⬅️ Вернуться в меню администратора",
+    "params": []
+  },
+  {
+    "group": "adminMenu",
+    "key": "mailingText",
+    "value": "Введите сообщение\nПеред рассылкой сообщение будет продублировано для проверки",
+    "params": []
+  },
+  {
+    "group": "adminMenu",
+    "key": "mailingTextChekMessage",
+    "value": "Вы собираетесь отправить пользователям следующее сообщение:",
+    "params": []
+  },
+  {
+    "group": "adminMenu",
+    "key": "mailingButtonSend",
+    "value": "Начать отправку",
+    "params": []
+  },
+  {
+    "group": "adminMenu",
+    "key": "mailingButtonCancel",
+    "value": "Отмена",
+    "params": []
+  },
+  {
+    "group": "adminMenu",
+    "key": "usersManagementTextFindUser",
+    "value": "Для поиска пользователя введите его id либо usermane в формате @username",
+    "params": []
+  },
+  {
+    "group": "adminMenu",
+    "key": "usersManagementPermissionsInfo",
+    "value": "Информация о модификаторах доступа:\n<b>owner</b> - Вдаделец бота: может назначать администраторов + имеет все права администратора)\n<b>admin</b> - Администратор: доступен вход в меню администратора, назначение ролей кроме owner и admin\n<b>banned</b> - Заблокированый пользователь (админ и владелец не могут быть заблокированы, если необходимо заблокировать администратора, то сначала нужно забрать у него админский уровень доступа)",
+    "params": []
+  },
+  {
+    "group": "adminMenu",
+    "key": "usersManagementButtonEditPermissions",
+    "value": "Управлять правами доступа",
+    "params": []
+  },
+  {
+    "group": "adminMenu",
+    "key": "usersManagementButtonNewSearch",
+    "value": "Новый поиск",
+    "params": []
+  },
+  {
+    "group": "adminMenuMetrics",
+    "key": "selectDateText",
+    "value": "Выберите период",
+    "params": []
+  },
+  {
+    "group": "adminMenuMetrics",
+    "key": "selectDateMonth",
+    "value": "Месяц",
+    "params": []
+  },
+  {
+    "group": "adminMenuMetrics",
+    "key": "selectDateQuarter",
+    "value": "Квартал",
+    "params": []
+  },
+  {
+    "group": "adminMenuMetrics",
+    "key": "selectDateYear",
+    "value": "Год",
+    "params": []
+  },
+  {
+    "group": "payment",
+    "key": "text",
+    "value": "Что хотите приобрести?",
+    "params": []
+  },
+  {
+    "group": "notification",
+    "key": "morningTextDefault",
+    "value": "Доброе утро!",
+    "comment": "Будет использоваться в случае, если chatGPT по какой-либо причине не ответил на наш запрос",
+    "params": []
+  },
+  {
+    "group": "notification",
+    "key": "morningTextGptPromt",
+    "value": "Напишите текст утреннего уведомления для человека неизвестного пола.",
+    "comment": "Промт для GPT",
+    "params": []
+  },
+  {
+    "group": "notification",
+    "key": "eveningTextDefault",
+    "value": "Добрый вечер!",
+    "comment": "Будет использоваться в случае, если chatGPT по какой-либо причине не ответил на наш запрос",
+    "params": []
+  },
+  {
+    "group": "notification",
+    "key": "eveningTextGptPromt",
+    "value": "Напишите текст вечернего уведомления для человека неизвестного пола.",
+    "comment": "Промт для GPT",
+    "params": []
+  },
+  {
+    "group": "notification",
+    "key": "buttonFairytale",
+    "value": "Написать терапевтическую сказку",
+    "params": []
+  },
+  {
+    "group": "notification",
+    "key": "buttonMainMenu",
+    "value": "Перейти в главное меню",
+    "params": []
+  },
+  {
+    "group": "notification",
+    "key": "subscriptionText",
+    "value": "Дорогой друг, некоторые твои подписки скоро истекают:",
+    "params": []
+  },
+  {
+    "group": "notification",
+    "key": "buttonSubscriptionText",
+    "value": "Оплатить",
+    "params": []
+  },
+  {
+    "group": "notification",
+    "key": "quantityDaysBeforeSubscriptionNotification",
+    "value": "7",
+    "comment": "За сколько дней до окончания подписки на пакет начнут приходить уведомления",
+    "params": []
+  },
+  {
+    "group": "notification",
+    "key": "morningTimeList",
+    "value": "07:00\n07:30\n08:00\n08:30\n09:00\n09:30\n10:00\n10:30\n11:00",
+    "comment": "Список из времён доступных пользователю для установки утренних уведомлений",
+    "params": []
+  },
+  {
+    "group": "notification",
+    "key": "morningTimeDefault",
+    "value": "08:00",
+    "comment": "Время утреннего уведомления по умолчанию",
+    "params": []
+  },
+  {
+    "group": "notification",
+    "key": "eveningTimeList",
+    "value": "18:00\n18:30\n19:00\n19:30\n20:00\n20:30\n21:00\n21:30\n22:00",
+    "comment": "Список из времён доступных пользователю для установки вечерних уведомлений",
+    "params": []
+  },
+  {
+    "group": "notification",
+    "key": "eveningTimeDefault",
+    "value": "22:15",
+    "comment": "Время вечернего уведомления по умолчанию",
+    "params": []
+  },
+  {
+    "group": "notification",
+    "key": "subscriptionTime",
+    "value": "20:04",
+    "comment": "Время для уведомлений о скором окончании подписки",
+    "params": []
+  },
+  {
+    "group": "notification",
+    "key": "buttonDontSend",
+    "value": "Не отправлять",
+    "comment": "Кнопка, по нажатию на которую в настройках можно отказаться от получения уведомлений данного типа",
+    "params": []
+  },
+  {
+    "group": "surveyContinue",
+    "key": "text",
+    "value": "Продолжить заполнение заявки или начать заново?",
+    "params": []
+  },
+  {
+    "group": "surveyContinue",
+    "key": "buttonBegining",
+    "value": "Начать заново",
+    "params": []
+  },
+  {
+    "group": "surveyContinue",
+    "key": "buttonResume",
+    "value": "Продолжить",
+    "params": []
+  },
+  {
+    "group": "surveyDescription",
+    "key": "text",
+    "value": "Вам нужно ответить на несколько вопросов, чтобы бот помог вам заполнить страницу памяти на сайте MemoryCode.ru\n\nВы можете в любой момент вернуться в главное меню при помощи команды /back_to_menu и позже продолжить заполнение страницы без потери прогресса\n\nЕсли вы ранее уже заполняли эту анкету, на следующем шаге вам будет предложено продолжить",
+    "params": []
+  },
+  {
+    "group": "surveyDescription",
+    "key": "buttonStart",
+    "value": "Приступить",
+    "params": []
+  },
+  {
+    "group": "survey",
+    "key": "buttonOptionalQuestionSkip",
+    "value": "👀 Пропустить",
+    "params": []
+  },
+  {
+    "group": "survey",
+    "key": "buttonBackToPreviousQuestion",
+    "value": "⬅️ Вернуться к предыдущему вопросу",
+    "params": []
+  },
+  {
+    "group": "survey",
+    "key": "texMessageAditionaltInlineMenu",
+    "value": "🧭 Навигация",
+    "params": []
+  },
+  {
+    "group": "survey",
+    "key": "buttonAditionaltInlineMenuSkip",
+    "value": "👀 Пропустить",
+    "params": []
+  },
+  {
+    "group": "survey",
+    "key": "buttonAditionaltInlineMenuBackToPrevious",
+    "value": "⬆️ Вернуться",
+    "params": []
+  },
+  {
+    "group": "survey",
+    "key": "textAditionaltInlineMenuSkipEventLog",
+    "value": "<i>👀 Вопрос пропущен</i>",
+    "params": []
+  },
+  {
+    "group": "survey",
+    "key": "textAditionaltInlineMenuBackToPreviousEventLog",
+    "value": "<i>⬆️ Возврат к предыдущему вопросу</i>",
+    "params": []
+  },
+  {
+    "group": "survey",
+    "key": "errorMessageAnswerIsNotNumber",
+    "value": "Введите число\nЕсли вам нужно указать дробное значение, то отделите его точкой или запятой\n\n<i>Пример: 123.4</i>",
+    "comment": "Сообщение, которое будет выведено пользователю, если он ввёл текст в ответ на вопрос, где надо дать число",
+    "params": []
+  },
+  {
+    "group": "surveyQuestionMedia",
+    "key": "buttonDone",
+    "value": "✅ Готово",
+    "params": []
+  },
+  {
+    "group": "surveyQuestionMedia",
+    "key": "buttonEdit",
+    "value": "🔄 Редактировать",
+    "params": []
+  },
+  {
+    "group": "surveyQuestionMedia",
+    "key": "buttonEditModeExit",
+    "value": "Отмена",
+    "params": []
+  },
+  {
+    "group": "surveyQuestionMedia",
+    "key": "textFilesCountPrefix",
+    "value": "Загружено файлов:",
+    "params": []
+  },
+  {
+    "group": "surveyQuestionMedia",
+    "key": "textEditMode",
+    "value": "Выберите файл, который хотите удалить",
+    "params": []
+  },
+  {
+    "group": "surveyQuestionMultipleChoice",
+    "key": "textSelectionFalse",
+    "value": "⬜",
+    "params": []
+  },
+  {
+    "group": "surveyQuestionMultipleChoice",
+    "key": "textSelectionTrue",
+    "value": "✅",
+    "params": []
+  },
+  {
+    "group": "surveyQuestionMultipleChoice",
+    "key": "textDescription",
+    "value": "Вы можете выбрать от minCount до maxCount пунктов",
+    "comment": "Текст, который будет добавлен к вопросу типа multipleChoice.\nminCount - минимальное количество пунктов, которые надо выбрать\nmaxCount - максимальное количество пунктов, которые можно выбрать",
+    "params": [
+      {
+        "name": "minCount",
+        "type": "number"
+      },
+      {
+        "name": "maxCount",
+        "type": "number"
+      }
+    ]
+  },
+  {
+    "group": "surveyQuestionMultipleChoice",
+    "key": "textSelectionPrefix",
+    "value": "Вы выбрали:",
+    "params": []
+  },
+  {
+    "group": "surveyQuestionMultipleChoice",
+    "key": "textMaxCountReached",
+    "value": "Вы выбрали максимальное число вариантов",
+    "params": []
+  },
+  {
+    "group": "surveyQuestionMultipleChoice",
+    "key": "textMinCountdoesNotReached",
+    "value": "Вам нужно выбрать еще несколько вариантов чтобы продолжить",
+    "params": []
+  },
+  {
+    "group": "surveyFinal",
+    "key": "textMediaPrefix",
+    "value": "Медиа",
+    "params": []
+  },
+  {
+    "group": "surveyFinal",
+    "key": "textMediaUnit",
+    "value": "шт.",
+    "params": []
+  },
+  {
+    "group": "surveyFinal",
+    "key": "textOptionalAnswerIsNull",
+    "value": "<i>Не указано</i>",
+    "params": []
+  },
+  {
+    "group": "surveyFinal",
+    "key": "text",
+    "value": "👆🏻 Выше все данные из вашей заявки.\nВы можете отправить её в текущем виде либо отредактировать.\n\nЧтобы отредактировать какой-то пункт, отправьте мне его номер.\n\n<i>P.S.: Вы можете вернуться в главное меню и отредактировать заявку позже, просто при возвращении нажмите кнопку <b>Опрос</b>, а затем <b>Продолжить</b></i>",
+    "params": []
+  },
+  {
+    "group": "surveyFinal",
+    "key": "buttonDone",
+    "value": "Отправить",
+    "params": []
+  },
+  {
+    "group": "surveyQuestionGptTip",
+    "key": "textWaitingForGptAnswer",
+    "value": "Формулирую ответ...",
+    "params": []
+  },
+  {
+    "group": "surveyQuestionGptTip",
+    "key": "textStartMenu",
+    "value": "Бот может помочь Вам ответить на этот вопрос\nДля начала нужно кратко изложить основную мысль, если трудно сделать это сразу - бот задаст вам дополнительные вопросы",
+    "params": []
+  },
+  {
+    "group": "surveyQuestionGptTip",
+    "key": "buttonStartMenuContinue",
+    "value": "😊 Отлично, приступаю!",
+    "params": []
+  },
+  {
+    "group": "surveyQuestionGptTip",
+    "key": "buttonStartMenuGptTip",
+    "value": "🤔 Помоги собраться с мыслями",
+    "params": []
+  },
+  {
+    "group": "surveyQuestionGptTip",
+    "key": "promptStartMenuGptTipTemperature",
+    "value": "0.4",
+    "params": []
+  },
+  {
+    "group": "surveyQuestionGptTip",
+    "key": "promptStartMenuGptTip",
+    "value": "Я прохожу опрос для заполнения страницы посвященной памяти погибшего родственника.\nЯ уже увидел вопрос, но не смог сформулировать ответ самостоятельно, задай мне несколько наводящих вопросов чтобы помочь собраться с мыслями.\nЕсли информации достаточно, используй при формировании подсказок ответы на предыдущие вопросы.\n\nСООБЩЕНИЕ ОБЯЗАТЕЛЬНО ДОЛЖНО СОДЕРЖАТЬ КАК МИНИМУМ 3 ВОПРОСА ВОПРОСЫ ДОЛЖНЫ ПОДРАЗУМЕВАТЬ РАЗВЕРНУТЫЙ ОТВЕТ ОТВЕЧАЙ ОТ ЛИЦА БОТА, ПРИШЛИ ТОЛЬКО ИТОГОВОЕ СООБЩЕНИЕ.\nТебе НЕЛЬЗЯ ИСПОЛЬЗОВАТЬ В СВОЁМ ОТВЕТЕ ФРАЗЫ:\"ВОПРОСЫ ПОЛЬЗОВАТЕЛЮ\", \"ПРИМЕР СООБЩЕНИЯ\"\n\nДалее данные: код языка, на котором нужно ОБЯЗАТЕЛЬНО перевести твое сообщение ЦЕЛИКОМ; текущий вопрос; мои ответы на предыдущие вопросы.",
+    "params": []
+  },
+  {
+    "group": "surveyQuestionGptTip",
+    "key": "textStartMenuEnterMessage",
+    "value": "Напишите ваш ответ текстом или отправьте голосовое сообщение",
+    "params": []
+  },
+  {
+    "group": "surveyQuestionGptTip",
+    "key": "textAnswerEditing",
+    "value": "Отлично!\nВот что у вас получилось:",
+    "params": []
+  },
+  {
+    "group": "surveyQuestionGptTip",
+    "key": "buttonAnswerEditingDone",
+    "value": "👍 Мне нравится, можем идти дальше",
+    "params": []
+  },
+  {
+    "group": "surveyQuestionGptTip",
+    "key": "buttonAnswerEditingUpdateWithGpt",
+    "value": "🧐 Попробуй улучшить мой ответ",
+    "params": []
+  },
+  {
+    "group": "surveyQuestionGptTip",
+    "key": "buttonAnswerEditingRestart",
+    "value": "👀 Хочу ответить на вопрос заново",
+    "params": []
+  },
+  {
+    "group": "surveyQuestionGptTip",
+    "key": "textUpdateWithGptWishes",
+    "value": "Есть ли у Вас дополнительные пожелания",
+    "params": []
+  },
+  {
+    "group": "surveyQuestionGptTip",
+    "key": "buttonUpdateWithGptWishesYes",
+    "value": "🤔 Да, сейчас расскажу",
+    "params": []
+  },
+  {
+    "group": "surveyQuestionGptTip",
+    "key": "buttonUpdateWithGptWishesNo",
+    "value": "👨‍🎨 Сделай на свой вкус",
+    "params": []
+  },
+  {
+    "group": "surveyQuestionGptTip",
+    "key": "textUpdateWithGptWishesEnter",
+    "value": "Напишите ваш ответ текстом или отправьте голосовое сообщение",
+    "params": []
+  },
+  {
+    "group": "surveyQuestionGptTip",
+    "key": "promptUpdateWithGptTemperature",
+    "value": "0.4",
+    "params": []
+  },
+  {
+    "group": "surveyQuestionGptTip",
+    "key": "promptUpdateWithGpt",
+    "value": "Я прохожу опрос для заполнения страницы посвященной памяти умершего родственника. \nНужно помочь мне развёрнуто ответить на вопрос.\nЕсли информации достаточно, используй ответы на предыдущие вопросы.\n\nВ ОТВЕТЕ НЕ ДОЛЖНО БЫТЬ НИЧЕГО ЛИШНЕГО, ТОЛЬКО ОТВЕТ НА ВОПРОС.\nОБЯЗАТЕЛЬНО УЧИТЫВАЙ МОИ ПОЖЕЛАНИЯ\n\nДалее данные: код языка, на котором нужно ОБЯЗАТЕЛЬНО перевести твое сообщение ЦЕЛИКОМ; текущий вопрос; мои ответы на предыдущие вопросы.",
+    "params": []
+  },
+  {
+    "group": "surveyQuestionGptTip",
+    "key": "textUpdateWithGptSaveResult",
+    "value": "Как Вам результат?",
+    "params": []
+  },
+  {
+    "group": "surveyQuestionGptTip",
+    "key": "buttonUpdateWithGptSaveResultYes",
+    "value": "👍 Мне нравится",
+    "params": []
+  },
+  {
+    "group": "surveyQuestionGptTip",
+    "key": "buttonUpdateWithGptSaveResultTryAgain",
+    "value": "🧐 Попробуй ещё раз",
+    "params": []
+  },
+  {
+    "group": "surveyQuestionGptTip",
+    "key": "buttonUpdateWithGptSaveResultNo",
+    "value": "😓 Прошлый вариант был лучше",
+    "params": []
+  },
+  {
+    "group": "moderationCommand",
+    "key": "approve",
+    "value": "Принять",
+    "comment": "Команда для чата модерации",
+    "params": []
+  },
+  {
+    "group": "moderationCommand",
+    "key": "place",
+    "value": "Опубликовать",
+    "comment": "Команда для чата модерации",
+    "params": []
+  },
+  {
+    "group": "moderationCommand",
+    "key": "reject",
+    "value": "Отклонить",
+    "comment": "Команда для чата модерации",
+    "params": []
+  },
+  {
+    "group": "moderationCommand",
+    "key": "notRelevant",
+    "value": "Не актуально",
+    "comment": "Команда для чата модерации",
+    "params": []
+  },
+  {
+    "group": "moderationCommand",
+    "key": "edit",
+    "value": "Редактировать",
+    "comment": "Команда для чата модерации",
+    "params": []
+  },
+  {
+    "group": "moderation",
+    "key": "commandPlaceDescriptionText",
+    "value": "Команды \"Принять\", \"Отклонить\", \"Не актуально\" изменяют статус публикации\nКоманда <b>Опубликовать</b> позволяет выложить пост в канал\nКоманда \"Редактировать\" позволяет администратору поменять контент заявки",
+    "comment": "Описание команды Опубликовать",
+    "params": []
+  },
+  {
+    "group": "moderation",
+    "key": "messageAdvertIdPlaceholder",
+    "value": "advertIdPlaceholder",
+    "comment": "Плейсхолдер",
+    "params": []
+  },
+  {
+    "group": "moderation",
+    "key": "messageAddressPlaceholder",
+    "value": "addressPlaceholder",
+    "comment": "Плейсхолдер",
+    "params": []
+  },
+  {
+    "group": "moderation",
+    "key": "messagePostLinkPlaceholder",
+    "value": "postLinkPlaceholder",
+    "comment": "Плейсхолдер",
+    "params": []
+  },
+  {
+    "group": "moderation",
+    "key": "messagePostStatusPlaceholder",
+    "value": "advertStatusPlaceholder",
+    "comment": "Плейсхолдер",
+    "params": []
+  },
+  {
+    "group": "moderation",
+    "key": "messagePostDatePlaceholder",
+    "value": "advertCreationDatePlaceholder",
+    "comment": "Плейсхолдер",
+    "params": []
+  },
+  {
+    "group": "moderation",
+    "key": "messagePostIdPlaceholder",
+    "value": "postIdPlaceholder",
+    "comment": "Плейсхолдер",
+    "params": []
+  },
+  {
+    "group": "moderation",
+    "key": "publicationStatusCreated",
+    "value": "🧾 Создана",
+    "params": []
+  },
+  {
+    "group": "moderation",
+    "key": "publicationStatusModeration",
+    "value": "📝 Проверка",
+    "params": []
+  },
+  {
+    "group": "moderation",
+    "key": "publicationStatusRejected",
+    "value": "🚫 Отклонено",
+    "params": []
+  },
+  {
+    "group": "moderation",
+    "key": "publicationStatusActive",
+    "value": "✅ Актуально",
+    "params": []
+  },
+  {
+    "group": "moderation",
+    "key": "publicationStatusNotRelevant",
+    "value": "❌ Не актуально",
+    "params": []
+  },
+  {
+    "group": "moderation",
+    "key": "publicationTextLink",
+    "value": "<a href=\"postLinkPlaceholder\">Ссылка на публикацию</a>",
+    "params": []
+  },
+  {
+    "group": "moderation",
+    "key": "messageText",
+    "value": "📩 <b>Сообщение от команды ShinestBot</b>\n\nID публикации: <b>advertIdPlaceholder</b>\nДата подачи заявки: advertCreationDatePlaceholder",
+    "params": []
+  },
+  {
+    "group": "moderation",
+    "key": "messageTextModeration",
+    "value": "Ваше объявление было успешно отправлено на модерацию\n\nID: <b>advertIdPlaceholder</b>\nДата подачи заявки: advertCreationDatePlaceholder",
+    "params": []
+  },
+  {
+    "group": "moderation",
+    "key": "messageTextAccepted",
+    "value": "🎉 <b>Поздравляем</b> 🎉\nВаше объявление было принято\n\nID: <b>advertIdPlaceholder</b>\nДата подачи заявки: advertCreationDatePlaceholder",
+    "params": []
+  },
+  {
+    "group": "moderation",
+    "key": "messageTextRejected",
+    "value": "🚫 <b>Внимание</b> 🚫\nВаше объявление было Отклонено\n\nID: <b>advertIdPlaceholder</b>\nДата подачи заявки: advertCreationDatePlaceholder",
+    "params": []
+  },
+  {
+    "group": "moderation",
+    "key": "messageTextNotRelevant",
+    "value": "⚠️ <b>Внимание</b> ⚠️\nВаше объявление было отмечено как неактуальное\n\nID: <b>advertIdPlaceholder</b>\nДата подачи заявки: advertCreationDatePlaceholder",
+    "params": []
+  },
+  {
+    "group": "moderation",
+    "key": "moderationMessageTextNewSearchResult",
+    "value": "✅ <b>Внимание</b> ✅\nПоявилось новая публикация, подходящая под ваши фильтры",
+    "params": []
+  },
+  {
+    "group": "moderation",
+    "key": "moderationMessagePublicationEdited",
+    "value": "✅ <b>Внимание</b> ✅\n\nЗаявка была обновлена",
+    "params": []
+  },
+  {
+    "group": "userPublications",
+    "key": "text",
+    "value": "Ваши объявления:",
+    "params": []
+  },
+  {
+    "group": "userPublications",
+    "key": "textEmpty",
+    "value": "Вы еще не подавали объявлений",
+    "params": []
+  },
+  {
+    "group": "userPublications",
+    "key": "textModeratorContact",
+    "value": "Напишите мне ваш вопрос, ответ модераторатора придёт вам вместе с уведомлением\n\nДля отмены текущего действия нажмите /cancel",
+    "params": []
+  },
+  {
+    "group": "userPublications",
+    "key": "advertInfoFormat",
+    "value": "ID: <b>advertIdPlaceholder</b>\nСтатус: advertStatusPlaceholder\nДата подачи заявки: advertCreationDatePlaceholder",
+    "params": []
+  },
+  {
+    "group": "userPublications",
+    "key": "advertInfoLinkFormat",
+    "value": "<a href=\"postLinkPlaceholder\">Ссылка на публикацию</a>",
+    "params": []
+  },
+  {
+    "group": "userPublications",
+    "key": "buttonSetStatusNotRelevant",
+    "value": "❌ Отметить как неактуальное",
+    "params": []
+  },
+  {
+    "group": "userPublications",
+    "key": "buttonReuseAdvert",
+    "value": "✏ Отредактировать и отправить повторно",
+    "params": []
+  },
+  {
+    "group": "userPublications",
+    "key": "writeToModerator",
+    "value": "Написать модератору",
+    "params": []
+  },
+  {
+    "group": "userPublications",
+    "key": "buttonLinkWeb",
+    "value": "🌎 Посмотреть на сайте",
+    "params": []
+  },
+  {
+    "group": "userPublications",
+    "key": "buttonLinkTelegram",
+    "value": "➡️ Перейти к публикации",
+    "params": []
+  },
+  {
+    "group": "userPublications",
+    "key": "writeToModeratorError",
+    "value": "Не удалось отправить ваше сообщение\nПопробуйте еще раз",
+    "params": []
+  },
+  {
+    "group": "userPublications",
+    "key": "writeToModeratorSuccess",
+    "value": "Сообщение успешно отправлено",
+    "params": []
+  },
+  {
+    "group": "userPublications",
+    "key": "finalOptionalAnswerIsNull",
+    "value": "<i>Не указано</i>",
+    "params": []
+  },
+  {
+    "group": "moderationEditing",
+    "key": "text",
+    "value": "Приступить к редактированию заявки?\nid: <b>postIdPlaceholder</b>",
+    "params": []
+  },
+  {
+    "group": "moderationEditing",
+    "key": "textEmpty",
+    "value": "В данный момент вы не редактируете ни одну заявку",
+    "params": []
+  },
+  {
+    "group": "moderationEditing",
+    "key": "buttonStartEditing",
+    "value": "Приступить",
+    "params": []
+  }
+]

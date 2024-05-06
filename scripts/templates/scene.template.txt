@@ -1,0 +1,85 @@
+import { logger } from 'src/app/app.logger'
+import { UserService } from 'src/business-logic/user/user.service'
+import { Markup, Context } from 'telegraf'
+import { Update } from 'telegraf/types'
+import { SceneCallbackData } from '../models/scene-callback'
+import { SceneEntrance } from '../models/scene-entrance.interface'
+import { SceneName } from '../models/scene-name.enum'
+import { SceneHandlerCompletion } from '../models/scene.interface'
+import { Scene } from '../models/scene.abstract'
+import { SceneUsagePermissionsValidator } from '../models/scene-usage-permissions-validator'
+import { InjectableSceneConstructor } from '../scene-factory/scene-injections-provider.service'
+
+// =====================
+// Scene data classes
+// =====================
+export class <# SceneName #>SceneEntranceDto implements SceneEntrance.Dto {
+    readonly sceneName = '<# sceneName #>'
+}
+type SceneEnterDataType = <# SceneName #>SceneEntranceDto
+interface ISceneData {}
+
+// =====================
+// Scene main class
+// =====================
+
+@InjectableSceneConstructor()
+export class <# SceneName #>Scene extends Scene<ISceneData, SceneEnterDataType> {
+    // =====================
+    // Properties
+    // =====================
+
+    readonly name: SceneName.Union = '<# sceneName #>'
+    protected get dataDefault(): ISceneData {
+        return {} as ISceneData
+    }
+    protected get permissionsValidator(): SceneUsagePermissionsValidator.IPermissionsValidator {
+        return new SceneUsagePermissionsValidator.CanUseIfNotBanned()
+    }
+
+    constructor(protected readonly userService: UserService) {
+        super()
+    }
+
+    // =====================
+    // Public methods
+    // =====================
+
+    async handleEnterScene(
+        ctx: Context,
+        data?: SceneEnterDataType
+    ): Promise<SceneHandlerCompletion> {
+        logger.log(
+            `${this.name} scene handleEnterScene. User: ${this.user.telegramInfo.id} ${this.user.telegramInfo.username}`
+        )
+        await this.logToUserHistory({type: 'startScene<# SceneName #>'})
+
+        await ctx.replyWithHTML('Hello from <# SceneName #>', super.keyboardMarkupWithAutoLayoutFor(['Hello!']))
+
+        return this.completion.inProgress({})
+    }
+
+    async handleMessage(ctx: Context, dataRaw: object): Promise<SceneHandlerCompletion> {
+        logger.log(
+            `${this.name} scene handleMessage. User: ${this.user.telegramInfo.id} ${this.user.telegramInfo.username}`
+        )
+        const message = ctx.message
+        if (!message || !('text' in message)) return this.completion.canNotHandle({})
+
+        await ctx.replyWithHTML(`Echo:\n${message.text}`)
+        await ctx.replyWithHTML(`Goodbye`, Markup.removeKeyboard())
+
+        return this.completion.complete()
+    }
+
+    async handleCallback(
+        ctx: Context<Update.CallbackQueryUpdate>,
+        data: SceneCallbackData
+    ): Promise<SceneHandlerCompletion> {
+        throw Error('Method not implemented.')
+    }
+
+    // =====================
+    // Private methods
+    // =====================
+}

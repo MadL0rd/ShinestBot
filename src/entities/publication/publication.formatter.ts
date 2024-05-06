@@ -3,7 +3,6 @@ import { internalConstants } from 'src/app/app.internal-constants'
 import { PublicationDocument } from 'src/business-logic/publication-storage/schemas/publication.schema'
 import { Publication } from '.'
 import { BotContent } from '../bot-content'
-import { UniqueMessage } from '../bot-content/nested/unique-message.entity'
 import { Survey } from '../survey'
 import { UserProfile } from '../user-profile'
 
@@ -32,7 +31,7 @@ export namespace _PublicationFormatter {
 
     export function moderationSynchronizedText(
         publication: PublicationDocument,
-        text: UniqueMessage,
+        text: BotContent.UniqueMessage,
         author: UserProfile.BaseType
     ): string {
         // Head part
@@ -75,7 +74,7 @@ export namespace _PublicationFormatter {
     export function makeUserMessageWithPublicationInfo(
         originalText: string,
         publication: PublicationDocument,
-        text: UniqueMessage
+        text: BotContent.UniqueMessage
     ): string {
         const tgPublicationLinkList = publicationTelegramLinks(publication)
         let messageText = originalText + '\n'
@@ -118,7 +117,7 @@ export namespace _PublicationFormatter {
      */
     export function publicationPublicText(
         publication: PublicationDocument,
-        text: UniqueMessage
+        text: BotContent.UniqueMessage
     ): string {
         const publicationText = Survey.Formatter.generateTextFromPassedAnswers({
             answers: publication.answers,
@@ -138,7 +137,7 @@ export namespace _PublicationFormatter {
 
     export function publicationStatusString(
         status: Publication.PublicationStatus.Union,
-        text: UniqueMessage
+        text: BotContent.UniqueMessage
     ): string {
         switch (status) {
             case 'created':

@@ -6,7 +6,7 @@ import * as XLSX from 'xlsx'
 
 @Injectable()
 export class LocalXlsxProviderService implements ISheetDataProvider {
-    constructor(private readonly rowsValidator: SheetStringsMarkdownValidatorService) {}
+    constructor(private readonly rowsValidator?: SheetStringsMarkdownValidatorService) {}
 
     async getContentByListName(pageName: string, range: string): Promise<string[][]> {
         logger.log(`Start cache ${pageName}`)
@@ -23,6 +23,6 @@ export class LocalXlsxProviderService implements ISheetDataProvider {
         })
         const rows = localRows.filter((row) => row.isNotEmpty)
 
-        return this.rowsValidator.validateAndUpdateRows(rows)
+        return this.rowsValidator?.validateAndUpdateRows(rows) ?? rows
     }
 }

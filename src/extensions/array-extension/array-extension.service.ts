@@ -129,7 +129,7 @@ export class ArrayExtensionService {
 
         Array.prototype.generateItemsRecord = function <
             T,
-            KeyType extends string | number | symbol
+            KeyType extends string | number | symbol,
         >(generateKeyFunc: (item: T) => KeyType): Record<KeyType, T> {
             return Object.assign(
                 {},
