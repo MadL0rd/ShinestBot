@@ -6,7 +6,7 @@
     "generationScripts": {
         "uniqueMessages": {
             "jsonConfigFilePath": "scripts/files-buff/unique-messages.json",
-            "cacheConfigCommand": "nest start --entryFile scripts/commands-main -- g",
+            "cacheConfigCommand": "npm run cache-unique-messages",
             "resultSourceCodeFilePath": "src/entities/bot-content/nested/unique-message.entity.ts"
         },
         "other": [
