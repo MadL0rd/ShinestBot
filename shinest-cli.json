@@ -5,8 +5,8 @@
     },
     "generationScripts": {
         "uniqueMessages": {
-            "jsonConfigFilePath": "scripts/pizda/jopa.json",
-            "cacheConfigCommand": "echo \"pizda\"",
+            "jsonConfigFilePath": "scripts/files-buff/unique-messages.json",
+            "cacheConfigCommand": "nest start --entryFile scripts/commands-main -- g",
             "resultSourceCodeFilePath": "src/entities/bot-content/nested/unique-message.entity.ts"
         },
         "other": [
@@ -23,8 +23,7 @@
                 },
                 "createFiles": [
                     {
-                        "baseDir": "src/presentation/scenes/implementations/",
-                        "name": "<# scene-name #>.scene.ts",
+                        "resultSourceCodeFilePath": "src/presentation/scenes/implementations/<# scene-name #>.scene.ts",
                         "templateFile": "scripts/templates/scene.template.txt"
                     }
                 ],

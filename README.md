@@ -19,6 +19,7 @@
 ### Local:
 ```bash
 npm i -g @nestjs/cli
+npm i -g @madl0rd/shinest-cli
 npm i -g env-cmd
 npm i
 ```
@@ -63,6 +64,18 @@ docker-compose logs --tail 50
 ```sh
 nest g mo business-logic/module-name
 nest g s business-logic/module-name --no-spec
+```
+
+## Chinest Cli
+
+If installed localy
+```sh
+npm run generate
+```
+
+If installed globaly
+```sh
+shinest g
 ```
 
 ## License

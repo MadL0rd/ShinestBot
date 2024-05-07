@@ -339,10 +339,6 @@ export class Moderation {
     /**
      * @description Плейсхолдер
      */
-    readonly messageAddressPlaceholder = 'addressPlaceholder'
-    /**
-     * @description Плейсхолдер
-     */
     readonly messagePostLinkPlaceholder = 'postLinkPlaceholder'
     /**
      * @description Плейсхолдер

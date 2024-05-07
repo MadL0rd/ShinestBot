@@ -1,14 +1,13 @@
 import { Module } from '@nestjs/common'
 import { CommandFactory } from 'nest-commander'
-import { KekModule } from './scripts/kek-module'
-import { KekCommand } from './scripts/kek-command'
+import { CacheUniqueMessagesCommand } from './commands/cache-unique-messages.command'
 import { ConfigModule } from '@nestjs/config'
 import { SheetDataProviderModule } from '../src/core/sheet-data-provider/sheet-data-provider.module'
 import { ExtensionsModule } from '../src/extensions/extensions.module'
 
 @Module({
-    imports: [KekModule, ConfigModule.forRoot(), SheetDataProviderModule],
-    providers: [KekCommand],
+    imports: [ConfigModule.forRoot(), SheetDataProviderModule],
+    providers: [CacheUniqueMessagesCommand],
 })
 export class AppKekModule {}
 
