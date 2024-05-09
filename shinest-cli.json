@@ -59,6 +59,72 @@
                         "replaceWith": "| <# SceneName #>SceneEntranceDto\n/** New scene entrance dto placeholder */"
                     }
                 ]
+            },
+            {
+                "title": "New entity",
+                "nameQuestion": "Enter new entity name",
+                "namePlaceholders": {
+                    "caseCamel": "<# entityName #>",
+                    "casePascal": "<# EntityName #>",
+                    "caseKebub": "<# entity-name #>"
+                },
+                "git": {
+                    "commitMessage": "Entity created: <# EntityName #>"
+                },
+                "createFiles": [
+                    {
+                        "resultSourceCodeFilePath": "src/entities/<# entity-name #>/<# entity-name #>.helper.ts",
+                        "templateFile": "scripts/templates/entity-helper.template.txt"
+                    },
+                    {
+                        "resultSourceCodeFilePath": "src/entities/<# entity-name #>/<# entity-name #>.formatter.ts",
+                        "templateFile": "scripts/templates/entity-formatter.template.txt"
+                    },
+                    {
+                        "resultSourceCodeFilePath": "src/entities/<# entity-name #>/<# entity-name #>.entity.ts",
+                        "templateFile": "scripts/templates/entity.template.txt"
+                    },
+                    {
+                        "resultSourceCodeFilePath": "src/entities/<# entity-name #>/index.ts",
+                        "templateFile": "scripts/templates/entity-index.template.txt"
+                    }
+                ],
+                "replacements": []
+            },
+            {
+                "title": "New extension",
+                "nameQuestion": "Enter new extension name",
+                "namePlaceholders": {
+                    "caseCamel": "<# extensionName #>",
+                    "casePascal": "<# ExtensionName #>",
+                    "caseKebub": "<# extension-name #>"
+                },
+                "git": {
+                    "commitMessage": "Extension created: <# ExtensionName #>"
+                },
+                "createFiles": [
+                    {
+                        "resultSourceCodeFilePath": "src/extensions/<# extension-name #>/<# extension-name #>.service.ts",
+                        "templateFile": "scripts/templates/extension.template.txt"
+                    }
+                ],
+                "replacements": [
+                    {
+                        "filePath": "src/extensions/extensions.module.ts",
+                        "placeholder": "/** New extension service initExtensions method placeholder */",
+                        "replaceWith": "new <# ExtensionName #>Service().initExtensions()\n/** New extension service initExtensions method placeholder */"
+                    },
+                    {
+                        "filePath": "src/extensions/extensions.module.ts",
+                        "placeholder": "/** New extension service placeholder */",
+                        "replaceWith": "<# ExtensionName #>Service,\n/** New extension service placeholder */"
+                    },
+                    {
+                        "filePath": "src/extensions/extensions.module.ts",
+                        "placeholder": "/** New extension service import placeholder */",
+                        "replaceWith": "import { <# ExtensionName #>Service } from './<# extension-name #>/<# extension-name #>.service'\n/** New extension service import placeholder */"
+                    }
+                ]
             }
         ]
     }
