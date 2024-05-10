@@ -12,7 +12,7 @@ export class GoogleSpreadsheetProviderService implements ISheetDataProvider {
 
     constructor(
         private readonly googleCredentialsService: GoogleSpreadsheetCredentialsService,
-        private readonly rowsValidator: SheetStringsMarkdownValidatorService
+        private readonly rowsValidator?: SheetStringsMarkdownValidatorService
     ) {}
 
     async getContentByListName(pageName: string, range: string): Promise<string[][]> {
@@ -30,6 +30,6 @@ export class GoogleSpreadsheetProviderService implements ISheetDataProvider {
             return []
         }
 
-        return this.rowsValidator.validateAndUpdateRows(rows)
+        return this.rowsValidator?.validateAndUpdateRows(rows) ?? rows
     }
 }

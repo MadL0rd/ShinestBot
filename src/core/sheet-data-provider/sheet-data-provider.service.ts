@@ -3,6 +3,7 @@ import { SheetDataProviderFactoryService } from './sheet-data-provider-factory/s
 import { ISheetDataProvider } from './abscract/sheet-data-provider.interface'
 import { DataSheetPrototype } from './schemas/data-sheet-prototype'
 import { LanguageCode } from 'src/utils/languages-info/getLanguageName'
+import { SourceRowData, SourceRowDataObject } from './abscract/source-row-data'
 
 @Injectable()
 export class SheetDataProviderService {
@@ -38,18 +39,22 @@ export class SheetDataProviderService {
     }
 
     async getLocalizedStringsFrom<Page extends DataSheetPrototype.SomePageLocalization>(
-        page: Page
+        page: Page,
+        addMetadata: boolean = false
     ): Promise<DataSheetPrototype.RowItemLocalization<Page>[]> {
         return this.getContentItemsFromPage(
-            page
+            page,
+            addMetadata
         ) as any as DataSheetPrototype.RowItemLocalization<Page>[]
     }
 
     async getContentFrom<Page extends DataSheetPrototype.SomePageContent>(
-        page: Page
+        page: Page,
+        addMetadata: boolean = false
     ): Promise<DataSheetPrototype.RowItemContent<Page>[]> {
         return this.getContentItemsFromPage(
-            page
+            page,
+            addMetadata
         ) as any as DataSheetPrototype.RowItemContent<Page>[]
     }
 
@@ -58,12 +63,13 @@ export class SheetDataProviderService {
     // =====================
 
     private async getContentItemsFromPage(
-        page: DataSheetPrototype.SomePage
+        page: DataSheetPrototype.SomePage,
+        addMetadata: boolean
     ): Promise<Record<string, string | Record<string, string>>[]> {
         const pageConfig = DataSheetPrototype.getSchemaForPage(page)
         const cacheConfig = pageConfig.cacheConfiguration
         const validation = pageConfig.validation
-        let content = await this.sheetDataProvider.getContentByListName(
+        const content = await this.sheetDataProvider.getContentByListName(
             pageConfig.sheetPublicName,
             `${cacheConfig.firstLetter}${cacheConfig.configurationRow}:${cacheConfig.lastLetter}${cacheConfig.lastContentRow}`
         )
@@ -83,19 +89,29 @@ export class SheetDataProviderService {
         })
         const configurationRowLanguages = configurationRow.filter(
             (rowKey) =>
-                itemPrototypeKeys.includes(rowKey) == false &&
-                LanguageCode.allCases.includes(rowKey)
+                itemPrototypeKeys.includes(rowKey) == false && LanguageCode.isInstance(rowKey)
         )
 
-        content = content
+        const contentRows: SourceRowData[] = content
             .slice(cacheConfig.firstContentRow - cacheConfig.configurationRow)
-            .filter((row) => row.length >= validation.minRowLength)
+            .map((row, index) => {
+                return {
+                    rowIndex: index + cacheConfig.firstContentRow,
+                    content: row,
+                }
+            })
+            .filter((row) => row.content.length >= validation.minRowLength)
 
-        if (content.isEmpty) {
+        if (contentRows.isEmpty) {
             throw Error(`Sheet cache error: ${pageConfig.sheetId}. No content`)
         }
 
-        const result = this.rowsToStringRecords(configurationRow, content).map((rowRecord) => {
+        const result = this.rowsToStringRecords(configurationRow, contentRows).map((rowObject) => {
+            const rowRecord = rowObject.content
+            /**
+             * String value by default
+             * Record<string, string> for 'localizedValues' only
+             */
             const rowItem: Record<string, string | Record<string, string>> = {}
             const localizedValues: Record<string, string> = {}
             for (const rowKey in rowRecord) {
@@ -127,6 +143,10 @@ export class SheetDataProviderService {
                     )
                 }
             }
+
+            if (addMetadata) {
+                rowItem['sourceRowIndex'] = `${rowObject.rowIndex}`
+            }
             return rowItem
         })
 
@@ -135,14 +155,17 @@ export class SheetDataProviderService {
 
     private rowsToStringRecords(
         configurationRow: string[],
-        content: string[][]
-    ): Record<string, string>[] {
-        return content.map((row) => {
+        rows: SourceRowData[]
+    ): SourceRowDataObject[] {
+        return rows.map((row) => {
             const rowObject: Record<string, string> = {}
             configurationRow.forEach((key, index) => {
-                rowObject[key] = row[index]
+                rowObject[key] = row.content[index]
             })
-            return rowObject
+            return {
+                rowIndex: row.rowIndex,
+                content: rowObject,
+            }
         })
     }
 }

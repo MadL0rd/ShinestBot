@@ -1,0 +1,14 @@
+import { Injectable } from '@nestjs/common'
+
+declare global {
+    interface SomeType {
+       
+    }
+}
+
+@Injectable()
+export class <# ExtensionName #>Service {
+    initExtensions() {
+        
+    }
+}

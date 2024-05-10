@@ -1,0 +1,131 @@
+{
+    "format": {
+        "applyOnCommandsCompletion": true,
+        "scrypt": "npm run format"
+    },
+    "generationScripts": {
+        "uniqueMessages": {
+            "jsonConfigFilePath": "scripts/files-buff/unique-messages.json",
+            "cacheConfigCommand": "npm run scripts:execute-gum",
+            "resultSourceCodeFilePath": "src/entities/bot-content/nested/unique-message.entity.ts"
+        },
+        "other": [
+            {
+                "title": "New scene",
+                "nameQuestion": "Enter new scene name",
+                "namePlaceholders": {
+                    "caseCamel": "<# sceneName #>",
+                    "casePascal": "<# SceneName #>",
+                    "caseKebub": "<# scene-name #>"
+                },
+                "git": {
+                    "commitMessage": "Scene created: <# SceneName #>"
+                },
+                "createFiles": [
+                    {
+                        "resultSourceCodeFilePath": "src/presentation/scenes/implementations/<# scene-name #>.scene.ts",
+                        "templateFile": "scripts/templates/scene.template.txt"
+                    }
+                ],
+                "replacements": [
+                    {
+                        "filePath": "src/business-logic/user/enums/user-history-events.ts",
+                        "placeholder": "/** New scene event placeholder */",
+                        "replaceWith": "startScene<# SceneName #>: {\ntype: 'startScene<# SceneName #>',\nlocalizedTitle: 'Перешел к сцене <# sceneName #>',\n},\n/** New scene event placeholder */"
+                    },
+                    {
+                        "filePath": "src/presentation/scenes/models/scene-name.enum.ts",
+                        "placeholder": "/** New scene name placeholder */",
+                        "replaceWith": "'<# sceneName #>',\n/** New scene name placeholder */"
+                    },
+                    {
+                        "filePath": "src/presentation/scenes/scene-factory/scene-factory.service.ts",
+                        "placeholder": "/** New scene import placeholder */",
+                        "replaceWith": "import { <# SceneName #>Scene } from 'src/presentation/scenes/implementations/<# scene-name #>.scene'\n/** New scene import placeholder */"
+                    },
+                    {
+                        "filePath": "src/presentation/scenes/scene-factory/scene-factory.service.ts",
+                        "placeholder": "/** New scene generation placeholder */",
+                        "replaceWith": "case '<# sceneName #>':\n return this.injectionsProvider.resolve(<# SceneName #>Scene)\n/** New scene generation placeholder */"
+                    },
+                    {
+                        "filePath": "src/presentation/scenes/models/scene-entrance.interface.ts",
+                        "placeholder": "/** New scene entrance dto import placeholder */",
+                        "replaceWith": "import { <# SceneName #>SceneEntranceDto } from 'src/presentation/scenes/implementations/<# scene-name #>.scene'\n/** New scene entrance dto import placeholder */"
+                    },
+                    {
+                        "filePath": "src/presentation/scenes/models/scene-entrance.interface.ts",
+                        "placeholder": "/** New scene entrance dto placeholder */",
+                        "replaceWith": "| <# SceneName #>SceneEntranceDto\n/** New scene entrance dto placeholder */"
+                    }
+                ]
+            },
+            {
+                "title": "New entity",
+                "nameQuestion": "Enter new entity name",
+                "namePlaceholders": {
+                    "caseCamel": "<# entityName #>",
+                    "casePascal": "<# EntityName #>",
+                    "caseKebub": "<# entity-name #>"
+                },
+                "git": {
+                    "commitMessage": "Entity created: <# EntityName #>"
+                },
+                "createFiles": [
+                    {
+                        "resultSourceCodeFilePath": "src/entities/<# entity-name #>/<# entity-name #>.helper.ts",
+                        "templateFile": "scripts/templates/entity-helper.template.txt"
+                    },
+                    {
+                        "resultSourceCodeFilePath": "src/entities/<# entity-name #>/<# entity-name #>.formatter.ts",
+                        "templateFile": "scripts/templates/entity-formatter.template.txt"
+                    },
+                    {
+                        "resultSourceCodeFilePath": "src/entities/<# entity-name #>/<# entity-name #>.entity.ts",
+                        "templateFile": "scripts/templates/entity.template.txt"
+                    },
+                    {
+                        "resultSourceCodeFilePath": "src/entities/<# entity-name #>/index.ts",
+                        "templateFile": "scripts/templates/entity-index.template.txt"
+                    }
+                ],
+                "replacements": []
+            },
+            {
+                "title": "New extension",
+                "nameQuestion": "Enter new extension name",
+                "namePlaceholders": {
+                    "caseCamel": "<# extensionName #>",
+                    "casePascal": "<# ExtensionName #>",
+                    "caseKebub": "<# extension-name #>"
+                },
+                "git": {
+                    "commitMessage": "Extension created: <# ExtensionName #>"
+                },
+                "createFiles": [
+                    {
+                        "resultSourceCodeFilePath": "src/extensions/<# extension-name #>/<# extension-name #>.service.ts",
+                        "templateFile": "scripts/templates/extension.template.txt"
+                    }
+                ],
+                "replacements": [
+                    {
+                        "filePath": "src/extensions/extensions.module.ts",
+                        "placeholder": "/** New extension service initExtensions method placeholder */",
+                        "replaceWith": "new <# ExtensionName #>Service().initExtensions()\n/** New extension service initExtensions method placeholder */"
+                    },
+                    {
+                        "filePath": "src/extensions/extensions.module.ts",
+                        "placeholder": "/** New extension service placeholder */",
+                        "replaceWith": "<# ExtensionName #>Service,\n/** New extension service placeholder */"
+                    },
+                    {
+                        "filePath": "src/extensions/extensions.module.ts",
+                        "placeholder": "/** New extension service import placeholder */",
+                        "replaceWith": "import { <# ExtensionName #>Service } from './<# extension-name #>/<# extension-name #>.service'\n/** New extension service import placeholder */"
+                    }
+                ]
+            }
+        ]
+    }
+}
