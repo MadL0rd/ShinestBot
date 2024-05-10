@@ -1,8 +1,9 @@
+import * as fs from 'fs'
+import * as path from 'path'
 import { Injectable } from '@nestjs/common'
 import { Command, CommandRunner } from 'nest-commander'
 import { SheetDataProviderService } from 'src/core/sheet-data-provider/sheet-data-provider.service'
-import * as fs from 'fs'
-import * as path from 'path'
+import { internalConstants } from 'src/app/app.internal-constants'
 
 function ensureDirectoryExistence(filePath: string) {
     const dirname = path.dirname(filePath)
@@ -38,6 +39,11 @@ export class CacheUniqueMessagesCommand extends CommandRunner {
                             type: param[1],
                         }
                     })
+                if (row.sourceRowIndex) {
+                    const rowUrl = `https://docs.google.com/spreadsheets/d/${internalConstants.googleSpreadsheetId}/edit#gid=0&range=${row.sourceRowIndex}:${row.sourceRowIndex}`
+                    const rowLink = `[Spreadsheet row link](${rowUrl})`
+                    row.comment = row.comment ? `${row.comment}\n\n${rowLink}` : rowLink
+                }
                 return {
                     group: row.group,
                     key: row.key,
