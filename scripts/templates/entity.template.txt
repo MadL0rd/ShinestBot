@@ -1,0 +1,15 @@
+import { _<# EntityName #>Formatter } from './<# entity-name #>.formatter'
+import { _<# EntityName #>Helper } from './<# entity-name #>.helper'
+
+/**
+ * Namespace for <# EntityName #> entity related functionality.
+ * This namespace should contain types representing the entity's types and alias to `Helper` and `Formatter` namespaces.
+ */
+export namespace _<# EntityName #>Entity {
+    export import Helper = _<# EntityName #>Helper
+    export import Formatter = _<# EntityName #>Formatter
+
+    export type BaseType = {
+        value: undefined
+    }
+}

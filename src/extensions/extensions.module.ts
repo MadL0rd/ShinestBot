@@ -4,6 +4,7 @@ import { StringExtensionService } from './string-extension/string-extension.serv
 import { NumberExtensionService } from './number-extension/number-extension.service'
 import { DateExtensionService } from './date-extension/date-extension.service'
 import { BooleanExtensionService } from './boolean-extension/boolean-extension.service'
+/** New extension service import placeholder */
 
 @Module({
     providers: [
@@ -12,6 +13,7 @@ import { BooleanExtensionService } from './boolean-extension/boolean-extension.s
         NumberExtensionService,
         DateExtensionService,
         BooleanExtensionService,
+        /** New extension service placeholder */
     ],
 })
 export class ExtensionsModule {
@@ -21,5 +23,6 @@ export class ExtensionsModule {
         new NumberExtensionService().initExtensions()
         new DateExtensionService().initExtensions()
         new BooleanExtensionService().initExtensions()
+        /** New extension service initExtensions method placeholder */
     }
 }

@@ -8,10 +8,10 @@ import { logger } from 'src/app/app.logger'
 import { internalConstants } from 'src/app/app.internal-constants'
 import { LocalizationService } from '../../core/localization/localization.service'
 import { SheetDataProviderService } from '../../core/sheet-data-provider/sheet-data-provider.service'
-import { UniqueMessage } from 'src/entities/bot-content/nested/unique-message.entity'
 import { Survey } from 'src/entities/survey'
 import { BotContent } from 'src/entities/bot-content'
 import { BotContentDocument, BotContentSchema } from './schemas/bot-content.schema'
+import { UniqueMessagePrimitive } from 'src/entities/bot-content/nested/unique-message.entity'
 
 @Injectable()
 export class BotContentService implements OnModuleInit {
@@ -20,14 +20,14 @@ export class BotContentService implements OnModuleInit {
     // =====================
 
     private readonly cachedTrueValue = 'TRUE'
-    private botContentCache: Map<string, BotContentDocument>
+    private botContentCache: Map<string, BotContent.BaseType>
 
     constructor(
         @InjectModel(BotContentSchema.name) private model: Model<BotContentSchema>,
         private readonly sheetDataProvider: SheetDataProviderService,
         private readonly localizationService: LocalizationService
     ) {
-        this.botContentCache = new Map<string, BotContentDocument>()
+        this.botContentCache = new Map<string, BotContent.BaseType>()
     }
 
     async onModuleInit(): Promise<void> {
@@ -63,19 +63,20 @@ export class BotContentService implements OnModuleInit {
         return botContent.compactMap((content) => content.language)
     }
 
-    async getContent(language: string): Promise<BotContentDocument> {
+    async getContent(language: string): Promise<BotContent.BaseType> {
         const contentCache = this.botContentCache.get(language)
         if (contentCache) {
             return contentCache
         }
-        const contentPage = await this.findOneBy(language)
-        if (!contentPage) {
+        const contentPagePrimitive = await this.findOneBy(language)
+        if (!contentPagePrimitive) {
             if (language == internalConstants.defaultLanguage) {
                 throw Error(`No bot content with language ${language}`)
             }
             return await this.getContent(internalConstants.defaultLanguage)
         }
 
+        const contentPage = BotContent.Helper.insertBotContentMethods(contentPagePrimitive)
         this.botContentCache.set(language, contentPage)
         return contentPage
     }
@@ -94,7 +95,7 @@ export class BotContentService implements OnModuleInit {
                 await this.cacheSurvey()
                 break
         }
-        this.botContentCache = new Map<string, BotContentDocument>()
+        this.botContentCache.clear()
     }
 
     async cacheLocalization() {
@@ -132,7 +133,8 @@ export class BotContentService implements OnModuleInit {
     }
 
     private async findOneBy(lang: string): Promise<BotContentDocument | null> {
-        return this.model.findOne({ language: lang }).exec()
+        const result = await this.model.findOne({ language: lang }).exec()
+        return result
     }
 
     /** Needs to clear all old BotContent models with unsupported languages from database */
@@ -141,7 +143,7 @@ export class BotContentService implements OnModuleInit {
         for (const dbLanguage of dbLanguages) {
             if (currentLanguages.includes(dbLanguage)) continue
             await this.model.deleteOne({ language: dbLanguage }).exec()
-            this.botContentCache = new Map<string, BotContentDocument>()
+            this.botContentCache.clear()
         }
     }
 
@@ -174,7 +176,7 @@ export class BotContentService implements OnModuleInit {
             })
 
         // Prepare prototype for validation
-        const uniqueMessagePrototype = new UniqueMessage() as any as Record<
+        const uniqueMessagePrototype = new UniqueMessagePrimitive() as any as Record<
             string,
             Record<string, string>
         >
@@ -234,7 +236,8 @@ export class BotContentService implements OnModuleInit {
             // Write result
             await this.createOrUpdateExisting(language, {
                 language: language,
-                uniqueMessage: uniqueMessagePrecastObject as unknown as UniqueMessage,
+                uniqueMessage:
+                    uniqueMessagePrecastObject as unknown as BotContent.UniqueMessagePrimitive,
             })
         }
 

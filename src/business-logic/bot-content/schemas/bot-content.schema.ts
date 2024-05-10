@@ -5,12 +5,12 @@ import { BotContent } from 'src/entities/bot-content'
 import { Survey } from 'src/entities/survey'
 
 @Schema({ collection: 'bot-content' })
-export class BotContentSchema implements BotContent.BaseType {
+export class BotContentSchema implements BotContent.BaseTypePrimitive {
     @Prop()
     language: string
 
     @Prop({ type: mongoose.Schema.Types.Mixed })
-    uniqueMessage: BotContent.UniqueMessage
+    uniqueMessage: BotContent.UniqueMessagePrimitive
 
     @Prop()
     onboarding: BotContent.OnboardingPage.BaseType[]
@@ -19,5 +19,5 @@ export class BotContentSchema implements BotContent.BaseType {
     survey: Survey.BaseType
 }
 
-export type BotContentDocument = MongoDocument<BotContent.BaseType>
+export type BotContentDocument = MongoDocument<BotContent.BaseTypePrimitive>
 export const botContentSchema = SchemaFactory.createForClass(BotContentSchema)

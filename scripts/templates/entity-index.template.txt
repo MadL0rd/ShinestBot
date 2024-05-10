@@ -1,0 +1,3 @@
+import { _<# EntityName #>Entity } from './<# entity-name #>.entity'
+
+export { _<# EntityName #>Entity as <# EntityName #> }

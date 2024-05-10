@@ -35,9 +35,9 @@ export namespace DataSheetPrototype {
             localizedValues: Record<string, string>
         },
         keyof (typeof schemaLocalization)[Page]['validation']['requiredFields'] | 'localizedValues'
-    >
+    > & { sourceRowIndex?: string }
     export type RowItemContent<Page extends SomePageContent> = RowPrototype<
         (typeof schemaContent)[Page]['itemPrototype'],
         keyof (typeof schemaContent)[Page]['validation']['requiredFields']
-    >
+    > & { sourceRowIndex?: string }
 }

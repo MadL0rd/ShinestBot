@@ -189,9 +189,10 @@ export class SurveyQuestionMultipleChoiceScene extends Scene<ISceneData, SceneEn
         question: Survey.QuestionWithMultipleChoice,
         selectedOptionsIdsList: string[]
     ): string {
-        const description = this.text.surveyQuestionMultipleChoice.textDescription
-            .replace('minCount', question.minCount.toString())
-            .replace('maxCount', question.maxCount.toString())
+        const description = this.text.surveyQuestionMultipleChoice.textDescription({
+            minCount: question.minCount,
+            maxCount: question.maxCount,
+        })
 
         let result = description
 

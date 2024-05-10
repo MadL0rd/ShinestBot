@@ -26,7 +26,6 @@ import {
 import { SceneCallbackData } from './scene-callback'
 import { InlineButtonDto, generateInlineButton } from 'src/presentation/utils/inline-button.utils'
 import { UserProfile } from 'src/entities/user-profile'
-import { UniqueMessage } from 'src/entities/bot-content/nested/unique-message.entity'
 import { BotContent } from 'src/entities/bot-content'
 
 export abstract class Scene<SceneDataType extends object, SceneEnterDataType extends object>
@@ -36,7 +35,7 @@ export abstract class Scene<SceneDataType extends object, SceneEnterDataType ext
     // Private properties
     // =====================
     private _content: BotContent.BaseType
-    private _text: UniqueMessage
+    private _text: BotContent.UniqueMessage
     private _user: UserProfileDocument
     private _userActivePermissions: UserProfile.PermissionNames.Union[]
 
@@ -56,7 +55,7 @@ export abstract class Scene<SceneDataType extends object, SceneEnterDataType ext
     protected get content(): BotContent.BaseType {
         return this._content
     }
-    protected get text(): UniqueMessage {
+    protected get text(): BotContent.UniqueMessage {
         return this._text
     }
 
