@@ -68,9 +68,10 @@ nest g s business-logic/module-name --no-spec
 
 ## Chinest Cli
 
+
 If installed localy
 ```sh
-npm run generate
+npm run gen
 ```
 
 If installed globaly
