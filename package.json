@@ -19,8 +19,10 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "cache-unique-messages": "nest start --entryFile scripts/commands-main -- g",
-    "generate": "npx shinest g"
+    "scripts:run": "nest start --config scripts/nest-cli.json --path scripts/tsconfig.json -- gum",
+    "scripts:build": "nest build --config scripts/nest-cli.json --path scripts/tsconfig.json",
+    "scripts:execute-gum": "(path-exists scripts/dist/scripts || npm run scripts:build) && node scripts/dist/scripts/commands-main gum",
+    "gen": "npx shinest generate"
   },
   "dependencies": {
     "@google-cloud/local-auth": "^3.0.1",
@@ -79,7 +81,8 @@
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.3.3",
-    "@madl0rd/shinest-cli": "^0.1.3"
+    "@madl0rd/shinest-cli": "^0.1.3",
+    "path-exists-cli": "2.0.0"
   },
   "jest": {
     "moduleFileExtensions": [

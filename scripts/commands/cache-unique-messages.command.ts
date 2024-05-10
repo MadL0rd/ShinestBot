@@ -15,7 +15,11 @@ function ensureDirectoryExistence(filePath: string) {
 }
 
 @Injectable()
-@Command({ name: 'g', description: 'Jopa' })
+@Command({
+    name: 'generate-unique-messages',
+    aliases: ['gum'],
+    description: 'Generate unique-messages.json',
+})
 export class CacheUniqueMessagesCommand extends CommandRunner {
     private readonly cachedTrueValue = 'TRUE'
 
@@ -24,8 +28,10 @@ export class CacheUniqueMessagesCommand extends CommandRunner {
     }
 
     async run(): Promise<void> {
-        const uniqueMessagesCached =
-            await this.sheetDataProvider.getContentFrom('uniqueMessagesContent')
+        const uniqueMessagesCached = await this.sheetDataProvider.getContentFrom(
+            'uniqueMessagesContent',
+            true
+        )
         const uniqueMessagesJson = uniqueMessagesCached
             .filter((row) => row.isUniqueMessage === this.cachedTrueValue)
             .map((row) => {

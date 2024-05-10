@@ -39,18 +39,22 @@ export class SheetDataProviderService {
     }
 
     async getLocalizedStringsFrom<Page extends DataSheetPrototype.SomePageLocalization>(
-        page: Page
+        page: Page,
+        addMetadata: boolean = false
     ): Promise<DataSheetPrototype.RowItemLocalization<Page>[]> {
         return this.getContentItemsFromPage(
-            page
+            page,
+            addMetadata
         ) as any as DataSheetPrototype.RowItemLocalization<Page>[]
     }
 
     async getContentFrom<Page extends DataSheetPrototype.SomePageContent>(
-        page: Page
+        page: Page,
+        addMetadata: boolean = false
     ): Promise<DataSheetPrototype.RowItemContent<Page>[]> {
         return this.getContentItemsFromPage(
-            page
+            page,
+            addMetadata
         ) as any as DataSheetPrototype.RowItemContent<Page>[]
     }
 
@@ -59,7 +63,8 @@ export class SheetDataProviderService {
     // =====================
 
     private async getContentItemsFromPage(
-        page: DataSheetPrototype.SomePage
+        page: DataSheetPrototype.SomePage,
+        addMetadata: boolean
     ): Promise<Record<string, string | Record<string, string>>[]> {
         const pageConfig = DataSheetPrototype.getSchemaForPage(page)
         const cacheConfig = pageConfig.cacheConfiguration
@@ -84,8 +89,7 @@ export class SheetDataProviderService {
         })
         const configurationRowLanguages = configurationRow.filter(
             (rowKey) =>
-                itemPrototypeKeys.includes(rowKey) == false &&
-                LanguageCode.allCases.includes(rowKey)
+                itemPrototypeKeys.includes(rowKey) == false && LanguageCode.isInstance(rowKey)
         )
 
         const contentRows: SourceRowData[] = content
@@ -140,7 +144,9 @@ export class SheetDataProviderService {
                 }
             }
 
-            rowItem['sourceRowIndex'] = `${rowObject.rowIndex}`
+            if (addMetadata) {
+                rowItem['sourceRowIndex'] = `${rowObject.rowIndex}`
+            }
             return rowItem
         })
 

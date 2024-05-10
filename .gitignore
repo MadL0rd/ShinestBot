@@ -1,8 +1,9 @@
 # compiled output
 /dist
+/scripts/dist
 /node_modules
-.env
 /scripts/files-buff
+.env
 
 *.xlsx
 
