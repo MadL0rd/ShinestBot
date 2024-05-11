@@ -50,29 +50,6 @@ export class PrivateDialogDispatcherService {
             logger.error(`Founded ctx without sender (prop ctx.from)\nCtx: ${JSON.stringify(ctx)}`)
             return
         }
-
-        const message = ctx.message as Message.TextMessage
-        const startParam =
-            message?.entities?.first?.type === 'bot_command' ? message.text.split(' ')[1] : null
-        const user = await this.userService.createIfNeededAndGet({
-            telegramId: ctx.from.id,
-            telegramInfo: ctx.from,
-            internalInfo: {
-                startParam: startParam,
-                registrationDate: new Date(),
-                permissions: [],
-                notificationsSchedule: {},
-                publications: [],
-                adminsOnly: {},
-            },
-            sceneData: {
-                sceneName: undefined,
-                data: undefined,
-            },
-        })
-
-        await this.userService.logToUserHistory(user, { type: 'start', startParam: startParam })
-
         const userContext = await this.generateSceneUserContext(ctx.from)
 
         const startScene = this.createSceneWith(this.startScene.sceneName, userContext)
@@ -81,7 +58,11 @@ export class PrivateDialogDispatcherService {
             return
         }
         const sceneCompletion = await startScene.handleEnterScene(ctx, this.startScene)
-
+        const user = await this.userService.findOneByTelegramId(ctx.from.id)
+        if (!user) {
+            logger.error(`Cannot find user id: ${ctx.from.id}`)
+            return
+        }
         // Save scene state
         await this.userService.update({
             telegramId: ctx.from.id,
