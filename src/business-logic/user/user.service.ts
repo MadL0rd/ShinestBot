@@ -43,9 +43,6 @@ export class UserService {
             .exec()
     }
 
-    //=====
-    // Get User document without user history
-    //=====
     async findOneByTelegramId(telegramId: number): Promise<UserProfileDocument | null> {
         return this.userModel
             .findOne({ telegramId: telegramId })
