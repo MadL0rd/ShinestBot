@@ -23,6 +23,7 @@ enum EnvKeys {
     moderationChatId = 'MODERATION_CHAT_ID',
     publicationMainChannelId = 'PUBLICATION_MAIN_CHANNEL_ID',
     publicationMainChannelName = 'PUBLICATION_MAIN_CHANNEL_NAME',
+    moderationForumId = 'MODERATION_FORUM_ID',
     errorsChatId = 'ERRORS_CHAT_ID',
 
     // GPT
@@ -102,6 +103,9 @@ class InternalConstants {
     }
     get publicationMainChannelName(): string {
         return this.getEnvString(EnvKeys.publicationMainChannelName)
+    }
+    get moderationForumId(): number {
+        return this.getEnvNumber(EnvKeys.moderationForumId)
     }
     get errorsChatId(): number {
         return this.getEnvNumber(EnvKeys.errorsChatId)

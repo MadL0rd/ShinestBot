@@ -13,6 +13,7 @@ export namespace _UserProfileEntity {
 
     export type BaseType = {
         telegramId: number
+        telegramTopic?: TelegramTopicInfo
         telegramInfo: TelegramInfo
         sceneData: SceneData
         internalInfo: InternalInfo.BaseType
@@ -20,6 +21,11 @@ export namespace _UserProfileEntity {
 
     export import InternalInfo = _UserProfileInternalInfo
     export import PermissionNames = _UserProfilePermissionNames
+
+    export type TelegramTopicInfo = {
+        chatId: number
+        messageThreadId: number
+    }
 
     export type TelegramInfo = {
         id: number

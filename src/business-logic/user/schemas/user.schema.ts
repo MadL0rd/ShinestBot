@@ -9,6 +9,9 @@ export class UserProfileSchema implements UserProfile.BaseType {
     telegramId: number
 
     @Prop({ type: mongoose.Schema.Types.Mixed })
+    telegramTopic?: UserProfile.TelegramTopicInfo
+
+    @Prop({ type: mongoose.Schema.Types.Mixed })
     telegramInfo: UserProfile.TelegramInfo
 
     @Prop({ type: mongoose.Schema.Types.Mixed })

@@ -7,6 +7,6 @@ export namespace _UserProfilePermissionNames {
     }
     export function castToInstance(value?: string | Union | null): Union | null {
         if (!value) return null
-        return includes(value) ? (value as Union) : null
+        return includes(value) ? value : null
     }
 }

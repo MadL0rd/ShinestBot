@@ -221,9 +221,13 @@ namespace SpreadsheetPageCacheStatus {
     export type Union = (typeof allCases)[number]
     export const allCases = ['loading', 'success', 'error'] as const
 
+    export function includes(value: string | Union): value is Union {
+        return allCases.includes(value)
+    }
+
     export function castToInstance(value?: string | Union | null): Union | null {
         if (!value) return null
-        return allCases.includes(value) ? (value as Union) : null
+        return includes(value) ? value : null
     }
 
     export function getEmojiForStatus(value: Union) {

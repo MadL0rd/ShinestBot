@@ -6,6 +6,7 @@ import { internalConstants } from './app.internal-constants'
 import { RuntimeExeptionGuard } from '../exeptions-and-logging/runtime-exeption-guard.decorator'
 import { PrivateDialogDispatcherService } from '../presentation/dispatchers/private-dialog-dispatcher/private-dialog-dispatcher.service'
 import { ModerationChatDispatcherService } from 'src/presentation/dispatchers/moderation-chat-dispatcher/moderation-chat-dispatcher.service'
+import { UserBuilderService } from 'src/presentation/user-adapter/user-builder.service'
 
 @UpdateNest()
 export class AppUpdate {
@@ -16,7 +17,8 @@ export class AppUpdate {
     constructor(
         @InjectBot() private readonly bot: Telegraf<Context>,
         private readonly privateDialogDispatcher: PrivateDialogDispatcherService,
-        private readonly moderationChatDispatcher: ModerationChatDispatcherService
+        private readonly moderationChatDispatcher: ModerationChatDispatcherService,
+        private readonly userBuilder: UserBuilderService
     ) {}
 
     // =====================
@@ -28,6 +30,11 @@ export class AppUpdate {
     async startCommand(ctx: Context<Update>) {
         if (ctx.chat?.type !== 'private') return
         logger.log(`User ${ctx.from?.id} ${ctx.from?.first_name} has started the bot`)
+        const userProfile = await this.userBuilder.getUserProfile(ctx)
+        if (!userProfile) {
+            const tgUserInfo = JSON.stringify(ctx.from, null, 2)
+            throw Error(`Cannot create user profile with id ${tgUserInfo}`)
+        }
         await this.privateDialogDispatcher.handleUserStart(ctx)
     }
 
@@ -60,6 +67,12 @@ export class AppUpdate {
 
         if (ctx.chat?.type === 'private') {
             // Message from private chat with user
+            const userProfile = await this.userBuilder.getUserProfile(ctx)
+            if (!userProfile) {
+                const tgUserInfo = JSON.stringify(ctx.from, null, 2)
+                throw Error(`Cannot create user profile with id ${tgUserInfo}`)
+            }
+            await this.userBuilder.replyUserMessageInTopic(ctx, userProfile)
             await this.privateDialogDispatcher.handleUserMessage(ctx)
         } else if (ctx.chat?.id == internalConstants.moderationChatId) {
             // Message in moderation chat
@@ -138,6 +151,11 @@ export class AppUpdate {
         )
         if (ctx.chat?.type === 'private') {
             // Message from private chat with user
+            const userProfile = await this.userBuilder.getUserProfile(ctx)
+            if (!userProfile) {
+                const tgUserInfo = JSON.stringify(ctx.from, null, 2)
+                throw Error(`Cannot create user profile with id ${tgUserInfo}`)
+            }
             await this.privateDialogDispatcher.handleUserCallback(ctx)
         }
     }
