@@ -14,6 +14,7 @@ import { DispatchersModule } from '../presentation/dispatchers/dispatchers.modul
 import { ScenesModule } from '../presentation/scenes/scenes.module'
 import { SheetDataProviderModule } from '../core/sheet-data-provider/sheet-data-provider.module'
 import { PublicationStorageModule } from 'src/business-logic/publication-storage/publication-storage.module'
+import { UserAdapterModule } from 'src/presentation/user-adapter/user-adapter.module'
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const mediaGroup = require('telegraf-media-group')
 
@@ -50,6 +51,7 @@ const mediaGroup = require('telegraf-media-group')
         ScenesModule,
         SheetDataProviderModule,
         PublicationStorageModule,
+        UserAdapterModule,
     ],
     providers: [AppUpdate],
 })

@@ -54,7 +54,7 @@ export class <# SceneName #>Scene extends Scene<ISceneData, SceneEnterDataType> 
         )
         await this.logToUserHistory({type: 'startScene<# SceneName #>'})
 
-        await ctx.replyWithHTML('Hello from <# SceneName #>', super.keyboardMarkupWithAutoLayoutFor(['Hello!']))
+        await ctx.replyWithHTML('Hello from <# SceneName #>', super.keyboardMarkupWithAutoLayoutFor(['Hello']))
 
         return this.completion.inProgress({})
     }
@@ -66,10 +66,14 @@ export class <# SceneName #>Scene extends Scene<ISceneData, SceneEnterDataType> 
         const message = ctx.message
         if (!message || !('text' in message)) return this.completion.canNotHandle({})
 
-        await ctx.replyWithHTML(`Echo:\n${message.text}`)
-        await ctx.replyWithHTML(`Goodbye`, Markup.removeKeyboard())
+        switch (message.text) {
+            case 'Hello':
+                await ctx.replyWithHTML(`Echo:\n${message.text}`)
+                await ctx.replyWithHTML(`Goodbye`, Markup.removeKeyboard())
+                return this.completion.complete()
+        }
 
-        return this.completion.complete()
+        return this.completion.canNotHandle({})
     }
 
     async handleCallback(

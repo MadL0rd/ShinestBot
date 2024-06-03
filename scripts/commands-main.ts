@@ -9,12 +9,12 @@ import { ExtensionsModule } from '../src/extensions/extensions.module'
     imports: [ConfigModule.forRoot(), SheetDataProviderModule],
     providers: [CacheUniqueMessagesCommand],
 })
-export class AppKekModule {}
+export class AppCommandsModule {}
 
 async function bootstrap() {
     const extensions = new ExtensionsModule()
     extensions.initExtensions()
-    await CommandFactory.run(AppKekModule)
+    await CommandFactory.run(AppCommandsModule)
 }
 
 bootstrap()
