@@ -79,6 +79,10 @@ If installed globaly
 shinest g
 ```
 
+## Support
+🧐 Have any questions?</br>
+[🙌 Contact support](https://t.me/+6Kerrz2SndNmZjUy)
+
 ## License
 
 Shinest Bot is licensed under the terms of the [MIT license](LICENSE.md). Please see the [LICENSE](LICENSE.md) file for full details.
