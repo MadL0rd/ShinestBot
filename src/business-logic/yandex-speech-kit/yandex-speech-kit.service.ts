@@ -16,7 +16,7 @@ export class YandexSpeechKitService {
         const buffer = Buffer.from(await response.arrayBuffer())
 
         const result = await speech2text(buffer, {
-            auth: `Api-Key ${internalConstants.yandexApiKey}`,
+            auth: `Api-Key ${internalConstants.yandexSpeechKitApiKey}`,
         })
 
         return result

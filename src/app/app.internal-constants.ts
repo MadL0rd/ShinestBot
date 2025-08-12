@@ -31,7 +31,7 @@ enum EnvKeys {
     gptModelUri = 'GPT_MODEL_URI',
 
     // Yandex SpeechKit
-    yandexApiKey = 'YANDEX_API_KEY',
+    yandexSpeechKitApiKey = 'YANDEX_SPEECH_KIT_API_KEY',
 
     // Payment
     paymentProviderToken = 'PAYMENT_PROVIDER_TOKEN',
@@ -120,8 +120,8 @@ class InternalConstants {
     }
 
     // YandexSpeechKit
-    get yandexApiKey(): string {
-        return this.getEnvString(EnvKeys.yandexApiKey)
+    get yandexSpeechKitApiKey(): string {
+        return this.getEnvString(EnvKeys.yandexSpeechKitApiKey)
     }
 
     // Other
