@@ -1,3 +1,3 @@
-import { CreateUserDto } from './create-user.dto'
+import { UserProfile } from 'src/entities/user-profile'
 
-export interface UpdateUserDto extends Partial<CreateUserDto> {}
+export type UpdateUserDto = Partial<UserProfile.BaseType> & { telegramId: number }

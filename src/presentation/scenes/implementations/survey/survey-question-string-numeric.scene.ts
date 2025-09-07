@@ -1,18 +1,20 @@
 import { logger } from 'src/app/app.logger'
 import { UserService } from 'src/business-logic/user/user.service'
-import { Markup, Context } from 'telegraf'
-import { Update } from 'telegraf/types'
-import { SceneCallbackAction, SceneCallbackData } from '../../models/scene-callback'
-import { SceneEntrance } from '../../models/scene-entrance.interface'
-import { SceneName } from '../../models/scene-name.enum'
-import { SceneHandlerCompletion } from '../../models/scene.interface'
-import { Scene } from '../../models/scene.abstract'
-import { SceneUsagePermissionsValidator } from '../../models/scene-usage-permissions-validator'
-import { InjectableSceneConstructor } from '../../scene-factory/scene-injections-provider.service'
+import { Survey } from 'src/entities/survey'
 import { SurveyContextProviderType } from 'src/presentation/survey-context/abstract/survey-context-provider.interface'
 import { SurveyContextProviderFactoryService } from 'src/presentation/survey-context/survey-context-provider-factory/survey-context-provider-factory.service'
+import { ExtendedMessageContext } from 'src/utils/telegraf-middlewares/extended-message-context'
+import { Context, Types } from 'telegraf'
 import { removeKeyboard } from 'telegraf/markup'
-import { Survey } from 'src/entities/survey'
+import { Update } from 'telegraf/types'
+import z from 'zod'
+import { SceneCallbackData } from '../../models/scene-callback'
+import { SceneEntrance } from '../../models/scene-entrance.interface'
+import { SceneName } from '../../models/scene-name.enum'
+import { SceneUsagePermissionsValidator } from '../../models/scene-usage-permissions-validator'
+import { Scene } from '../../models/scene.abstract'
+import { SceneHandlerCompletion } from '../../models/scene.interface'
+import { InjectableSceneConstructor } from '../../scene-factory/scene-injections-provider.service'
 
 // =====================
 // Scene data classes
@@ -24,10 +26,21 @@ export class SurveyQuestionStringNumericSceneEntranceDto implements SceneEntranc
     readonly allowBackToPreviousQuestion: boolean
 }
 type SceneEnterDataType = SurveyQuestionStringNumericSceneEntranceDto
-interface ISceneData {
+type ISceneData = {
     readonly providerType: SurveyContextProviderType.Union
     readonly question: Survey.QuestionString | Survey.QuestionNumeric
+    navigationMessageId?: number
+    contentMessageId?: number
 }
+
+const sceneDataSchema = z.object({
+    providerType: z.enum(SurveyContextProviderType.allCases),
+    question: z
+        .any()
+        .transform((question) => question as Survey.QuestionString | Survey.QuestionNumeric),
+    navigationMessageId: z.number().optional(),
+    contentMessageId: z.number().optional(),
+})
 
 type CallbackDataType = {
     /** provider id */
@@ -46,16 +59,16 @@ export class SurveyQuestionStringNumericScene extends Scene<ISceneData, SceneEnt
     // Properties
     // =====================
 
-    readonly name: SceneName.Union = 'surveyQuestionStringNumeric'
-    protected get dataDefault(): ISceneData {
+    override readonly name: SceneName.Union = 'surveyQuestionStringNumeric'
+    protected override get dataDefault(): ISceneData {
         return {} as ISceneData
     }
-    protected get permissionsValidator(): SceneUsagePermissionsValidator.IPermissionsValidator {
+    protected override get permissionsValidator(): SceneUsagePermissionsValidator.IPermissionsValidator {
         return new SceneUsagePermissionsValidator.CanUseIfNotBanned()
     }
 
     constructor(
-        protected readonly userService: UserService,
+        protected override readonly userService: UserService,
         private readonly dataProviderFactory: SurveyContextProviderFactoryService
     ) {
         super()
@@ -65,58 +78,83 @@ export class SurveyQuestionStringNumericScene extends Scene<ISceneData, SceneEnt
     // Public methods
     // =====================
 
-    async handleEnterScene(
-        ctx: Context,
-        data?: SceneEnterDataType
-    ): Promise<SceneHandlerCompletion> {
-        logger.log(
-            `${this.name} scene handleEnterScene. User: ${this.user.telegramInfo.id} ${this.user.telegramInfo.username}`
-        )
-        await this.logToUserHistory({ type: 'startSceneSurveyQuestionStringNumeric' })
-
+    override async handleEnterScene(data?: SceneEnterDataType): Promise<SceneHandlerCompletion> {
         if (!data) {
             logger.error('Scene start data corrupted')
             return this.completion.complete()
         }
 
-        if (!data.question.isRequired || data.allowBackToPreviousQuestion) {
+        const sceneData: ISceneData = data
+
+        if (data.allowBackToPreviousQuestion) {
+            const provider = this.dataProviderFactory.getSurveyContextProvider(data.providerType)
+            const answersCache = await provider.getAnswersCache(this.user)
+            const prevAnswer = answersCache.passedAnswers.last
+            if (!prevAnswer) {
+                await this.ddi.sendHtml(data.question.questionText, removeKeyboard())
+                return this.completion.inProgress(data)
+            }
+            const navigationMessageText =
+                prevAnswer.question.serviceMessageNavigationText +
+                ' ' +
+                Survey.Helper.getAnswerStringValue(prevAnswer, this.text)
+
             const inlineButtonData: CallbackDataType = {
                 p: SurveyContextProviderType.getId(data.providerType),
                 a: data.question.id,
             }
-            await ctx.replyWithHTML(this.text.survey.texMessageAditionaltInlineMenu, {
+            const navigationMessage = await this.ddi.sendHtml(navigationMessageText, {
                 reply_markup: {
                     inline_keyboard: [
                         [
-                            data.question.isRequired
-                                ? null
-                                : this.inlineButton({
-                                      text: this.text.survey.buttonAditionaltInlineMenuSkip,
-                                      action: SceneCallbackAction.surveySkipQuestion,
-                                      data: inlineButtonData,
-                                  }),
                             data.allowBackToPreviousQuestion
                                 ? this.inlineButton({
-                                      text: this.text.survey
-                                          .buttonAditionaltInlineMenuBackToPrevious,
-                                      action: SceneCallbackAction.surveyBackToPreviousQuestion,
-                                      data: inlineButtonData,
+                                      text: this.text.survey.buttonBackToPreviousQuestion,
+                                      action: {
+                                          actionType: 'surveyBackToPreviousQuestion',
+                                          data: inlineButtonData,
+                                      },
                                   })
                                 : null,
                         ].compact,
                     ],
                 },
             })
+            sceneData.navigationMessageId = navigationMessage.message_id
         }
-        await ctx.replyWithHTML(data.question.questionText, removeKeyboard())
 
-        return this.completion.inProgress(data)
+        const contentKeyboard: Types.ExtraReplyMessage = data.question.isRequired
+            ? removeKeyboard()
+            : {
+                  reply_markup: {
+                      inline_keyboard: [
+                          [
+                              this.inlineButton({
+                                  text: this.text.survey.buttonInlineSkip,
+                                  action: {
+                                      actionType: 'surveySkipQuestion',
+                                      data: {
+                                          p: SurveyContextProviderType.getId(data.providerType),
+                                          a: data.question.id,
+                                      },
+                                  },
+                              }),
+                          ],
+                      ],
+                      remove_keyboard: true,
+                  },
+              }
+
+        const contentMessage = await this.ddi.sendHtml(data.question.questionText, contentKeyboard)
+        sceneData.contentMessageId = contentMessage.message_id
+
+        return this.completion.inProgress(sceneData)
     }
 
-    async handleMessage(ctx: Context, dataRaw: object): Promise<SceneHandlerCompletion> {
-        logger.log(
-            `${this.name} scene handleMessage. User: ${this.user.telegramInfo.id} ${this.user.telegramInfo.username}`
-        )
+    override async handleMessage(
+        ctx: ExtendedMessageContext,
+        dataRaw: object
+    ): Promise<SceneHandlerCompletion> {
         const data = this.restoreData(dataRaw)
         if (!data || !data.providerType || !data.question) {
             logger.error('Start data corrupted')
@@ -125,16 +163,20 @@ export class SurveyQuestionStringNumericScene extends Scene<ISceneData, SceneEnt
         const provider = this.dataProviderFactory.getSurveyContextProvider(data.providerType)
 
         const message = ctx.message
-        if (!message || !('text' in message)) return this.completion.canNotHandle(data)
+        if (!message) return this.completion.canNotHandle()
 
         switch (data.question.type) {
-            case 'numeric':
+            case 'numeric': {
+                if (message.type !== 'text') return this.completion.canNotHandle()
                 const convertedAnswer = parseFloat(
                     message.text.replaceAll(',', '.').trim().replaceAll(' ', '')
                 )
                 if (Number.isNaN(convertedAnswer)) {
-                    await ctx.replyWithHTML(this.text.survey.errorMessageAnswerIsNotNumber)
+                    await this.ddi.sendHtml(this.text.survey.errorMessageAnswerIsNotNumber)
                     return this.completion.inProgress(data)
+                }
+                if (data.contentMessageId) {
+                    await this.ddi.deleteMessage(data.contentMessageId).catch(() => {})
                 }
                 await provider.pushAnswerToCache(this.user, {
                     type: 'numeric',
@@ -146,7 +188,12 @@ export class SurveyQuestionStringNumericScene extends Scene<ISceneData, SceneEnt
                     providerType: data.providerType,
                     allowContinueQuestion: false,
                 })
+            }
             case 'string':
+                if (message.type !== 'text') return this.completion.canNotHandle()
+                if (data.contentMessageId) {
+                    await this.ddi.deleteMessage(data.contentMessageId).catch(() => {})
+                }
                 await provider.pushAnswerToCache(this.user, {
                     type: 'string',
                     question: data.question,
@@ -158,15 +205,15 @@ export class SurveyQuestionStringNumericScene extends Scene<ISceneData, SceneEnt
                     allowContinueQuestion: false,
                 })
         }
-        return this.completion.canNotHandle(data)
+        return this.completion.canNotHandle()
     }
 
-    async handleCallback(
+    override async handleCallback(
         ctx: Context<Update.CallbackQueryUpdate>,
         data: SceneCallbackData
     ): Promise<SceneHandlerCompletion> {
         if (ctx.callbackQuery.message) {
-            await ctx.deleteMessage(ctx.callbackQuery.message.message_id)
+            await this.ddi.deleteMessage(ctx.callbackQuery.message.message_id).catch(() => {})
         }
 
         if (
@@ -174,29 +221,37 @@ export class SurveyQuestionStringNumericScene extends Scene<ISceneData, SceneEnt
                 data.data &&
                 'a' in data.data &&
                 'p' in data.data &&
-                typeof data.data.a == 'string' &&
-                typeof data.data.p == 'number'
+                typeof data.data.a === 'string' &&
+                typeof data.data.p === 'number'
             )
         ) {
-            return this.completion.canNotHandleUnsafe()
+            return this.completion.canNotHandle()
         }
         const inlineButtonData = data.data as CallbackDataType
 
         const providerType = SurveyContextProviderType.getById(inlineButtonData.p)
-        if (!providerType) return this.completion.canNotHandleUnsafe()
+        if (!providerType) return this.completion.canNotHandle()
 
         const provider = this.dataProviderFactory.getSurveyContextProvider(providerType)
-        if (!provider) return this.completion.canNotHandleUnsafe()
+        if (!provider) return this.completion.canNotHandle()
+
+        const message = ctx.callbackQuery.message
+        if (!message) return this.completion.canNotHandle()
 
         const questionId = inlineButtonData.a
         const nextQuestion = await provider.getNextQuestion(this.user)
-        if (nextQuestion?.id != questionId) return this.completion.canNotHandleUnsafe()
+        if (nextQuestion?.id != questionId) return this.completion.canNotHandle()
 
-        switch (data.action) {
-            case SceneCallbackAction.surveyBackToPreviousQuestion:
-                await ctx.replyWithHTML(
-                    this.text.survey.textAditionaltInlineMenuBackToPreviousEventLog
-                )
+        switch (data.actionType) {
+            case 'surveyBackToPreviousQuestion': {
+                const sceneData = sceneDataSchema.safeParse(this.user.sceneData?.data).data
+                await this.ddi.resetMessageInlineKeyboard(message.message_id).catch(() => {})
+                if (sceneData && sceneData.contentMessageId) {
+                    await this.ddi.deleteMessage(sceneData.contentMessageId).catch(() => {})
+                }
+                if (sceneData && sceneData.navigationMessageId) {
+                    await this.ddi.deleteMessage(sceneData.navigationMessageId).catch(() => {})
+                }
                 return this.completion.complete({
                     sceneName: 'survey',
                     providerType: providerType,
@@ -206,20 +261,31 @@ export class SurveyQuestionStringNumericScene extends Scene<ISceneData, SceneEnt
                         questionId: questionId,
                     },
                 })
+            }
 
-            case SceneCallbackAction.surveySkipQuestion:
-                if (nextQuestion.isRequired) return this.completion.canNotHandleUnsafe()
+            case 'surveySkipQuestion': {
+                if (nextQuestion.isRequired) return this.completion.canNotHandle()
+
+                const sceneData = sceneDataSchema.safeParse(this.user.sceneData?.data).data
+                await this.ddi.resetMessageInlineKeyboard(message.message_id).catch((e) => {})
+                if (sceneData && sceneData.contentMessageId) {
+                    await this.ddi.deleteMessage(sceneData.contentMessageId).catch(() => {})
+                }
+                if (sceneData && sceneData.navigationMessageId) {
+                    await this.ddi.deleteMessage(sceneData.navigationMessageId).catch(() => {})
+                }
 
                 const answer = Survey.Helper.getEmptyAnswerForQuestion(nextQuestion)
                 await provider.pushAnswerToCache(this.user, answer)
-                await ctx.replyWithHTML(this.text.survey.textAditionaltInlineMenuSkipEventLog)
+                await this.ddi.sendHtml(this.text.survey.textInlineSkipEventLog)
                 return this.completion.complete({
                     sceneName: 'survey',
                     providerType: providerType,
                     allowContinueQuestion: false,
                 })
+            }
             default:
-                return this.completion.canNotHandleUnsafe()
+                return this.completion.canNotHandle()
         }
     }
 

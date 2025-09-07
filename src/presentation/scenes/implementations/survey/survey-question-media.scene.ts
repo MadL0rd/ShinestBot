@@ -1,17 +1,19 @@
 import { logger } from 'src/app/app.logger'
 import { UserService } from 'src/business-logic/user/user.service'
-import { Markup, Context } from 'telegraf'
-import { Message, Update } from 'telegraf/types'
-import { SceneCallbackData } from '../../models/scene-callback'
-import { SceneEntrance } from '../../models/scene-entrance.interface'
-import { SceneName } from '../../models/scene-name.enum'
-import { SceneHandlerCompletion } from '../../models/scene.interface'
-import { Scene } from '../../models/scene.abstract'
-import { SceneUsagePermissionsValidator } from '../../models/scene-usage-permissions-validator'
-import { InjectableSceneConstructor } from '../../scene-factory/scene-injections-provider.service'
+import { Survey } from 'src/entities/survey'
 import { SurveyContextProviderType } from 'src/presentation/survey-context/abstract/survey-context-provider.interface'
 import { SurveyContextProviderFactoryService } from 'src/presentation/survey-context/survey-context-provider-factory/survey-context-provider-factory.service'
-import { Survey } from 'src/entities/survey'
+import {
+    ExtendedMessage,
+    ExtendedMessageContext,
+} from 'src/utils/telegraf-middlewares/extended-message-context'
+import { Markup } from 'telegraf'
+import { SceneEntrance } from '../../models/scene-entrance.interface'
+import { SceneName } from '../../models/scene-name.enum'
+import { SceneUsagePermissionsValidator } from '../../models/scene-usage-permissions-validator'
+import { Scene } from '../../models/scene.abstract'
+import { SceneHandlerCompletion } from '../../models/scene.interface'
+import { InjectableSceneConstructor } from '../../scene-factory/scene-injections-provider.service'
 
 // =====================
 // Scene data classes
@@ -24,14 +26,11 @@ export class SurveyQuestionMediaSceneEntranceDto implements SceneEntrance.Dto {
     readonly mediaGroupBuffer: Survey.TelegramFileData[]
 }
 type SceneEnterDataType = SurveyQuestionMediaSceneEntranceDto
-interface ISceneData {
+type ISceneData = {
     readonly providerType: SurveyContextProviderType.Union
     readonly question: Survey.QuestionMedia
     readonly allowBackToPreviousQuestion: boolean
     mediaGroupBuffer: Survey.TelegramFileData[]
-}
-interface MediaGroupContext {
-    mediaGroup: Message[]
 }
 
 // =====================
@@ -44,16 +43,16 @@ export class SurveyQuestionMediaScene extends Scene<ISceneData, SceneEnterDataTy
     // Properties
     // =====================
 
-    readonly name: SceneName.Union = 'surveyQuestionMedia'
-    protected get dataDefault(): ISceneData {
+    override readonly name: SceneName.Union = 'surveyQuestionMedia'
+    protected override get dataDefault(): ISceneData {
         return {} as ISceneData
     }
-    protected get permissionsValidator(): SceneUsagePermissionsValidator.IPermissionsValidator {
+    protected override get permissionsValidator(): SceneUsagePermissionsValidator.IPermissionsValidator {
         return new SceneUsagePermissionsValidator.CanUseIfNotBanned()
     }
 
     constructor(
-        protected readonly userService: UserService,
+        protected override readonly userService: UserService,
         private readonly dataProviderFactory: SurveyContextProviderFactoryService
     ) {
         super()
@@ -63,15 +62,7 @@ export class SurveyQuestionMediaScene extends Scene<ISceneData, SceneEnterDataTy
     // Public methods
     // =====================
 
-    async handleEnterScene(
-        ctx: Context,
-        data?: SceneEnterDataType
-    ): Promise<SceneHandlerCompletion> {
-        logger.log(
-            `${this.name} scene handleEnterScene. User: ${this.user.telegramInfo.id} ${this.user.telegramInfo.username}`
-        )
-        await this.logToUserHistory({ type: 'startSceneSurveyQuestionMedia' })
-
+    override async handleEnterScene(data?: SceneEnterDataType): Promise<SceneHandlerCompletion> {
         if (!data) {
             logger.error('Scene start data corrupted')
             return this.completion.complete()
@@ -83,17 +74,16 @@ export class SurveyQuestionMediaScene extends Scene<ISceneData, SceneEnterDataTy
             allowBackToPreviousQuestion: data.allowBackToPreviousQuestion,
             mediaGroupBuffer: data.mediaGroupBuffer,
         }
-        await this.showMediaUploadingMenu(ctx, sceneData)
+        await this.showMediaUploadingMenu(sceneData)
 
         return this.completion.inProgress(sceneData)
     }
 
-    async handleMessage(ctx: Context, dataRaw: object): Promise<SceneHandlerCompletion> {
+    override async handleMessage(
+        ctx: ExtendedMessageContext,
+        dataRaw: object
+    ): Promise<SceneHandlerCompletion> {
         // Logging the scene's handling process.
-        logger.log(
-            `${this.name} scene handleMessage. User: ${this.user.telegramInfo.id} ${this.user.telegramInfo.username}`
-        )
-
         // Restoring data and checking for corruption.
         const data = this.restoreData(dataRaw)
         if (!data || !data.providerType || !data.question) {
@@ -105,7 +95,7 @@ export class SurveyQuestionMediaScene extends Scene<ISceneData, SceneEnterDataTy
         const provider = this.dataProviderFactory.getSurveyContextProvider(data.providerType)
 
         // Handling various user inputs based on message text.
-        if (ctx.message && 'text' in ctx.message) {
+        if (ctx.message.type === 'text') {
             switch (ctx.message.text) {
                 case this.text.survey.buttonOptionalQuestionSkip: {
                     if (data.question.isRequired) break
@@ -132,7 +122,7 @@ export class SurveyQuestionMediaScene extends Scene<ISceneData, SceneEnterDataTy
 
                 case this.text.surveyQuestionMedia.buttonEdit: {
                     if (data.mediaGroupBuffer.isEmpty) break
-                    await ctx.replyWithHTML(
+                    await this.ddi.sendHtml(
                         this.text.surveyQuestionMedia.textEditMode,
                         super.keyboardMarkupWithAutoLayoutFor([
                             ...Array.range(1, data.mediaGroupBuffer.length).map((x) => `${x}`),
@@ -142,27 +132,31 @@ export class SurveyQuestionMediaScene extends Scene<ISceneData, SceneEnterDataTy
                     return this.completion.inProgress(data)
                 }
 
+                case this.text.surveyQuestionMedia.textDeleteAllFiles: {
+                    if (data.mediaGroupBuffer.isEmpty) break
+                    data.mediaGroupBuffer = []
+                    await this.showMediaUploadingMenu(data)
+                    return this.completion.inProgress(data)
+                }
+
                 case this.text.surveyQuestionMedia.buttonEditModeExit: {
-                    await this.showMediaUploadingMenu(ctx, data)
+                    await this.showMediaUploadingMenu(data)
                     return this.completion.inProgress(data)
                 }
 
                 case this.text.surveyQuestionMedia.buttonDone: {
                     if (data.mediaGroupBuffer.isEmpty) break
-                    const mediasWithUrlPromises = await data.mediaGroupBuffer.map(
-                        async (mediaGroupElement) => {
-                            return await this.getFileLink(
-                                ctx,
-                                mediaGroupElement.telegramFileId,
-                                mediaGroupElement.fileType
-                            )
-                        }
-                    )
-                    const mediasWithUrl = await Promise.all(mediasWithUrlPromises)
+
                     await provider.pushAnswerToCache(this.user, {
                         type: data.question.type,
                         question: data.question,
-                        media: mediasWithUrl.compact,
+                        media: data.mediaGroupBuffer.map((mediaGroupElement) => {
+                            return {
+                                telegramFileId: mediaGroupElement.telegramFileId,
+                                telegramFileUniqueId: mediaGroupElement.telegramFileUniqueId,
+                                fileType: mediaGroupElement.fileType,
+                            }
+                        }),
                     } as Survey.PassedAnswer)
                     return this.completion.complete({
                         sceneName: 'survey',
@@ -170,11 +164,14 @@ export class SurveyQuestionMediaScene extends Scene<ISceneData, SceneEnterDataTy
                         allowContinueQuestion: false,
                     })
                 }
+
+                default:
+                    break
             }
         }
 
         // Handling delete requests for media in edit mode.
-        if (ctx.message && 'text' in ctx.message) {
+        if (ctx.message.type === 'text') {
             const mediaIndex = parseInt(ctx.message.text)
             if (
                 !mediaIndex ||
@@ -182,10 +179,10 @@ export class SurveyQuestionMediaScene extends Scene<ISceneData, SceneEnterDataTy
                 mediaIndex > data.mediaGroupBuffer.length ||
                 mediaIndex < 1
             ) {
-                return this.completion.canNotHandle(data)
+                return this.completion.canNotHandle()
             }
             data.mediaGroupBuffer.splice(mediaIndex - 1, 1)
-            await this.showMediaUploadingMenu(ctx, data)
+            await this.showMediaUploadingMenu(data)
 
             return this.completion.inProgress(data)
         }
@@ -194,41 +191,33 @@ export class SurveyQuestionMediaScene extends Scene<ISceneData, SceneEnterDataTy
         const contextMedia = this.getMediaFromContext(ctx).filter((mediaFile) => {
             switch (data.question.type) {
                 case 'image':
-                    return mediaFile.fileType == 'photo'
+                    return mediaFile.fileType === 'photo'
+                case 'singleImage':
+                    return mediaFile.fileType === 'photo'
                 case 'video':
-                    return mediaFile.fileType == 'video'
+                    return mediaFile.fileType === 'video'
                 case 'mediaGroup':
                     return true
             }
         })
-        if (
-            contextMedia.isNotEmpty &&
-            data.question.mediaMaxCount >= data.mediaGroupBuffer.length
-        ) {
+        if (contextMedia.isNotEmpty && data.question.maxCount >= data.mediaGroupBuffer.length) {
             for (const newMediaFile of contextMedia) {
-                if (data.question.mediaMaxCount == data.mediaGroupBuffer.length) break
+                if (data.question.maxCount === data.mediaGroupBuffer.length) break
                 data.mediaGroupBuffer.push(newMediaFile)
             }
-            await this.showMediaUploadingMenu(ctx, data)
+            await this.showMediaUploadingMenu(data)
             return this.completion.inProgress(data)
         }
 
         // If none of the cases match, indicate that the handler cannot process the data.
-        return this.completion.canNotHandle(data)
-    }
-
-    async handleCallback(
-        ctx: Context<Update.CallbackQueryUpdate>,
-        data: SceneCallbackData
-    ): Promise<SceneHandlerCompletion> {
-        throw Error('Method not implemented.')
+        return this.completion.canNotHandle()
     }
 
     // =====================
     // Private methods
     // =====================
 
-    private async showMediaUploadingMenu(ctx: Context<Update>, data: ISceneData) {
+    private async showMediaUploadingMenu(data: ISceneData) {
         // Extracting media group information.
         const mediaGroupArgs = data.mediaGroupBuffer.map((item) => ({
             type: item.fileType,
@@ -240,15 +229,18 @@ export class SurveyQuestionMediaScene extends Scene<ISceneData, SceneEnterDataTy
 
         // Sending media group if available.
         if (mediaGroupArgs.length > 0) {
-            await ctx.replyWithMediaGroup(mediaGroupArgs)
+            await this.ddi.sendMediaGroup({
+                media: mediaGroupArgs,
+            })
             buttons.push(
                 this.text.surveyQuestionMedia.buttonDone,
-                this.text.surveyQuestionMedia.buttonEdit
+                this.text.surveyQuestionMedia.buttonEdit,
+                this.text.surveyQuestionMedia.textDeleteAllFiles
             )
         }
 
         // Adding skip button if question is optional.
-        if (data.question.isRequired == false) {
+        if (data.question.isRequired === false) {
             buttons.push(this.text.survey.buttonOptionalQuestionSkip)
         }
 
@@ -258,75 +250,55 @@ export class SurveyQuestionMediaScene extends Scene<ISceneData, SceneEnterDataTy
         }
 
         // Composing message text with media count information.
-        const messageText = `${data.question.questionText}\n\n<i>${this.text.surveyQuestionMedia.textFilesCountPrefix} <b>${mediaGroupArgs.length}/${data.question.mediaMaxCount}</b></i>`
+        const messageText = `${data.question.questionText}\n\n<i>${this.text.surveyQuestionMedia.textFilesCountPrefix} <b>${mediaGroupArgs.length}/${data.question.maxCount}</b></i>`
 
         // Sending the message with appropriate buttons layout.
-        await ctx.replyWithHTML(
+        await this.ddi.sendMediaContent(data.question.media)
+        await this.ddi.sendHtml(
             messageText,
-            buttons.length == 0
+            buttons.isEmpty
                 ? Markup.removeKeyboard()
                 : super.keyboardMarkupWithAutoLayoutFor(buttons)
         )
     }
 
-    private async getFileLink(
-        ctx: Context<Update>,
-        telegramFileId: string,
-        fileType: 'photo' | 'video'
-    ): Promise<Survey.TelegramFileData | undefined> {
-        if (!telegramFileId) return undefined
-
-        let fileUrl: URL | undefined = undefined
-        try {
-            fileUrl = await ctx.telegram.getFileLink(telegramFileId)
-        } catch (error) {
-            const userInfoString = JSON.stringify(ctx.from)
-            logger.error(
-                `Can not get file link fro file with\ntype: ${fileType}\nid: ${telegramFileId}\nUser: ${userInfoString}`
-            )
-        }
-        const fileUrlStr = fileUrl?.toString()
-        return { telegramFileId: telegramFileId, telegramUrl: fileUrlStr, fileType: fileType }
-    }
-
-    private getMediaFromContext(ctx: Context): Survey.TelegramFileData[] {
-        // Casting to MediaGroupContext to access media group.
-        const mediaGroupCtx = ctx as unknown as MediaGroupContext
-        const contextMedia: Survey.TelegramFileData[] = []
-
+    private getMediaFromContext(ctx: ExtendedMessageContext): Survey.TelegramFileData[] {
         // Checking if context contains media group.
-        if (mediaGroupCtx && mediaGroupCtx.mediaGroup) {
+        if (ctx.mediaGroup?.type === 'photosAndVideos') {
             // Looping through media group messages to extract media.
-            for (const mediaMessage of mediaGroupCtx.mediaGroup) {
-                const mediaGroupItem = this.getFileIdAndType(mediaMessage)
-                if (mediaGroupItem) contextMedia.push(mediaGroupItem)
-            }
+            return ctx.mediaGroup.messages.map((message) => this.getFileIdAndType(message)).compact
         } else {
             // If not media group, extract media from message directly.
-            const mediaItem = this.getFileIdAndType(ctx.message)
-            if (mediaItem) {
-                contextMedia.push(mediaItem)
-            }
+            return [this.getFileIdAndType(ctx.message)].compact
         }
-        return contextMedia
     }
 
-    private getFileIdAndType(message: Message | undefined): Survey.TelegramFileData | undefined {
-        const photoMessage = message as Message.PhotoMessage
-        const photo = photoMessage?.photo?.last
-        if (photo) {
-            return {
-                fileType: 'photo',
-                telegramFileId: photo.file_id,
-            }
+    private getFileIdAndType(
+        message: ExtendedMessage | undefined
+    ): Survey.TelegramFileData | undefined {
+        switch (message?.type) {
+            case 'photo':
+                return {
+                    fileType: 'photo',
+                    telegramFileUniqueId: message.photoDefaultSize.file_unique_id,
+                    telegramFileId: message.photoDefaultSize.file_id,
+                    receiveTimestamp: Date.new(),
+                }
+                break
+
+            case 'video':
+                return {
+                    fileType: 'video',
+                    telegramFileUniqueId: message.video.file_unique_id,
+                    telegramFileId: message.video.file_id,
+                    receiveTimestamp: Date.new(),
+                }
+                break
+
+            default:
+                break
         }
 
-        const videoMessage = message as Message.VideoMessage
-        if (videoMessage && videoMessage.video) {
-            return {
-                fileType: 'video',
-                telegramFileId: videoMessage.video.file_id,
-            }
-        }
+        return undefined
     }
 }

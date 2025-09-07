@@ -1,25 +1,36 @@
 import { Module } from '@nestjs/common'
-import { PrivateDialogDispatcherService } from './private-dialog-dispatcher/private-dialog-dispatcher.service'
-import { BotContentModule } from 'src/business-logic/bot-content/bot-content.module'
-import { LocalizationModule } from 'src/core/localization/localization.module'
-import { UserModule } from 'src/business-logic/user/user.module'
 import { TelegrafModule } from 'nestjs-telegraf'
+import { BotContentModule } from 'src/business-logic/bot-content/bot-content.module'
+import { ChainTasksModule } from 'src/business-logic/chain-tasks/chain-tasks.module'
+import { MailingModule } from 'src/business-logic/mailing/mailing.module'
+import { TelegramBridgeModule } from 'src/business-logic/telegram-bridge/telegram-bridge.module'
+import { UserModule } from 'src/business-logic/user/user.module'
 import { ScenesModule } from '../scenes/scenes.module'
-import { ModerationChatDispatcherService } from './moderation-chat-dispatcher/moderation-chat-dispatcher.service'
-import { PublicationStorageModule } from 'src/business-logic/publication-storage/publication-storage.module'
-import { PublicationManagementModule } from '../publication-management/publication-management.module'
+import { UserAdapterModule } from '../user-adapter/user-adapter.module'
+import { ModerationForumDispatcherService } from './services/moderation-forum-dispatcher.service'
+import { PrivateDialogDispatcherService } from './services/private-dialog-dispatcher.service'
+import { StorageChatDispatcherService } from './services/storage-chat-dispatcher.service'
 
 @Module({
     imports: [
         BotContentModule,
-        LocalizationModule,
         UserModule,
         TelegrafModule,
         ScenesModule,
-        PublicationStorageModule,
-        PublicationManagementModule,
+        UserAdapterModule,
+        ChainTasksModule,
+        MailingModule,
+        TelegramBridgeModule,
     ],
-    providers: [PrivateDialogDispatcherService, ModerationChatDispatcherService],
-    exports: [PrivateDialogDispatcherService, ModerationChatDispatcherService],
+    providers: [
+        PrivateDialogDispatcherService,
+        ModerationForumDispatcherService,
+        StorageChatDispatcherService,
+    ],
+    exports: [
+        PrivateDialogDispatcherService,
+        ModerationForumDispatcherService,
+        StorageChatDispatcherService,
+    ],
 })
 export class DispatchersModule {}

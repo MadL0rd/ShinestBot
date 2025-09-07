@@ -1,20 +1,17 @@
 import { logger } from 'src/app/app.logger'
 import { UserService } from 'src/business-logic/user/user.service'
-import { Markup, Context } from 'telegraf'
-import { Update } from 'telegraf/types'
-import { SceneCallbackData } from '../../../models/scene-callback'
-import { SceneEntrance } from '../../../models/scene-entrance.interface'
-import { SceneName } from '../../../models/scene-name.enum'
-import { SceneHandlerCompletion } from '../../../models/scene.interface'
-import { Scene } from '../../../models/scene.abstract'
-import { SceneUsagePermissionsValidator } from '../../../models/scene-usage-permissions-validator'
-import { InjectableSceneConstructor } from '../../../scene-factory/scene-injections-provider.service'
+import { YandexSpeechKitService } from 'src/business-logic/yandex-speech-kit/yandex-speech-kit.service'
 import { Survey } from 'src/entities/survey'
 import { SurveyContextProviderType } from 'src/presentation/survey-context/abstract/survey-context-provider.interface'
 import { SurveyContextProviderFactoryService } from 'src/presentation/survey-context/survey-context-provider-factory/survey-context-provider-factory.service'
+import { ExtendedMessageContext } from 'src/utils/telegraf-middlewares/extended-message-context'
 import { removeKeyboard } from 'telegraf/markup'
-import { GptApiService } from 'src/business-logic/gpt-api/gpt-api.service'
-import { YandexSpeechKitService } from 'src/business-logic/yandex-speech-kit/yandex-speech-kit.service'
+import { SceneEntrance } from '../../../models/scene-entrance.interface'
+import { SceneName } from '../../../models/scene-name.enum'
+import { SceneUsagePermissionsValidator } from '../../../models/scene-usage-permissions-validator'
+import { Scene } from '../../../models/scene.abstract'
+import { SceneHandlerCompletion } from '../../../models/scene.interface'
+import { InjectableSceneConstructor } from '../../../scene-factory/scene-injections-provider.service'
 
 // =====================
 // Scene data classes
@@ -26,7 +23,7 @@ export class SurveyQuestionStringGptTipsSceneEntranceDto implements SceneEntranc
     readonly allowBackToPreviousQuestion: boolean
 }
 type SceneEnterDataType = SurveyQuestionStringGptTipsSceneEntranceDto
-interface ISceneData {
+type ISceneData = {
     readonly providerType: SurveyContextProviderType.Union
     readonly question: Survey.QuestionStringGptTips
     readonly allowBackToPreviousQuestion: boolean
@@ -43,18 +40,17 @@ export class SurveyQuestionStringGptTipsScene extends Scene<ISceneData, SceneEnt
     // Properties
     // =====================
 
-    readonly name: SceneName.Union = 'surveyQuestionStringGptTips'
-    protected get dataDefault(): ISceneData {
+    override readonly name: SceneName.Union = 'surveyQuestionStringGptTips'
+    protected override get dataDefault(): ISceneData {
         return {} as ISceneData
     }
-    protected get permissionsValidator(): SceneUsagePermissionsValidator.IPermissionsValidator {
+    protected override get permissionsValidator(): SceneUsagePermissionsValidator.IPermissionsValidator {
         return new SceneUsagePermissionsValidator.CanUseIfNotBanned()
     }
 
     constructor(
-        protected readonly userService: UserService,
+        protected override readonly userService: UserService,
         private readonly dataProviderFactory: SurveyContextProviderFactoryService,
-        private readonly gptService: GptApiService,
         private readonly yandexSpeechKit: YandexSpeechKitService
     ) {
         super()
@@ -64,22 +60,14 @@ export class SurveyQuestionStringGptTipsScene extends Scene<ISceneData, SceneEnt
     // Public methods
     // =====================
 
-    async handleEnterScene(
-        ctx: Context,
-        data?: SceneEnterDataType
-    ): Promise<SceneHandlerCompletion> {
-        logger.log(
-            `${this.name} scene handleEnterScene. User: ${this.user.telegramInfo.id} ${this.user.telegramInfo.username}`
-        )
-        await this.logToUserHistory({ type: 'startSceneSurveyQuestionStringGptTips' })
-
+    override async handleEnterScene(data?: SceneEnterDataType): Promise<SceneHandlerCompletion> {
         if (!data) {
             logger.error('Scene start data corrupted')
             return this.completion.complete()
         }
 
-        await ctx.replyWithHTML(this.text.surveyQuestionGptTip.textStartMenu)
-        await ctx.replyWithHTML(
+        await this.ddi.sendHtml(this.text.surveyQuestionGptTip.textStartMenu)
+        await this.ddi.sendHtml(
             data.question.questionText,
             this.keyboardMarkupWithAutoLayoutFor(
                 [
@@ -99,10 +87,10 @@ export class SurveyQuestionStringGptTipsScene extends Scene<ISceneData, SceneEnt
         })
     }
 
-    async handleMessage(ctx: Context, dataRaw: object): Promise<SceneHandlerCompletion> {
-        logger.log(
-            `${this.name} scene handleMessage. User: ${this.user.telegramInfo.id} ${this.user.telegramInfo.username}`
-        )
+    override async handleMessage(
+        ctx: ExtendedMessageContext,
+        dataRaw: object
+    ): Promise<SceneHandlerCompletion> {
         const data = this.restoreData(dataRaw)
         if (!data || !data.providerType || !data.question) {
             logger.error('Start data corrupted')
@@ -116,14 +104,7 @@ export class SurveyQuestionStringGptTipsScene extends Scene<ISceneData, SceneEnt
                 return await this.handleMessageWaitingForUserAnswer(ctx, data)
         }
 
-        return this.completion.canNotHandle(data)
-    }
-
-    async handleCallback(
-        ctx: Context<Update.CallbackQueryUpdate>,
-        data: SceneCallbackData
-    ): Promise<SceneHandlerCompletion> {
-        throw Error('Method not implemented.')
+        return this.completion.canNotHandle()
     }
 
     // =====================
@@ -131,12 +112,12 @@ export class SurveyQuestionStringGptTipsScene extends Scene<ISceneData, SceneEnt
     // =====================
 
     private async handleMessageStartMenu(
-        ctx: Context,
+        ctx: ExtendedMessageContext,
         data: ISceneData
     ): Promise<SceneHandlerCompletion> {
         const message = ctx.message
         const chat = ctx.chat
-        if (!message || !('text' in message) || !chat) return this.completion.canNotHandle(data)
+        if (message.type !== 'text' || !chat) return this.completion.canNotHandle()
 
         const provider = this.dataProviderFactory.getSurveyContextProvider(data.providerType)
 
@@ -166,7 +147,7 @@ export class SurveyQuestionStringGptTipsScene extends Scene<ISceneData, SceneEnt
             }
 
             case this.text.surveyQuestionGptTip.buttonStartMenuContinue: {
-                await ctx.replyWithHTML(
+                await this.ddi.sendHtml(
                     this.text.surveyQuestionGptTip.textStartMenuEnterMessage,
                     removeKeyboard()
                 )
@@ -176,40 +157,24 @@ export class SurveyQuestionStringGptTipsScene extends Scene<ISceneData, SceneEnt
             }
 
             case this.text.surveyQuestionGptTip.buttonStartMenuGptTip: {
-                const gtpMessage = await ctx.replyWithHTML(
+                const gtpMessage = await this.ddi.sendHtml(
                     this.text.surveyQuestionGptTip.textWaitingForGptAnswer
                 )
-                await ctx.sendChatAction('typing')
+                await this.ddi.sendChatAction('typing')
 
-                const dataString = JSON.stringify({
-                    languageCode: this.content.language,
-                    question: data.question,
-                    userPassedAnswers: await provider.getAnswersCache(this.user),
+                // WARN: GPT service was removed
+                const gptAnswer = undefined
+                await this.ddi.editMessageText({
+                    message_id: gtpMessage.message_id,
+                    text: gptAnswer ?? this.text.common.errorMessage,
+                    parse_mode: 'HTML',
                 })
-                const gptAnswer = await this.gptService.gptAnswer(
-                    [
-                        {
-                            role: 'system',
-                            text:
-                                this.text.surveyQuestionGptTip.promptStartMenuGptTip +
-                                '\n' +
-                                dataString,
-                        },
-                    ],
-                    Number(this.text.surveyQuestionGptTip.promptStartMenuGptTipTemperature)
-                )
-                await ctx.telegram.editMessageText(
-                    chat.id,
-                    gtpMessage.message_id,
-                    undefined,
-                    gptAnswer ?? this.text.common.errorMessage,
-                    {
-                        parse_mode: 'HTML',
-                    }
-                )
 
                 return this.completion.inProgress(data)
             }
+
+            default:
+                break
         }
 
         return this.completion.complete({
@@ -222,26 +187,26 @@ export class SurveyQuestionStringGptTipsScene extends Scene<ISceneData, SceneEnt
     }
 
     private async handleMessageWaitingForUserAnswer(
-        ctx: Context,
+        ctx: ExtendedMessageContext,
         data: ISceneData
     ): Promise<SceneHandlerCompletion> {
         const message = ctx.message
-        if (!message) return this.completion.canNotHandle(data)
+        if (!message) return this.completion.canNotHandle()
 
         let textFromMessage: string | undefined = undefined
 
-        if ('text' in message) textFromMessage = message.text
-        if ('voice' in message) {
+        if (message.type === 'text') textFromMessage = message.text
+        if (message.type === 'voice') {
             const fileId = message.voice.file_id
             textFromMessage = await this.yandexSpeechKit.recognizeTextFromAudio(fileId)
 
             if (!textFromMessage) {
-                await ctx.replyWithHTML(this.text.common.errorMessage)
+                await this.ddi.sendHtml(this.text.common.errorMessage)
                 return this.completion.inProgress(data)
             }
         }
 
-        if (!textFromMessage) return this.completion.canNotHandle(data)
+        if (!textFromMessage) return this.completion.canNotHandle()
 
         return this.completion.complete({
             sceneName: 'surveyQuestionStringGptTipsAnswerEditing',

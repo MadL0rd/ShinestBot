@@ -1,0 +1,22 @@
+import z from 'zod'
+import { DataSheetPageSchemaBase } from '../data-sheet-page-schema.interface'
+import { zSheet } from '../z-sheet-data-util-schemas'
+
+export const <# pageName #> = {
+    cacheConfiguration: {
+        configurationRow: 1,
+        firstContentRow: 3,
+        lastContentRow: 100,
+        firstLetter: 'A',
+        lastLetter: 'Z',
+        minRowLength: 3,
+    },
+    itemSchema: z.object({
+            id: zSheet.string.required,
+            disableWebPagePreview: zSheet.boolean.required,
+            text: zSheet.string.optional,
+            ...zSheet.mediaProps,
+        })
+        .check(zSheet.check.existsMediaOrAtLeastOneOf(['text']))
+        .transform(zSheet.transform.extractMedia),
+} as const satisfies DataSheetPageSchemaBase

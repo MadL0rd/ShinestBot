@@ -1,81 +1,124 @@
-import { Model } from 'mongoose'
-import { Injectable } from '@nestjs/common'
+import { Injectable, OnModuleInit } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
+import { Model } from 'mongoose'
+import { logger } from 'src/app/app.logger'
+import { MongooseMigrations } from 'src/core/mongoose-migration-assistant/mongoose-migrations'
+import { OmitFields } from 'src/entities/common/utility-types-extensions'
+import { pickFields } from 'src/utils/pick-fields'
 import { CreateUserDto } from './dto/create-user.dto'
 import { UpdateUserDto } from './dto/update-user.dto'
-import { logger } from 'src/app/app.logger'
 import { UserHistoryEvent } from './enums/user-history-event.enum'
-import { UserProfileDocument, UserProfileSchema } from './schemas/user.schema'
 import {
-    UserEventsHistorySchema,
-    UserEventsHistoryDocument,
-    UserHistoryEventModel,
-} from './schemas/user-history-event.schema'
-import { CreateUserEventsHistory } from './dto/create-user-events-history.dto'
+    UserProfileDocument,
+    UserProfileSchema,
+    userProfileVersionSchema,
+} from './schemas/user.schema'
+import { UserEventsLogRepository } from './user-events-log.repo'
 
 @Injectable()
-export class UserService {
+export class UserService implements OnModuleInit {
     constructor(
-        @InjectModel(UserProfileSchema.name) private readonly userModel: Model<UserProfileDocument>,
-        @InjectModel(UserEventsHistorySchema.name)
-        private modelHistory: Model<UserEventsHistoryDocument>
+        @InjectModel(UserProfileSchema.name)
+        private readonly userModel: Model<UserProfileDocument>,
+        private readonly userLogsRepo: UserEventsLogRepository
     ) {}
+
+    async onModuleInit() {
+        await this.runMigrations()
+    }
 
     async createIfNeededAndGet(createUserDto: CreateUserDto): Promise<UserProfileDocument> {
         const existingUser = await this.findOneByTelegramId(createUserDto.telegramId)
-        if (existingUser) {
-            return existingUser
-        }
+        if (existingUser) return existingUser
 
-        const createdUser = await this.userModel.create(createUserDto)
-        await this.logToUserHistory(createdUser, {
-            type: 'start',
-            startParam: createdUser.internalInfo.startParam,
+        const createdUser = await this.userModel
+            .findOneAndUpdate(
+                { telegramId: createUserDto.telegramId },
+                {
+                    $setOnInsert: createUserDto,
+                },
+                { upsert: true }
+            )
+            .lean()
+
+        if (!createdUser) {
+            throw Error(`User creation failed. Telegram id: ${createUserDto.telegramId}`)
+        }
+        this.logToUserHistory(createdUser, {
+            type: 'userCreated',
+            startParam: createdUser.startParam ?? null,
+            startParamString: createdUser.startParamString ?? null,
         })
-        logger.log('Create user', createUserDto)
         return createdUser
     }
 
-    async update(updateUserDto: UpdateUserDto): Promise<UserProfileDocument | null> {
-        return this.userModel
-            .findOneAndUpdate({ telegramId: updateUserDto.telegramId }, updateUserDto)
+    async update(
+        updateUserDto: UpdateUserDto,
+        updateOnly?: (keyof OmitFields<UpdateUserDto, 'telegramId'>)[]
+    ): Promise<UserProfileDocument | null> {
+        const dto = updateOnly ? pickFields(updateUserDto, updateOnly) : updateUserDto
+        const result = await this.userModel
+            .findOneAndUpdate({ telegramId: updateUserDto.telegramId }, dto, {
+                returnOriginal: false,
+                returnDocument: 'after',
+            })
             .lean()
-            .exec()
+        return result
+    }
+
+    async exists(telegramId: number): Promise<boolean> {
+        return this.userModel.exists({ telegramId: telegramId }).lean().then(Boolean)
     }
 
     async findOneByTelegramId(telegramId: number): Promise<UserProfileDocument | null> {
+        return this.userModel.findOne({ telegramId: telegramId }).lean()
+    }
+
+    async findOneByForumTopic(
+        chatId: number,
+        threadId: number
+    ): Promise<UserProfileDocument | null> {
         return this.userModel
-            .findOne({ telegramId: telegramId })
-            .select({ userHistory: 0 })
+            .findOne({
+                'telegramTopic.chatId': chatId,
+                'telegramTopic.messageThreadId': threadId,
+            })
             .lean()
             .exec()
     }
 
-    async findOneById(id: string): Promise<UserProfileDocument | null> {
-        try {
-            const user = await this.userModel.findById(id).exec()
-            return user
-        } catch (error) {
-            logger.warn(`User with _id ${id} not found`)
-            return null
-        }
+    async findOneByAnyTopic(
+        chatId: number,
+        messageThreadId: number
+    ): Promise<UserProfileDocument | null> {
+        return this.userModel
+            .findOne({
+                $or: [
+                    {
+                        'telegramTopic.chatId': chatId,
+                        'telegramTopic.messageThreadId': messageThreadId,
+                    },
+                    {
+                        telegramTopicHistory: {
+                            $elemMatch: {
+                                chatId,
+                                messageThreadId,
+                            },
+                        },
+                    },
+                ],
+            })
+            .lean()
+            .exec()
     }
 
     async findByTelegramUsername(telegramUsername: string): Promise<UserProfileDocument | null> {
-        if (telegramUsername.includes('@', 0)) {
+        if (telegramUsername.startsWith('@')) {
             telegramUsername = telegramUsername.replace('@', '')
         }
         logger.log(`telegramUsername: ${telegramUsername}`)
-        return this.userModel
-            .findOne({ 'telegramInfo.username': telegramUsername })
-            .select({ userHistory: 0 })
-            .lean()
-            .exec()
+        return this.userModel.findOne({ 'telegramInfo.username': telegramUsername }).lean().exec()
     }
-
-    //=====
-    // Get users
-    //=====
 
     async findAllTelegramIds(): Promise<number[]> {
         const users = await this.userModel.find({}).select({ telegramId: 1 }).lean().exec()
@@ -83,55 +126,22 @@ export class UserService {
         return ids
     }
 
-    async findAll(): Promise<UserProfileDocument[]> {
-        return this.userModel.find({}).select({ userHistory: 0 }).lean().exec()
-    }
-
-    //=====
-    // Get user history from User document
-    //=====
-
-    async createUserEventsHistoryDocument(
-        dto: CreateUserEventsHistory
-    ): Promise<UserEventsHistoryDocument> {
-        return await this.modelHistory.create(dto)
-    }
-
     async logToUserHistory<EventName extends UserHistoryEvent.EventTypeName>(
-        user: UserProfileDocument,
+        user: { telegramId: number },
         event: UserHistoryEvent.SomeEventType<EventName>
     ): Promise<void> {
-        const eventModel: UserHistoryEventModel = { ...event, date: new Date() }
-
-        const existingRecord = await this.modelHistory
-            .findOne({ telegramId: user.telegramId })
-            .select({ telegramId: 1 })
-            .lean()
-            .exec()
-        if (!existingRecord) {
-            await this.createUserEventsHistoryDocument({
-                telegramId: user.telegramId,
-                userProfileId: user._id.toString(),
-                eventsHistory: [],
-            })
-        }
-
-        await this.modelHistory
-            .updateOne(
-                { telegramId: user.telegramId },
-                { $push: { eventsHistory: eventModel } },
-                { lean: true, new: true }
-            )
-            .exec()
+        return await this.userLogsRepo.logUserEvent(user, event)
     }
 
-    async findUserHistoryByTelegramId(
-        telegramId: number
-    ): Promise<UserEventsHistoryDocument | null> {
-        return await this.modelHistory
-            .findOne({ telegramId: telegramId })
-            .select({ userHistory: 1 })
-            .lean()
-            .exec()
+    private async runMigrations() {
+        const assistant = new MongooseMigrations.Assistant({
+            model: this.userModel,
+            documentVersionKey: 'migrationsVersion',
+            currentVersion: userProfileVersionSchema.currentVersion,
+            legacyVersions: userProfileVersionSchema.legacyVersions,
+            migrationsConfiguration: {},
+            logger: logger,
+        })
+        await assistant.runMigrations()
     }
 }

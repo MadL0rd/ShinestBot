@@ -6,9 +6,12 @@ export class UniqueMessagePrimitive {
     readonly common = new Common()
     readonly mainMenu = new MainMenu()
     readonly adminMenu = new AdminMenu()
+    readonly adminMenuUsersManagement = new AdminMenuUsersManagement()
+    readonly adminMenuMailing = new AdminMenuMailing()
+    readonly adminMenuMailingCustom = new AdminMenuMailingCustom()
+    readonly adminMenuMailingPreview = new AdminMenuMailingPreview()
     readonly adminMenuMetrics = new AdminMenuMetrics()
-    readonly payment = new Payment()
-    readonly notification = new Notification()
+    readonly adminForum = new AdminForum()
     readonly surveyContinue = new SurveyContinue()
     readonly surveyDescription = new SurveyDescription()
     readonly survey = new Survey()
@@ -16,37 +19,45 @@ export class UniqueMessagePrimitive {
     readonly surveyQuestionMultipleChoice = new SurveyQuestionMultipleChoice()
     readonly surveyFinal = new SurveyFinal()
     readonly surveyQuestionGptTip = new SurveyQuestionGptTip()
-    readonly moderationCommand = new ModerationCommand()
-    readonly moderation = new Moderation()
-    readonly userPublications = new UserPublications()
-    readonly moderationEditing = new ModerationEditing()
+    readonly surveyQuestionPhoneNumber = new SurveyQuestionPhoneNumber()
+    readonly training = new Training()
+    readonly trainingStart = new TrainingStart()
 }
 export class UniqueMessageWithParams {
     readonly common: Common
     readonly mainMenu: MainMenu
-    readonly adminMenu: AdminMenu
+    readonly adminMenu: AdminMenuWithParams
+    readonly adminMenuUsersManagement: AdminMenuUsersManagementWithParams
+    readonly adminMenuMailing: AdminMenuMailing
+    readonly adminMenuMailingCustom: AdminMenuMailingCustom
+    readonly adminMenuMailingPreview: AdminMenuMailingPreviewWithParams
     readonly adminMenuMetrics: AdminMenuMetrics
-    readonly payment: Payment
-    readonly notification: Notification
+    readonly adminForum: AdminForumWithParams
     readonly surveyContinue: SurveyContinue
     readonly surveyDescription: SurveyDescription
     readonly survey: Survey
     readonly surveyQuestionMedia: SurveyQuestionMedia
     readonly surveyQuestionMultipleChoice: SurveyQuestionMultipleChoiceWithParams
-    readonly surveyFinal: SurveyFinal
+    readonly surveyFinal: SurveyFinalWithParams
     readonly surveyQuestionGptTip: SurveyQuestionGptTip
-    readonly moderationCommand: ModerationCommand
-    readonly moderation: Moderation
-    readonly userPublications: UserPublications
-    readonly moderationEditing: ModerationEditing
+    readonly surveyQuestionPhoneNumber: SurveyQuestionPhoneNumber
+    readonly training: Training
+    readonly trainingStart: TrainingStart
 
     constructor(private readonly base: UniqueMessagePrimitive) {
         this.common = base.common
         this.mainMenu = base.mainMenu
-        this.adminMenu = base.adminMenu
+        this.adminMenu = new AdminMenuWithParams(base.adminMenu)
+        this.adminMenuUsersManagement = new AdminMenuUsersManagementWithParams(
+            base.adminMenuUsersManagement
+        )
+        this.adminMenuMailing = base.adminMenuMailing
+        this.adminMenuMailingCustom = base.adminMenuMailingCustom
+        this.adminMenuMailingPreview = new AdminMenuMailingPreviewWithParams(
+            base.adminMenuMailingPreview
+        )
         this.adminMenuMetrics = base.adminMenuMetrics
-        this.payment = base.payment
-        this.notification = base.notification
+        this.adminForum = new AdminForumWithParams(base.adminForum)
         this.surveyContinue = base.surveyContinue
         this.surveyDescription = base.surveyDescription
         this.survey = base.survey
@@ -54,325 +65,643 @@ export class UniqueMessageWithParams {
         this.surveyQuestionMultipleChoice = new SurveyQuestionMultipleChoiceWithParams(
             base.surveyQuestionMultipleChoice
         )
-        this.surveyFinal = base.surveyFinal
+        this.surveyFinal = new SurveyFinalWithParams(base.surveyFinal)
         this.surveyQuestionGptTip = base.surveyQuestionGptTip
-        this.moderationCommand = base.moderationCommand
-        this.moderation = base.moderation
-        this.userPublications = base.userPublications
-        this.moderationEditing = base.moderationEditing
+        this.surveyQuestionPhoneNumber = base.surveyQuestionPhoneNumber
+        this.training = base.training
+        this.trainingStart = base.trainingStart
     }
 }
 
 export class Common {
     /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=8:8)
-     */
-    readonly unknownState = 'Я тебя не понимаю 😔\n⬇️ Нажми на кнопку снизу ⬇️'
-    /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=9:9)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=5:5)
      */
     readonly permissionDenied = 'У вас нет доступа к этому разделу'
     /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=10:10)
-     */
-    readonly callbackActionFaild = 'Не удалось совершить выбраное дейстие'
-    /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=11:11)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=6:6)
      */
     readonly buttonReturnToMainMenu = '⬅️ В главное меню'
     /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=12:12)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=7:7)
      */
     readonly buttonBackToPreviousMenu = '⬅️ Вернуться в предыдущее меню'
     /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=13:13)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=8:8)
      */
     readonly bannedUserMessage = 'Похоже, что вам больше нельзя пользоваться этим ботом'
     /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=14:14)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=9:9)
      */
     readonly comingSoon = 'Эта функция скоро появится'
     /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=15:15)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=10:10)
      */
-    readonly selectLanguageText = 'Выберите язык'
+    readonly textSelectLanguage = 'Выберите язык'
     /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=16:16)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=11:11)
      */
     readonly errorMessage = 'Кажется, что-то пошло не по плану 🙄'
+    /**
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=12:12)
+     */
+    readonly technicalWorkMessage =
+        'Функция недоступна в данный момент.\nПроводятся технические работы ⚙️'
+    /**
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=13:13)
+     */
+    readonly cancel = '❌ Отмена'
+    /**
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=14:14)
+     */
+    readonly continue = 'Продолжить'
 }
 
 export class MainMenu {
     /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=19:19)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=17:17)
      */
-    readonly text = 'Ты оказался в главном меню 😊'
+    readonly text = 'Ты в главном меню'
     /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=20:20)
-     */
-    readonly textAbout = 'https://github.com/MadL0rd/ShinestBot'
-    /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=21:21)
-     */
-    readonly buttonAbout = '📂 Репозиторий'
-    /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=22:22)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=18:18)
      */
     readonly buttonAdminMenu = '🔐 Меню администратора'
-    /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=23:23)
-     */
-    readonly buttonLanguageSettings = '🌎 Выбрать другой язык'
-    /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=24:24)
-     */
-    readonly buttonSurvey = '📝 Пройти опрос'
-    /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=25:25)
-     */
-    readonly userPublications = '📰 Управление публикациями'
-    /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=26:26)
-     */
-    readonly editPublicationAsAdmin = '📰 Редактирование заявки'
 }
 
 export class AdminMenu {
     /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=29:29)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=21:21)
      */
-    readonly text = 'Вы в меню администратора'
+    readonly text = 'Вы в меню администратора\n\nVersion: <b>versionNumber</b>'
     /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=30:30)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=22:22)
      */
     readonly buttonReloadData = '📥 Стянуть новые тексты из гугл таблицы'
     /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=31:31)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=23:23)
      */
-    readonly buttonDownloadTables = '📊 Выгрузить данные об использовании бота'
+    readonly buttonDownloadTables = '📊 Выгрузить данные'
     /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=32:32)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=24:24)
      */
-    readonly buttonUsersManagement = '📋 Управление правами доступа пользователей'
+    readonly buttonUsersManagement = '⚙️ Управление пользователями'
     /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=33:33)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=25:25)
      */
     readonly buttonMailing = '📨 Рассылка'
     /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=34:34)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=26:26)
+     */
+    readonly buttonOther = '🛠️ Другое'
+    /**
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=27:27)
+     */
+    readonly textMenuOther =
+        '🛠️ Другое\n\nЗадач в очереди: <b>chainTasksCountTotal</b>\nИз них зависших: <b>chainTasksCountIssued</b>\nЗависшие пользователи: <code>chainTasksIssuedUsers</code>\n\nVersion: <b>versionNumber</b>'
+    /**
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=28:28)
+     */
+    readonly buttonResetIssuedUserTelegramIds = '♻️ Очистить список зависшх пользователей'
+    /**
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=29:29)
+     */
+    readonly usersManagementTextFindUser =
+        'Для поиска пользователя введите его id либо username в формате @username'
+    /**
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=30:30)
      */
     readonly returnBack = '⬅️ Вернуться в меню администратора'
+}
+export class AdminMenuWithParams {
+    constructor(private readonly base: AdminMenu) {}
     /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=35:35)
+     * @value: Вы в меню администратора\n\nVersion: <b>versionNumber</b>
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=21:21)
      */
-    readonly mailingText =
-        'Введите сообщение\nПеред рассылкой сообщение будет продублировано для проверки'
+    text(args: { versionNumber: string }): string {
+        return this.base.text.replaceAll('versionNumber', `${args.versionNumber}`)
+    }
     /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=36:36)
+     * @value: 📥 Стянуть новые тексты из гугл таблицы
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=22:22)
      */
-    readonly mailingTextChekMessage = 'Вы собираетесь отправить пользователям следующее сообщение:'
+    get buttonReloadData(): string {
+        return this.base.buttonReloadData
+    }
     /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=37:37)
+     * @value: 📊 Выгрузить данные
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=23:23)
+     */
+    get buttonDownloadTables(): string {
+        return this.base.buttonDownloadTables
+    }
+    /**
+     * @value: ⚙️ Управление пользователями
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=24:24)
+     */
+    get buttonUsersManagement(): string {
+        return this.base.buttonUsersManagement
+    }
+    /**
+     * @value: 📨 Рассылка
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=25:25)
+     */
+    get buttonMailing(): string {
+        return this.base.buttonMailing
+    }
+    /**
+     * @value: 🛠️ Другое
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=26:26)
+     */
+    get buttonOther(): string {
+        return this.base.buttonOther
+    }
+    /**
+     * @value: 🛠️ Другое\n\nЗадач в очереди: <b>chainTasksCountTotal</b>\nИз них зависших: <b>chainTasksCountIssued</b>\nЗависшие пользователи: <code>chainTasksIssuedUsers</code>\n\nVersion: <b>versionNumber</b>
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=27:27)
+     */
+    textMenuOther(args: {
+        chainTasksCountTotal: number
+        chainTasksCountIssued: number
+        chainTasksIssuedUsers: string
+        versionNumber: string
+    }): string {
+        return this.base.textMenuOther
+            .replaceAll('chainTasksCountTotal', `${args.chainTasksCountTotal}`)
+            .replaceAll('chainTasksCountIssued', `${args.chainTasksCountIssued}`)
+            .replaceAll('chainTasksIssuedUsers', `${args.chainTasksIssuedUsers}`)
+            .replaceAll('versionNumber', `${args.versionNumber}`)
+    }
+    /**
+     * @value: ♻️ Очистить список зависшх пользователей
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=28:28)
+     */
+    get buttonResetIssuedUserTelegramIds(): string {
+        return this.base.buttonResetIssuedUserTelegramIds
+    }
+    /**
+     * @value: Для поиска пользователя введите его id либо username в формате @username
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=29:29)
+     */
+    get usersManagementTextFindUser(): string {
+        return this.base.usersManagementTextFindUser
+    }
+    /**
+     * @value: ⬅️ Вернуться в меню администратора
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=30:30)
+     */
+    get returnBack(): string {
+        return this.base.returnBack
+    }
+}
+
+export class AdminMenuUsersManagement {
+    /**
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=33:33)
+     */
+    readonly textFindUser =
+        'Для поиска пользователя введите его id либо username в формате @username'
+    /**
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=34:34)
+     */
+    readonly textCannotFindUser = 'Не удалось найти пользователя'
+    /**
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=35:35)
+     */
+    readonly buttonSelectMyAccount = 'Выбрать свой аккаунт'
+    /**
+     * @description https://core.telegram.org/bots/api#html-style
+     *
+     * [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=36:36)
+     */
+    readonly textSelectedUserInfo =
+        'Имя: firstAndLastNames\nTelegram id: <code>telegramId</code>\nTelegram username: <b>telegramUsername</b>\nЗаменять стартовый параметр при запуске бота: enableStartParamRewriting\nОчередь остановлена: chainTasksQueueIsIssued\nКоличество задач в очереди: chainTasksCount\nПрава доступа: <b>activePermissions</b>'
+    /**
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=37:37)
+     */
+    readonly buttonEditPermissions = 'Управлять правами доступа'
+    /**
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=38:38)
+     */
+    readonly buttonRestoreTopic = 'Пересоздать топик пользователю'
+    /**
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=39:39)
+     */
+    readonly buttonEnableStartParamRewriting = 'Тест ссылок и UTM'
+    /**
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=40:40)
+     */
+    readonly buttonNewSearch = 'Новый поиск'
+    /**
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=41:41)
+     */
+    readonly usersManagementPermissionsInfo =
+        'Информация о модификаторах доступа:\n\n<b>owner</b> - Владелец бота: может назначать администраторов + имеет все права администратора)\n\n<b>admin</b> - Администратор: доступен вход в меню администратора, назначение ролей кроме owner и admin\n\n<b>banned</b> - Заблокированный пользователь (админ и владелец не могут быть заблокированы, если необходимо заблокировать администратора, то сначала нужно забрать у него уровень доступа admin)'
+}
+export class AdminMenuUsersManagementWithParams {
+    constructor(private readonly base: AdminMenuUsersManagement) {}
+    /**
+     * @value: Для поиска пользователя введите его id либо username в формате @username
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=33:33)
+     */
+    get textFindUser(): string {
+        return this.base.textFindUser
+    }
+    /**
+     * @value: Не удалось найти пользователя
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=34:34)
+     */
+    get textCannotFindUser(): string {
+        return this.base.textCannotFindUser
+    }
+    /**
+     * @value: Выбрать свой аккаунт
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=35:35)
+     */
+    get buttonSelectMyAccount(): string {
+        return this.base.buttonSelectMyAccount
+    }
+    /**
+     * @value: Имя: firstAndLastNames\nTelegram id: <code>telegramId</code>\nTelegram username: <b>telegramUsername</b>\nЗаменять стартовый параметр при запуске бота: enableStartParamRewriting\nОчередь остановлена: chainTasksQueueIsIssued\nКоличество задач в очереди: chainTasksCount\nПрава доступа: <b>activePermissions</b>
+     * @description https://core.telegram.org/bots/api#html-style
+     *
+     * [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=36:36)
+     */
+    textSelectedUserInfo(args: {
+        firstAndLastNames: string
+        telegramId: number
+        telegramUsername: string
+        activePermissions: string
+        enableStartParamRewriting: string
+        chainTasksQueueIsIssued: string
+        chainTasksCount: number
+    }): string {
+        return this.base.textSelectedUserInfo
+            .replaceAll('firstAndLastNames', `${args.firstAndLastNames}`)
+            .replaceAll('telegramId', `${args.telegramId}`)
+            .replaceAll('telegramUsername', `${args.telegramUsername}`)
+            .replaceAll('activePermissions', `${args.activePermissions}`)
+            .replaceAll('enableStartParamRewriting', `${args.enableStartParamRewriting}`)
+            .replaceAll('chainTasksQueueIsIssued', `${args.chainTasksQueueIsIssued}`)
+            .replaceAll('chainTasksCount', `${args.chainTasksCount}`)
+    }
+    /**
+     * @value: Управлять правами доступа
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=37:37)
+     */
+    get buttonEditPermissions(): string {
+        return this.base.buttonEditPermissions
+    }
+    /**
+     * @value: Пересоздать топик пользователю
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=38:38)
+     */
+    get buttonRestoreTopic(): string {
+        return this.base.buttonRestoreTopic
+    }
+    /**
+     * @value: Тест ссылок и UTM
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=39:39)
+     */
+    get buttonEnableStartParamRewriting(): string {
+        return this.base.buttonEnableStartParamRewriting
+    }
+    /**
+     * @value: Новый поиск
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=40:40)
+     */
+    get buttonNewSearch(): string {
+        return this.base.buttonNewSearch
+    }
+    /**
+     * @value: Информация о модификаторах доступа:\n\n<b>owner</b> - Владелец бота: может назначать администраторов + имеет все права администратора)\n\n<b>admin</b> - Администратор: доступен вход в меню администратора, назначение ролей кроме owner и admin\n\n<b>banned</b> - Заблокированный пользователь (админ и владелец не могут быть заблокированы, если необходимо заблокировать администратора, то сначала нужно забрать у него уровень доступа admin)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=41:41)
+     */
+    get usersManagementPermissionsInfo(): string {
+        return this.base.usersManagementPermissionsInfo
+    }
+}
+
+export class AdminMenuMailing {
+    /**
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=44:44)
+     */
+    readonly mailingText = 'Выберите режим рассылки'
+    /**
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=45:45)
+     */
+    readonly buttonCustom = 'Ввод сообщения'
+    /**
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=46:46)
+     */
+    readonly buttonCopy = 'Скопировать пересланное сообщение'
+    /**
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=47:47)
+     */
+    readonly buttonForward = 'Переслать сообщение'
+    /**
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=48:48)
+     */
+    readonly buttonUsePreformed = 'Использовать заготовку'
+    /**
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=49:49)
+     */
+    readonly mailingTextCheckMessage = 'Вы собираетесь отправить пользователям следующее сообщение:'
+    /**
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=50:50)
      */
     readonly mailingButtonSend = 'Начать отправку'
     /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=38:38)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=51:51)
      */
-    readonly mailingButtonCancel = 'Отмена'
+    readonly buttonSendToAll = 'Все'
     /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=39:39)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=52:52)
      */
-    readonly usersManagementTextFindUser =
-        'Для поиска пользователя введите его id либо usermane в формате @username'
+    readonly buttonSendToPending = 'Ожидающие регистрации'
     /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=40:40)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=53:53)
      */
-    readonly usersManagementPermissionsInfo =
-        'Информация о модификаторах доступа:\n<b>owner</b> - Вдаделец бота: может назначать администраторов + имеет все права администратора)\n<b>admin</b> - Администратор: доступен вход в меню администратора, назначение ролей кроме owner и admin\n<b>banned</b> - Заблокированый пользователь (админ и владелец не могут быть заблокированы, если необходимо заблокировать администратора, то сначала нужно забрать у него админский уровень доступа)'
+    readonly buttonSendToAuthorized = 'Зарегистрированные/Авторизованные'
     /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=41:41)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=54:54)
      */
-    readonly usersManagementButtonEditPermissions = 'Управлять правами доступа'
+    readonly buttonSendToUnregistered = 'Без регистрации'
     /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=42:42)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=55:55)
      */
-    readonly usersManagementButtonNewSearch = 'Новый поиск'
+    readonly textAuthStatusChoice = 'Выберите статус адресатов данной рассылки'
+    /**
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=56:56)
+     */
+    readonly textSendMessageToForward = 'Перешлите сообщение в этот диалог'
+    /**
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=57:57)
+     */
+    readonly textSelectMessage = 'Выберите одну из заготовок'
+    /**
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=58:58)
+     */
+    readonly textEnterMessageText = 'Введите сообщение'
+}
+
+export class AdminMenuMailingCustom {
+    /**
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=61:61)
+     */
+    readonly textSetText =
+        'Введите сообщение\n\nЕсли в тексте будет обнаружена редирект-ссылка, то к ней будет добавлен параметр telegramId с telegramId получателя'
+    /**
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=62:62)
+     */
+    readonly buttonSkipText = 'Без текста'
+    /**
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=63:63)
+     */
+    readonly textSetPhoto = 'Отправьте фото'
+    /**
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=64:64)
+     */
+    readonly buttonSkipPhoto = 'Без фото'
+    /**
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=65:65)
+     */
+    readonly textSetInlineButtonsLayout =
+        'Отправьте количество будущих кнопок для каждой строки через пробел\n<i>Пример: \nЗапрос <code>2 1</code>\nДаст результат\n[Кнопка 1 строки][Кнопка 1 строки]\n[-------      Кнопка 2 строки      -------]\n</i>'
+    /**
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=66:66)
+     */
+    readonly textSelectInlineButtonToConfigure = 'Выберите кнопку для настройки'
+    /**
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=67:67)
+     */
+    readonly textEnterButtonText = 'Введите текст кнопки'
+    /**
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=68:68)
+     */
+    readonly textSetInlineButtons = 'Выберите кнопки'
+    /**
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=69:69)
+     */
+    readonly buttonSkipInlineButtons = 'Без кнопок'
+    /**
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=70:70)
+     */
+    readonly buttonAddButtonsPresetLikeDislike = '👍 / 👎'
+}
+
+export class AdminMenuMailingPreview {
+    /**
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=73:73)
+     */
+    readonly text =
+        'Чтобы задать дополнительную задержку перед отправкой сообщения каждому пользователю введите команду /delay и количество секунд\n<i>Например <code>/delay 5</code> будет означать 5 секунд задержки</i>\n\nТекущая задержка: <b>delaySec</b> сек\n\nВаше сообщение в рассылке будет выглядеть так:'
+    /**
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=74:74)
+     */
+    readonly buttonSave = 'Сохранить (время жизни 2 нед.)'
+    /**
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=75:75)
+     */
+    readonly buttonStartMailing = 'Отправить прямо сейчас'
+    /**
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=76:76)
+     */
+    readonly textPreformedMessageSaved = 'Заготовка сохранена:\nId: `messageId`\nShortId: `shortId`'
+    /**
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=77:77)
+     */
+    readonly textAfterStartMailing =
+        'Рассылка успешно стартовала!\nЗа ходом рассылки можете наблюдать в обновляющемся сообщении в чате link'
+}
+export class AdminMenuMailingPreviewWithParams {
+    constructor(private readonly base: AdminMenuMailingPreview) {}
+    /**
+     * @value: Чтобы задать дополнительную задержку перед отправкой сообщения каждому пользователю введите команду /delay и количество секунд\n<i>Например <code>/delay 5</code> будет означать 5 секунд задержки</i>\n\nТекущая задержка: <b>delaySec</b> сек\n\nВаше сообщение в рассылке будет выглядеть так:
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=73:73)
+     */
+    text(args: { delaySec: number }): string {
+        return this.base.text.replaceAll('delaySec', `${args.delaySec}`)
+    }
+    /**
+     * @value: Сохранить (время жизни 2 нед.)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=74:74)
+     */
+    get buttonSave(): string {
+        return this.base.buttonSave
+    }
+    /**
+     * @value: Отправить прямо сейчас
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=75:75)
+     */
+    get buttonStartMailing(): string {
+        return this.base.buttonStartMailing
+    }
+    /**
+     * @value: Заготовка сохранена:\nId: `messageId`\nShortId: `shortId`
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=76:76)
+     */
+    textPreformedMessageSaved(args: { messageId: string; shortId: string }): string {
+        return this.base.textPreformedMessageSaved
+            .replaceAll('messageId', `${args.messageId}`)
+            .replaceAll('shortId', `${args.shortId}`)
+    }
+    /**
+     * @value: Рассылка успешно стартовала!\nЗа ходом рассылки можете наблюдать в обновляющемся сообщении в чате link
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=77:77)
+     */
+    textAfterStartMailing(args: { link: string }): string {
+        return this.base.textAfterStartMailing.replaceAll('link', `${args.link}`)
+    }
 }
 
 export class AdminMenuMetrics {
     /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=45:45)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=80:80)
      */
-    readonly selectDateText = 'Выберите период'
+    readonly selectDateText = 'Выберите опцию'
     /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=46:46)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=81:81)
      */
     readonly selectDateMonth = 'Месяц'
     /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=47:47)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=82:82)
      */
     readonly selectDateQuarter = 'Квартал'
     /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=48:48)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=83:83)
      */
     readonly selectDateYear = 'Год'
+    /**
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=84:84)
+     */
+    readonly selectDateYearPrevious = 'Предыдущий год'
+    /**
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=85:85)
+     */
+    readonly getUsersInfo = 'Пользователи'
+    /**
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=86:86)
+     */
+    readonly getRedirectStat = 'Редикерт ссылки'
+    /**
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=87:87)
+     */
+    readonly getMainStat = 'Общая статистика'
+    /**
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=88:88)
+     */
+    readonly textChosePeriod = 'Выберите период'
+    /**
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=89:89)
+     */
+    readonly waitForStatistic =
+        'Идет формирование таблицы\nТаблица будет отправлена вам сразу как будет готова'
 }
 
-export class Payment {
+export class AdminForum {
     /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=51:51)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=92:92)
      */
-    readonly text = 'Что хотите приобрести?'
+    readonly messageFromAdmin = '👋 Вам пишет администратор <b>adminName</b>'
+    /**
+     * @description Количество минут, после которого к сообщению от админа будет добавлена приписка с его именем
+     *
+     * [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=93:93)
+     */
+    readonly messageFromAdminTimeout = '15'
+    /**
+     * @description Команда для модераторов, используется чтобы продублировать в топике форума информацию по старым и текущему топику пользователя
+     *
+     * [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=94:94)
+     */
+    readonly pinTopicHistoryMessage = '/pinTopicInfo'
 }
-
-export class Notification {
+export class AdminForumWithParams {
+    constructor(private readonly base: AdminForum) {}
     /**
-     * @description Будет использоваться в случае, если chatGPT по какой-либо причине не ответил на наш запрос
+     * @value: 👋 Вам пишет администратор <b>adminName</b>
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=92:92)
+     */
+    messageFromAdmin(args: { adminName: string }): string {
+        return this.base.messageFromAdmin.replaceAll('adminName', `${args.adminName}`)
+    }
+    /**
+     * @value: 15
+     * @description Количество минут, после которого к сообщению от админа будет добавлена приписка с его именем
      *
-     * [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=54:54)
+     * [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=93:93)
      */
-    readonly morningTextDefault = 'Доброе утро!'
+    get messageFromAdminTimeout(): string {
+        return this.base.messageFromAdminTimeout
+    }
     /**
-     * @description Промт для GPT
+     * @value: /pinTopicInfo
+     * @description Команда для модераторов, используется чтобы продублировать в топике форума информацию по старым и текущему топику пользователя
      *
-     * [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=55:55)
+     * [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=94:94)
      */
-    readonly morningTextGptPromt =
-        'Напишите текст утреннего уведомления для человека неизвестного пола.'
-    /**
-     * @description Будет использоваться в случае, если chatGPT по какой-либо причине не ответил на наш запрос
-     *
-     * [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=56:56)
-     */
-    readonly eveningTextDefault = 'Добрый вечер!'
-    /**
-     * @description Промт для GPT
-     *
-     * [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=57:57)
-     */
-    readonly eveningTextGptPromt =
-        'Напишите текст вечернего уведомления для человека неизвестного пола.'
-    /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=58:58)
-     */
-    readonly buttonFairytale = 'Написать терапевтическую сказку'
-    /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=59:59)
-     */
-    readonly buttonMainMenu = 'Перейти в главное меню'
-    /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=60:60)
-     */
-    readonly subscriptionText = 'Дорогой друг, некоторые твои подписки скоро истекают:'
-    /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=61:61)
-     */
-    readonly buttonSubscriptionText = 'Оплатить'
-    /**
-     * @description За сколько дней до окончания подписки на пакет начнут приходить уведомления
-     *
-     * [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=62:62)
-     */
-    readonly quantityDaysBeforeSubscriptionNotification = '7'
-    /**
-     * @description Список из времён доступных пользователю для установки утренних уведомлений
-     *
-     * [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=63:63)
-     */
-    readonly morningTimeList = '07:00\n07:30\n08:00\n08:30\n09:00\n09:30\n10:00\n10:30\n11:00'
-    /**
-     * @description Время утреннего уведомления по умолчанию
-     *
-     * [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=64:64)
-     */
-    readonly morningTimeDefault = '08:00'
-    /**
-     * @description Список из времён доступных пользователю для установки вечерних уведомлений
-     *
-     * [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=65:65)
-     */
-    readonly eveningTimeList = '18:00\n18:30\n19:00\n19:30\n20:00\n20:30\n21:00\n21:30\n22:00'
-    /**
-     * @description Время вечернего уведомления по умолчанию
-     *
-     * [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=66:66)
-     */
-    readonly eveningTimeDefault = '22:15'
-    /**
-     * @description Время для уведомлений о скором окончании подписки
-     *
-     * [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=67:67)
-     */
-    readonly subscriptionTime = '20:04'
-    /**
-     * @description Кнопка, по нажатию на которую в настройках можно отказаться от получения уведомлений данного типа
-     *
-     * [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=68:68)
-     */
-    readonly buttonDontSend = 'Не отправлять'
+    get pinTopicHistoryMessage(): string {
+        return this.base.pinTopicHistoryMessage
+    }
 }
 
 export class SurveyContinue {
     /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=71:71)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=97:97)
      */
     readonly text = 'Продолжить заполнение заявки или начать заново?'
     /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=72:72)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=98:98)
      */
-    readonly buttonBegining = 'Начать заново'
+    readonly buttonBeginning = 'Начать заново'
     /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=73:73)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=99:99)
      */
     readonly buttonResume = 'Продолжить'
 }
 
 export class SurveyDescription {
     /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=75:75)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=101:101)
      */
     readonly text =
-        'Вам нужно ответить на несколько вопросов, чтобы бот помог вам заполнить страницу памяти на сайте MemoryCode.ru\n\nВы можете в любой момент вернуться в главное меню при помощи команды /back_to_menu и позже продолжить заполнение страницы без потери прогресса\n\nЕсли вы ранее уже заполняли эту анкету, на следующем шаге вам будет предложено продолжить'
+        'Вам нужно ответить на несколько вопросов\n\nВы можете в любой момент вернуться в главное меню при помощи команды /back_to_menu и позже продолжить заполнение страницы без потери прогресса\n\nЕсли вы ранее уже заполняли эту анкету, на следующем шаге вам будет предложено продолжить'
     /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=76:76)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=102:102)
      */
     readonly buttonStart = 'Приступить'
 }
 
 export class Survey {
     /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=78:78)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=104:104)
      */
-    readonly buttonOptionalQuestionSkip = '👀 Пропустить'
+    readonly buttonOptionalQuestionSkip = '👀 Пропустить вопрос'
     /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=79:79)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=105:105)
      */
-    readonly buttonBackToPreviousQuestion = '⬅️ Вернуться к предыдущему вопросу'
+    readonly buttonBackToPreviousQuestion = '↩️ Изменить выбор'
     /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=80:80)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=106:106)
      */
-    readonly texMessageAditionaltInlineMenu = '🧭 Навигация'
+    readonly buttonInlineSkip = '👀 Пропустить'
     /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=81:81)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=107:107)
      */
-    readonly buttonAditionaltInlineMenuSkip = '👀 Пропустить'
+    readonly buttonInlineBackToPrevious = '↩️ Вернуться'
     /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=82:82)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=108:108)
      */
-    readonly buttonAditionaltInlineMenuBackToPrevious = '⬆️ Вернуться'
+    readonly textInlineSkipEventLog = '<i>👀 Вопрос пропущен</i>'
     /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=83:83)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=109:109)
      */
-    readonly textAditionaltInlineMenuSkipEventLog = '<i>👀 Вопрос пропущен</i>'
-    /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=84:84)
-     */
-    readonly textAditionaltInlineMenuBackToPreviousEventLog =
-        '<i>⬆️ Возврат к предыдущему вопросу</i>'
+    readonly textInlineBackToPreviousEventLog = '<i>↩️ Предыдущий вопрос</i>'
     /**
      * @description Сообщение, которое будет выведено пользователю, если он ввёл текст в ответ на вопрос, где надо дать число
      *
-     * [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=85:85)
+     * [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=110:110)
      */
     readonly errorMessageAnswerIsNotNumber =
         'Введите число\nЕсли вам нужно указать дробное значение, то отделите его точкой или запятой\n\n<i>Пример: 123.4</i>'
@@ -380,34 +709,42 @@ export class Survey {
 
 export class SurveyQuestionMedia {
     /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=87:87)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=112:112)
      */
-    readonly buttonDone = '✅ Готово'
+    readonly commonFilled = '✅ Фото <b>загружено</b>'
     /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=88:88)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=113:113)
+     */
+    readonly buttonDone = 'Продолжить 👉'
+    /**
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=114:114)
      */
     readonly buttonEdit = '🔄 Редактировать'
     /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=89:89)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=115:115)
      */
     readonly buttonEditModeExit = 'Отмена'
     /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=90:90)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=116:116)
      */
     readonly textFilesCountPrefix = 'Загружено файлов:'
     /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=91:91)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=117:117)
      */
     readonly textEditMode = 'Выберите файл, который хотите удалить'
+    /**
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=118:118)
+     */
+    readonly textDeleteAllFiles = 'Удалить все файлы'
 }
 
 export class SurveyQuestionMultipleChoice {
     /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=93:93)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=120:120)
      */
     readonly textSelectionFalse = '⬜'
     /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=94:94)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=121:121)
      */
     readonly textSelectionTrue = '✅'
     /**
@@ -415,35 +752,35 @@ export class SurveyQuestionMultipleChoice {
      * minCount - минимальное количество пунктов, которые надо выбрать
      * maxCount - максимальное количество пунктов, которые можно выбрать
      *
-     * [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=95:95)
+     * [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=122:122)
      */
     readonly textDescription = 'Вы можете выбрать от minCount до maxCount пунктов'
     /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=96:96)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=123:123)
      */
     readonly textSelectionPrefix = 'Вы выбрали:'
     /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=97:97)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=124:124)
      */
     readonly textMaxCountReached = 'Вы выбрали максимальное число вариантов'
     /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=98:98)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=125:125)
      */
-    readonly textMinCountdoesNotReached =
+    readonly textMinCountDoesNotReached =
         'Вам нужно выбрать еще несколько вариантов чтобы продолжить'
 }
 export class SurveyQuestionMultipleChoiceWithParams {
     constructor(private readonly base: SurveyQuestionMultipleChoice) {}
     /**
      * @value: ⬜
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=93:93)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=120:120)
      */
     get textSelectionFalse(): string {
         return this.base.textSelectionFalse
     }
     /**
      * @value: ✅
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=94:94)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=121:121)
      */
     get textSelectionTrue(): string {
         return this.base.textSelectionTrue
@@ -454,7 +791,7 @@ export class SurveyQuestionMultipleChoiceWithParams {
      * minCount - минимальное количество пунктов, которые надо выбрать
      * maxCount - максимальное количество пунктов, которые можно выбрать
      *
-     * [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=95:95)
+     * [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=122:122)
      */
     textDescription(args: { minCount: number; maxCount: number }): string {
         return this.base.textDescription
@@ -463,342 +800,282 @@ export class SurveyQuestionMultipleChoiceWithParams {
     }
     /**
      * @value: Вы выбрали:
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=96:96)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=123:123)
      */
     get textSelectionPrefix(): string {
         return this.base.textSelectionPrefix
     }
     /**
      * @value: Вы выбрали максимальное число вариантов
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=97:97)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=124:124)
      */
     get textMaxCountReached(): string {
         return this.base.textMaxCountReached
     }
     /**
      * @value: Вам нужно выбрать еще несколько вариантов чтобы продолжить
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=98:98)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=125:125)
      */
-    get textMinCountdoesNotReached(): string {
-        return this.base.textMinCountdoesNotReached
+    get textMinCountDoesNotReached(): string {
+        return this.base.textMinCountDoesNotReached
     }
 }
 
 export class SurveyFinal {
     /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=100:100)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=127:127)
+     */
+    readonly textMediaAnswerForSkippedQuestion = 'Вы пропустили вопрос'
+    /**
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=128:128)
      */
     readonly textMediaPrefix = 'Медиа'
     /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=101:101)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=129:129)
      */
     readonly textMediaUnit = 'шт.'
     /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=102:102)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=130:130)
      */
     readonly textOptionalAnswerIsNull = '<i>Не указано</i>'
     /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=103:103)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=131:131)
      */
     readonly text =
-        '👆🏻 Выше все данные из вашей заявки.\nВы можете отправить её в текущем виде либо отредактировать.\n\nЧтобы отредактировать какой-то пункт, отправьте мне его номер.\n\n<i>P.S.: Вы можете вернуться в главное меню и отредактировать заявку позже, просто при возвращении нажмите кнопку <b>Опрос</b>, а затем <b>Продолжить</b></i>'
+        '👆🏻 Данные из твоей заявки готовы к отправке\n\nУбедись, что все правильно и <b>нажми "✅Отправить"</b>\n\nЕсли нужно изменить какое-то поле – нажми на кнопку с его названием'
     /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=104:104)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=132:132)
      */
-    readonly buttonDone = 'Отправить'
+    readonly buttonInlineEdit = '🔄 questionTitle'
+    /**
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=133:133)
+     */
+    readonly buttonDone = '✅ Отправить'
+}
+export class SurveyFinalWithParams {
+    constructor(private readonly base: SurveyFinal) {}
+    /**
+     * @value: Вы пропустили вопрос
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=127:127)
+     */
+    get textMediaAnswerForSkippedQuestion(): string {
+        return this.base.textMediaAnswerForSkippedQuestion
+    }
+    /**
+     * @value: Медиа
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=128:128)
+     */
+    get textMediaPrefix(): string {
+        return this.base.textMediaPrefix
+    }
+    /**
+     * @value: шт.
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=129:129)
+     */
+    get textMediaUnit(): string {
+        return this.base.textMediaUnit
+    }
+    /**
+     * @value: <i>Не указано</i>
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=130:130)
+     */
+    get textOptionalAnswerIsNull(): string {
+        return this.base.textOptionalAnswerIsNull
+    }
+    /**
+     * @value: 👆🏻 Данные из твоей заявки готовы к отправке\n\nУбедись, что все правильно и <b>нажми "✅Отправить"</b>\n\nЕсли нужно изменить какое-то поле – нажми на кнопку с его названием
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=131:131)
+     */
+    get text(): string {
+        return this.base.text
+    }
+    /**
+     * @value: 🔄 questionTitle
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=132:132)
+     */
+    buttonInlineEdit(args: { questionTitle: string }): string {
+        return this.base.buttonInlineEdit.replaceAll('questionTitle', `${args.questionTitle}`)
+    }
+    /**
+     * @value: ✅ Отправить
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=133:133)
+     */
+    get buttonDone(): string {
+        return this.base.buttonDone
+    }
 }
 
 export class SurveyQuestionGptTip {
     /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=106:106)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=135:135)
      */
     readonly textWaitingForGptAnswer = 'Формулирую ответ...'
     /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=107:107)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=136:136)
      */
     readonly textStartMenu =
         'Бот может помочь Вам ответить на этот вопрос\nДля начала нужно кратко изложить основную мысль, если трудно сделать это сразу - бот задаст вам дополнительные вопросы'
     /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=108:108)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=137:137)
      */
     readonly buttonStartMenuContinue = '😊 Отлично, приступаю!'
     /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=109:109)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=138:138)
      */
     readonly buttonStartMenuGptTip = '🤔 Помоги собраться с мыслями'
     /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=110:110)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=139:139)
      */
     readonly promptStartMenuGptTipTemperature = '0.4'
     /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=111:111)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=140:140)
      */
     readonly promptStartMenuGptTip =
-        'Я прохожу опрос для заполнения страницы посвященной памяти погибшего родственника.\nЯ уже увидел вопрос, но не смог сформулировать ответ самостоятельно, задай мне несколько наводящих вопросов чтобы помочь собраться с мыслями.\nЕсли информации достаточно, используй при формировании подсказок ответы на предыдущие вопросы.\n\nСООБЩЕНИЕ ОБЯЗАТЕЛЬНО ДОЛЖНО СОДЕРЖАТЬ КАК МИНИМУМ 3 ВОПРОСА ВОПРОСЫ ДОЛЖНЫ ПОДРАЗУМЕВАТЬ РАЗВЕРНУТЫЙ ОТВЕТ ОТВЕЧАЙ ОТ ЛИЦА БОТА, ПРИШЛИ ТОЛЬКО ИТОГОВОЕ СООБЩЕНИЕ.\nТебе НЕЛЬЗЯ ИСПОЛЬЗОВАТЬ В СВОЁМ ОТВЕТЕ ФРАЗЫ:"ВОПРОСЫ ПОЛЬЗОВАТЕЛЮ", "ПРИМЕР СООБЩЕНИЯ"\n\nДалее данные: код языка, на котором нужно ОБЯЗАТЕЛЬНО перевести твое сообщение ЦЕЛИКОМ; текущий вопрос; мои ответы на предыдущие вопросы.'
+        'Я прохожу опрос для заполнения ...\n\nСООБЩЕНИЕ ОБЯЗАТЕЛЬНО ДОЛЖНО СОДЕРЖАТЬ КАК МИНИМУМ 3 ВОПРОСА ВОПРОСЫ ДОЛЖНЫ ПОДРАЗУМЕВАТЬ РАЗВЕРНУТЫЙ ОТВЕТ ОТВЕЧАЙ ОТ ЛИЦА БОТА, ПРИШЛИ ТОЛЬКО ИТОГОВОЕ СООБЩЕНИЕ.\nТебе НЕЛЬЗЯ ИСПОЛЬЗОВАТЬ В СВОЁМ ОТВЕТЕ ФРАЗЫ:"ВОПРОСЫ ПОЛЬЗОВАТЕЛЮ", "ПРИМЕР СООБЩЕНИЯ"\n\nДалее данные: код языка, на котором нужно ОБЯЗАТЕЛЬНО перевести твое сообщение ЦЕЛИКОМ; текущий вопрос; мои ответы на предыдущие вопросы.'
     /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=112:112)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=141:141)
      */
     readonly textStartMenuEnterMessage =
         'Напишите ваш ответ текстом или отправьте голосовое сообщение'
     /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=113:113)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=142:142)
      */
     readonly textAnswerEditing = 'Отлично!\nВот что у вас получилось:'
     /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=114:114)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=143:143)
      */
     readonly buttonAnswerEditingDone = '👍 Мне нравится, можем идти дальше'
     /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=115:115)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=144:144)
      */
     readonly buttonAnswerEditingUpdateWithGpt = '🧐 Попробуй улучшить мой ответ'
     /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=116:116)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=145:145)
      */
     readonly buttonAnswerEditingRestart = '👀 Хочу ответить на вопрос заново'
     /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=117:117)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=146:146)
      */
     readonly textUpdateWithGptWishes = 'Есть ли у Вас дополнительные пожелания'
     /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=118:118)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=147:147)
      */
     readonly buttonUpdateWithGptWishesYes = '🤔 Да, сейчас расскажу'
     /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=119:119)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=148:148)
      */
     readonly buttonUpdateWithGptWishesNo = '👨‍🎨 Сделай на свой вкус'
     /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=120:120)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=149:149)
      */
     readonly textUpdateWithGptWishesEnter =
         'Напишите ваш ответ текстом или отправьте голосовое сообщение'
     /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=121:121)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=150:150)
      */
     readonly promptUpdateWithGptTemperature = '0.4'
     /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=122:122)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=151:151)
      */
     readonly promptUpdateWithGpt =
-        'Я прохожу опрос для заполнения страницы посвященной памяти умершего родственника. \nНужно помочь мне развёрнуто ответить на вопрос.\nЕсли информации достаточно, используй ответы на предыдущие вопросы.\n\nВ ОТВЕТЕ НЕ ДОЛЖНО БЫТЬ НИЧЕГО ЛИШНЕГО, ТОЛЬКО ОТВЕТ НА ВОПРОС.\nОБЯЗАТЕЛЬНО УЧИТЫВАЙ МОИ ПОЖЕЛАНИЯ\n\nДалее данные: код языка, на котором нужно ОБЯЗАТЕЛЬНО перевести твое сообщение ЦЕЛИКОМ; текущий вопрос; мои ответы на предыдущие вопросы.'
+        'Я прохожу опрос\nСделай мой ответ более развернутым\n\nВ ОТВЕТЕ НЕ ДОЛЖНО БЫТЬ НИЧЕГО ЛИШНЕГО, ТОЛЬКО ОТВЕТ НА ВОПРОС.\nОБЯЗАТЕЛЬНО УЧИТЫВАЙ МОИ ПОЖЕЛАНИЯ\n\nДалее данные: код языка, на котором нужно ОБЯЗАТЕЛЬНО перевести твое сообщение ЦЕЛИКОМ; текущий вопрос; мои ответы на предыдущие вопросы.'
     /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=123:123)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=152:152)
      */
     readonly textUpdateWithGptSaveResult = 'Как Вам результат?'
     /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=124:124)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=153:153)
      */
     readonly buttonUpdateWithGptSaveResultYes = '👍 Мне нравится'
     /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=125:125)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=154:154)
      */
     readonly buttonUpdateWithGptSaveResultTryAgain = '🧐 Попробуй ещё раз'
     /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=126:126)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=155:155)
      */
     readonly buttonUpdateWithGptSaveResultNo = '😓 Прошлый вариант был лучше'
 }
 
-export class ModerationCommand {
+export class SurveyQuestionPhoneNumber {
     /**
-     * @description Команда для чата модерации
-     *
-     * [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=129:129)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=156:156)
      */
-    readonly approve = 'Принять'
+    readonly text =
+        '<b>Вы можете отправить</b>📱📞 номер телефона <b>текстовым сообщением</b> в формате +7 999 999 99 99\nИЛИ <b>поделиться им через кнопку в нижнем меню</b> 👇'
     /**
-     * @description Команда для чата модерации
-     *
-     * [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=130:130)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=157:157)
      */
-    readonly place = 'Опубликовать'
+    readonly buttonSendContact = 'Использовать номер телефона, привязанный к Telegram'
     /**
-     * @description Команда для чата модерации
-     *
-     * [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=131:131)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=158:158)
      */
-    readonly reject = 'Отклонить'
+    readonly buttonEnterPhoneNumber = 'Ввести самостоятельно'
     /**
-     * @description Команда для чата модерации
+     * @description Сообщение, которое будет выведено пользователю, если он ввёл не номер телефона
      *
-     * [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=132:132)
+     * [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=159:159)
      */
-    readonly notRelevant = 'Не актуально'
+    readonly textEnterPhoneNumber = 'Введите номер телефона'
     /**
-     * @description Команда для чата модерации
+     * @description Сообщение, которое будет выведено пользователю, если он ввёл не номер телефона
      *
-     * [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=133:133)
+     * [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=160:160)
      */
-    readonly edit = 'Редактировать'
+    readonly errorMessageAnswerIsNotPhoneNumber =
+        'Ответом на этот вопрос обязательно должен быть номер телефона'
 }
 
-export class Moderation {
+export class Training {
     /**
-     * @description Описание команды Опубликовать
-     *
-     * [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=134:134)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=163:163)
      */
-    readonly commandPlaceDescriptionText =
-        'Команды "Принять", "Отклонить", "Не актуально" изменяют статус публикации\nКоманда <b>Опубликовать</b> позволяет выложить пост в канал\nКоманда "Редактировать" позволяет администратору поменять контент заявки'
+    readonly textStart = 'Обучение\n\n✅ пройденный урок\n☑️ непройденный урок'
     /**
-     * @description Плейсхолдер
-     *
-     * [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=135:135)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=164:164)
      */
-    readonly messageAdvertIdPlaceholder = 'advertIdPlaceholder'
+    readonly buttonContinue = 'Следующий урок'
     /**
-     * @description Плейсхолдер
-     *
-     * [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=136:136)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=165:165)
      */
-    readonly messagePostLinkPlaceholder = 'postLinkPlaceholder'
+    readonly buttonBackToPreviousStep = 'Предыдущий урок'
     /**
-     * @description Плейсхолдер
-     *
-     * [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=137:137)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=166:166)
      */
-    readonly messagePostStatusPlaceholder = 'advertStatusPlaceholder'
+    readonly indicatorParagraphPassed = '✅'
     /**
-     * @description Плейсхолдер
-     *
-     * [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=138:138)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=167:167)
      */
-    readonly messagePostDatePlaceholder = 'advertCreationDatePlaceholder'
+    readonly indicatorParagraphCurrent = '☑️'
     /**
-     * @description Плейсхолдер
-     *
-     * [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=139:139)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=168:168)
      */
-    readonly messagePostIdPlaceholder = 'postIdPlaceholder'
+    readonly indicatorParagraphNext = '☑️'
     /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=140:140)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=169:169)
      */
-    readonly publicationStatusCreated = '🧾 Создана'
+    readonly buttonSelectStep = 'Выбрать урок'
     /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=141:141)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=170:170)
      */
-    readonly publicationStatusModeration = '📝 Проверка'
-    /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=142:142)
-     */
-    readonly publicationStatusRejected = '🚫 Отклонено'
-    /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=143:143)
-     */
-    readonly publicationStatusActive = '✅ Актуально'
-    /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=144:144)
-     */
-    readonly publicationStatusNotRelevant = '❌ Не актуально'
-    /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=145:145)
-     */
-    readonly publicationTextLink = '<a href="postLinkPlaceholder">Ссылка на публикацию</a>'
-    /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=146:146)
-     */
-    readonly messageText =
-        '📩 <b>Сообщение от команды ShinestBot</b>\n\nID публикации: <b>advertIdPlaceholder</b>\nДата подачи заявки: advertCreationDatePlaceholder'
-    /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=147:147)
-     */
-    readonly messageTextModeration =
-        'Ваше объявление было успешно отправлено на модерацию\n\nID: <b>advertIdPlaceholder</b>\nДата подачи заявки: advertCreationDatePlaceholder'
-    /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=148:148)
-     */
-    readonly messageTextAccepted =
-        '🎉 <b>Поздравляем</b> 🎉\nВаше объявление было принято\n\nID: <b>advertIdPlaceholder</b>\nДата подачи заявки: advertCreationDatePlaceholder'
-    /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=149:149)
-     */
-    readonly messageTextRejected =
-        '🚫 <b>Внимание</b> 🚫\nВаше объявление было Отклонено\n\nID: <b>advertIdPlaceholder</b>\nДата подачи заявки: advertCreationDatePlaceholder'
-    /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=150:150)
-     */
-    readonly messageTextNotRelevant =
-        '⚠️ <b>Внимание</b> ⚠️\nВаше объявление было отмечено как неактуальное\n\nID: <b>advertIdPlaceholder</b>\nДата подачи заявки: advertCreationDatePlaceholder'
-    /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=151:151)
-     */
-    readonly moderationMessageTextNewSearchResult =
-        '✅ <b>Внимание</b> ✅\nПоявилось новая публикация, подходящая под ваши фильтры'
-    /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=152:152)
-     */
-    readonly moderationMessagePublicationEdited = '✅ <b>Внимание</b> ✅\n\nЗаявка была обновлена'
+    readonly buttonFinal = 'Завершить обучение'
 }
 
-export class UserPublications {
+export class TrainingStart {
     /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=155:155)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=171:171)
      */
-    readonly text = 'Ваши объявления:'
+    readonly startButtonShowFromBeginning = 'Смотреть по очереди'
     /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=156:156)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=172:172)
      */
-    readonly textEmpty = 'Вы еще не подавали объявлений'
+    readonly startButtonShowLastStep = 'Мой последний урок'
     /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=157:157)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=173:173)
      */
-    readonly textModeratorContact =
-        'Напишите мне ваш вопрос, ответ модераторатора придёт вам вместе с уведомлением\n\nДля отмены текущего действия нажмите /cancel'
+    readonly startButtonSelectStep = 'Выбрать урок'
     /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=158:158)
+     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=174:174)
      */
-    readonly advertInfoFormat =
-        'ID: <b>advertIdPlaceholder</b>\nСтатус: advertStatusPlaceholder\nДата подачи заявки: advertCreationDatePlaceholder'
-    /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=159:159)
-     */
-    readonly advertInfoLinkFormat = '<a href="postLinkPlaceholder">Ссылка на публикацию</a>'
-    /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=160:160)
-     */
-    readonly buttonSetStatusNotRelevant = '❌ Отметить как неактуальное'
-    /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=161:161)
-     */
-    readonly buttonReuseAdvert = '✏ Отредактировать и отправить повторно'
-    /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=162:162)
-     */
-    readonly writeToModerator = 'Написать модератору'
-    /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=163:163)
-     */
-    readonly buttonLinkWeb = '🌎 Посмотреть на сайте'
-    /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=164:164)
-     */
-    readonly buttonLinkTelegram = '➡️ Перейти к публикации'
-    /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=165:165)
-     */
-    readonly writeToModeratorError = 'Не удалось отправить ваше сообщение\nПопробуйте еще раз'
-    /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=166:166)
-     */
-    readonly writeToModeratorSuccess = 'Сообщение успешно отправлено'
-    /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=167:167)
-     */
-    readonly finalOptionalAnswerIsNull = '<i>Не указано</i>'
-}
-
-export class ModerationEditing {
-    /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=170:170)
-     */
-    readonly text = 'Приступить к редактированию заявки?\nid: <b>postIdPlaceholder</b>'
-    /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=171:171)
-     */
-    readonly textEmpty = 'В данный момент вы не редактируете ни одну заявку'
-    /**
-     * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/edit#gid=0&range=172:172)
-     */
-    readonly buttonStartEditing = 'Приступить'
+    readonly startMenuText = 'Вы в меню'
 }

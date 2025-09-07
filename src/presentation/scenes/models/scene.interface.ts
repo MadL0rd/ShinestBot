@@ -1,47 +1,44 @@
+import { TelegramDirectDialogInteractor } from 'src/business-logic/telegram-bridge/telegram-ddi/telegram-ddi'
+import { UserProfileDocument } from 'src/business-logic/user/schemas/user.schema'
+import { BotContent } from 'src/entities/bot-content'
+import { UserProfile } from 'src/entities/user-profile'
+import { ExtendedMessageContext } from 'src/utils/telegraf-middlewares/extended-message-context'
 import { Context } from 'telegraf'
-import { SceneName } from './scene-name.enum'
 import { Update } from 'telegraf/types'
 import { SceneCallbackData } from './scene-callback'
 import { SceneEntrance } from './scene-entrance.interface'
-import { UserProfileDocument } from 'src/business-logic/user/schemas/user.schema'
-import { UserProfile } from 'src/entities/user-profile'
-import { BotContent } from 'src/entities/bot-content'
+import { SceneName } from './scene-name.enum'
 
 export interface IScene {
     readonly name: SceneName.Union
 
     injectUserContext(userContext: SceneUserContext): IScene
     validateUseScenePermissions(): PermissionsValidationResult
-    handleEnterScene(ctx: Context, data?: object): Promise<SceneHandlerCompletion>
-    handleMessage(ctx: Context, data: object): Promise<SceneHandlerCompletion>
+    handleEnterScene(data?: object): Promise<SceneHandlerCompletion>
+    handleMessage(ctx: ExtendedMessageContext, data: object): Promise<SceneHandlerCompletion>
     handleCallback(
         ctx: Context<Update.CallbackQueryUpdate>,
         dataRaw: SceneCallbackData
     ): Promise<SceneHandlerCompletion>
 }
 
-/**
- * @field inProgress
- * True means that next user message should be handled by the same scene
- *
- * @field didHandledUserInteraction
- * False means that scene still in progress, but user sent an incorrect message
- *
- * @field sceneData
- * Scene data to save for next message from user
- *
- * @field nextSceneIfCompleted
- * This field can bring content only if `inProgress` is false
- */
-export interface SceneHandlerCompletion {
-    /** True means that next user message should be handled by the same scene */
-    inProgress: boolean
-    /** False means that scene still in progress, but user sent an incorrect message */
+export type SceneHandlerCompletion =
+    | SceneHandlerCompletionInProgress
+    | SceneHandlerCompletionDoNothing
+    | SceneHandlerCompletionTransition
+
+export type SceneHandlerCompletionInProgress = {
+    type: 'inProgress'
+    sceneData?: Record<string, unknown>
+}
+export type SceneHandlerCompletionDoNothing = {
+    type: 'doNothing'
     didHandledUserInteraction: boolean
-    /** Scene data to save for next message from user */
-    sceneData?: any
-    /** This field can bring content only if inProgress is false */
-    nextSceneIfCompleted?: SceneEntrance.AnySceneDto
+    didAlreadySendErrorMessage: boolean
+}
+export type SceneHandlerCompletionTransition = {
+    type: 'transition'
+    nextScene?: SceneEntrance.AnySceneDto
 }
 
 export interface PermissionsValidationResult {
@@ -51,16 +48,20 @@ export interface PermissionsValidationResult {
 
 /**
  * @field user
- * Servise internal user model
+ * Service internal user model
  *
  * @field userActivePermissions
  * User permissions validated by current date and time
  *
  * @field botContent
  * Value of all remote content localized by user language
+ *
+ * @field ddi
+ * Direct dialog interactor (api wrapper for all interactions with private chat with user)
  */
 export interface SceneUserContext {
     readonly user: UserProfileDocument
     readonly userActivePermissions: UserProfile.PermissionNames.Union[]
     readonly botContent: BotContent.BaseType
+    readonly ddi: TelegramDirectDialogInteractor
 }

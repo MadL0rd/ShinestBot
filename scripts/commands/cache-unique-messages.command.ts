@@ -1,9 +1,9 @@
-import * as fs from 'fs'
-import * as path from 'path'
 import { Injectable } from '@nestjs/common'
+import * as fs from 'fs'
 import { Command, CommandRunner } from 'nest-commander'
-import { SheetDataProviderService } from 'src/core/sheet-data-provider/sheet-data-provider.service'
+import * as path from 'path'
 import { internalConstants } from 'src/app/app.internal-constants'
+import { SheetDataProviderService } from 'src/core/sheet-data-provider/sheet-data-provider.service'
 
 function ensureDirectoryExistence(filePath: string) {
     const dirname = path.dirname(filePath)
@@ -13,6 +13,8 @@ function ensureDirectoryExistence(filePath: string) {
     ensureDirectoryExistence(dirname)
     fs.mkdirSync(dirname)
 }
+
+type Writeable<T> = { -readonly [P in keyof T]: T[P] }
 
 @Injectable()
 @Command({
@@ -33,8 +35,11 @@ export class CacheUniqueMessagesCommand extends CommandRunner {
             true
         )
         const uniqueMessagesJson = uniqueMessagesCached
-            .filter((row) => row.isUniqueMessage === this.cachedTrueValue)
-            .map((row) => {
+            .filter((row) => row.isUniqueMessage)
+            .map((rowBase) => {
+                const row = rowBase as Writeable<typeof rowBase> & {
+                    sourceRowIndex: number | undefined
+                }
                 const params = row.params
                     ?.split('\n')
                     .map((param) => param.split('/').map((component) => component.trim()))
@@ -46,7 +51,7 @@ export class CacheUniqueMessagesCommand extends CommandRunner {
                         }
                     })
                 if (row.sourceRowIndex) {
-                    const rowUrl = `https://docs.google.com/spreadsheets/d/${internalConstants.googleSpreadsheetId}/edit#gid=0&range=${row.sourceRowIndex}:${row.sourceRowIndex}`
+                    const rowUrl = `https://docs.google.com/spreadsheets/d/${internalConstants.sheetContent.googleSpreadsheetId}/edit#gid=0&range=${row.sourceRowIndex}:${row.sourceRowIndex}`
                     const rowLink = `[Spreadsheet row link](${rowUrl})`
                     row.comment = row.comment ? `${row.comment}\n\n${rowLink}` : rowLink
                 }

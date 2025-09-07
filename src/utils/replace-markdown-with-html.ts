@@ -7,8 +7,8 @@ export function replaceMarkdownWithHtml(text: string): string {
     }
 
     // Markdown links to HTML links
-    const regexMdLinks = /\[([^\]]+)\][^\)]+\)/g
-    const singleMatch = /\[([^\[]+)\]\((.*)\)/
+    const regexMdLinks = /\[([^\]]+)\][^)]+\)/g
+    const singleMatch = /\[([^[]+)\]\((.*)\)/
 
     const matches = text.match(regexMdLinks)
 
@@ -28,7 +28,7 @@ export function replaceMarkdownWithHtml(text: string): string {
 }
 
 namespace HtmlMessageTags {
-    export type union = (typeof allCases)[number]
+    export type Union = (typeof allCases)[number]
     export const allCases = [
         'b', // bold
         'i', // italic
@@ -42,7 +42,7 @@ export function validateStringHtmlTagsAll(text: string) {
     HtmlMessageTags.allCases.forEach((tag) => validateStringHtmlTag(text, tag))
 }
 
-export function validateStringHtmlTag(text: string, tag: HtmlMessageTags.union) {
+export function validateStringHtmlTag(text: string, tag: HtmlMessageTags.Union) {
     const regExpOpen = RegExp(`<${tag}>`, 'g')
     const countOpen = (text.match(regExpOpen) || []).length
 

@@ -6,17 +6,17 @@ import { speech2text } from 'yandex-speech-promise'
 
 @Injectable()
 export class YandexSpeechKitService {
-    constructor(@InjectBot() private readonly bot: Telegraf) {}
+    constructor(@InjectBot('Bot') private readonly bot: Telegraf) {}
 
     async recognizeTextFromAudio(fileId: string): Promise<string | undefined> {
         const { file_path: filePath } = await this.bot.telegram.getFile(fileId)
         const response = await fetch(
-            `https://api.telegram.org/file/bot${internalConstants.botToken}/${filePath}`
+            `https://api.telegram.org/file/bot${internalConstants.botTokens.mainBot}/${filePath}`
         )
         const buffer = Buffer.from(await response.arrayBuffer())
 
         const result = await speech2text(buffer, {
-            auth: `Api-Key ${internalConstants.yandexSpeechKitApiKey}`,
+            auth: `Api-Key ${internalConstants.yandexSpeechKit.apiKey}`,
         })
 
         return result

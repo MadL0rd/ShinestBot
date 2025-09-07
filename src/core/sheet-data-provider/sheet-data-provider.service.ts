@@ -1,9 +1,15 @@
 import { Injectable } from '@nestjs/common'
-import { SheetDataProviderFactoryService } from './sheet-data-provider-factory/sheet-data-provider-factory.service'
-import { ISheetDataProvider } from './abscract/sheet-data-provider.interface'
-import { DataSheetPrototype } from './schemas/data-sheet-prototype'
 import { LanguageCode } from 'src/utils/languages-info/getLanguageName'
-import { SourceRowData, SourceRowDataObject } from './abscract/source-row-data'
+import {
+    replaceMarkdownWithHtml,
+    validateStringHtmlTagsAll,
+} from 'src/utils/replace-markdown-with-html'
+import z, { ZodError } from 'zod'
+import { ISheetDataProvider } from './abstract/sheet-data-provider.interface'
+import { SourceRowData, SourceRowDataObject } from './abstract/source-row-data'
+import { DataSheetPrototype } from './schemas/data-sheet-prototype'
+import { zSheet } from './schemas/z-sheet-data-util-schemas'
+import { SheetDataProviderFactoryService } from './sheet-data-provider-factory/sheet-data-provider-factory.service'
 
 @Injectable()
 export class SheetDataProviderService {
@@ -25,11 +31,11 @@ export class SheetDataProviderService {
     ): Promise<LanguageCode.Union[]> {
         const pageConfig = DataSheetPrototype.schemaLocalization[page]
         const cacheConfig = pageConfig.cacheConfiguration
-        const content = await this.sheetDataProvider.getContentByListName(
+        const content = await this.sheetDataProvider.getContentFromPage(
             pageConfig.sheetPublicName,
             `${cacheConfig.firstLetter}${cacheConfig.configurationRow}:${cacheConfig.lastLetter}${cacheConfig.configurationRow}`
         )
-        const notLanguageKeys = Object.keys(pageConfig.itemPrototype)
+        const notLanguageKeys = Object.keys(pageConfig.itemSchema)
         const languageCodes =
             content.first?.filter((title) => notLanguageKeys.includes(title) === false) ?? []
         const languageCodesStable = languageCodes.compactMap((code) =>
@@ -42,34 +48,35 @@ export class SheetDataProviderService {
         page: Page,
         addMetadata: boolean = false
     ): Promise<DataSheetPrototype.RowItemLocalization<Page>[]> {
-        return this.getContentItemsFromPage(
+        return this.getContentItemsFromPage({
             page,
-            addMetadata
-        ) as any as DataSheetPrototype.RowItemLocalization<Page>[]
+            addMetadata,
+        }) as any as DataSheetPrototype.RowItemLocalization<Page>[]
     }
 
     async getContentFrom<Page extends DataSheetPrototype.SomePageContent>(
         page: Page,
         addMetadata: boolean = false
     ): Promise<DataSheetPrototype.RowItemContent<Page>[]> {
-        return this.getContentItemsFromPage(
+        return this.getContentItemsFromPage({
             page,
-            addMetadata
-        ) as any as DataSheetPrototype.RowItemContent<Page>[]
+            addMetadata,
+        }) as any as DataSheetPrototype.RowItemContent<Page>[]
     }
 
     // =====================
     // Private methods
     // =====================
 
-    private async getContentItemsFromPage(
-        page: DataSheetPrototype.SomePage,
+    private async getContentItemsFromPage(args: {
+        page: DataSheetPrototype.SomePage
         addMetadata: boolean
-    ): Promise<Record<string, string | Record<string, string>>[]> {
+    }): Promise<Record<string, any>[]> {
+        const { page, addMetadata } = args
+
         const pageConfig = DataSheetPrototype.getSchemaForPage(page)
         const cacheConfig = pageConfig.cacheConfiguration
-        const validation = pageConfig.validation
-        const content = await this.sheetDataProvider.getContentByListName(
+        const content = await this.sheetDataProvider.getContentFromPage(
             pageConfig.sheetPublicName,
             `${cacheConfig.firstLetter}${cacheConfig.configurationRow}:${cacheConfig.lastLetter}${cacheConfig.lastContentRow}`
         )
@@ -80,17 +87,6 @@ export class SheetDataProviderService {
                 `Sheet cache error: ${pageConfig.sheetId}. Configuration row identification failed!`
             )
         }
-        const itemPrototypeKeys = Object.keys(pageConfig.itemPrototype)
-        itemPrototypeKeys.forEach((key) => {
-            if (configurationRow.includes(key) === false)
-                throw Error(
-                    `Sheet cache error: ${pageConfig.sheetId}. Remote configuration row does not contains key "${key}"!`
-                )
-        })
-        const configurationRowLanguages = configurationRow.filter(
-            (rowKey) =>
-                itemPrototypeKeys.includes(rowKey) == false && LanguageCode.isInstance(rowKey)
-        )
 
         const contentRows: SourceRowData[] = content
             .slice(cacheConfig.firstContentRow - cacheConfig.configurationRow)
@@ -100,54 +96,61 @@ export class SheetDataProviderService {
                     content: row,
                 }
             })
-            .filter((row) => row.content.length >= validation.minRowLength)
+            .filter((row) => row.content.length >= cacheConfig.minRowLength)
 
         if (contentRows.isEmpty) {
-            throw Error(`Sheet cache error: ${pageConfig.sheetId}. No content`)
+            return []
+        }
+
+        let configurationRowLanguagesSchema: z.ZodObject<any> | null = null
+        if (pageConfig.contentType === 'localizedStrings') {
+            configurationRowLanguagesSchema = z.object(
+                configurationRow
+                    .filter((rowKey) => LanguageCode.includes(rowKey))
+                    .reduce((acc, language) => {
+                        Object.assign(acc, { [language]: zSheet.string.required })
+                        return acc
+                    }, {})
+            )
         }
 
         const result = this.rowsToStringRecords(configurationRow, contentRows).map((rowObject) => {
-            const rowRecord = rowObject.content
-            /**
-             * String value by default
-             * Record<string, string> for 'localizedValues' only
-             */
-            const rowItem: Record<string, string | Record<string, string>> = {}
-            const localizedValues: Record<string, string> = {}
-            for (const rowKey in rowRecord) {
-                if (!rowRecord[rowKey] || rowRecord[rowKey].isEmpty) continue
+            const itemParseResult = pageConfig.itemSchema.safeParse(rowObject.content)
 
-                if (itemPrototypeKeys.includes(rowKey)) {
-                    rowItem[rowKey] = rowRecord[rowKey]
-                } else if (configurationRowLanguages.includes(rowKey)) {
-                    localizedValues[rowKey] = rowRecord[rowKey]
-                }
-            }
-            if (pageConfig.contentType == 'localizedStrings') {
-                const itemLanguages = Object.keys(localizedValues)
-                if (configurationRowLanguages.length != itemLanguages.length) {
-                    const rowItemJson = JSON.stringify(rowRecord, null, 2)
-                    throw Error(
-                        `Sheet cache error: ${pageConfig.sheetId}\nRow item miss some languages\n${rowItemJson}`
-                    )
-                }
-                rowItem['localizedValues'] = localizedValues
-            }
-
-            for (const requiredField in validation.requiredFields) {
-                const value = rowItem[requiredField]
-                if (!value || value.isEmpty) {
-                    const rowItemJson = JSON.stringify(rowRecord)
-                    throw Error(
-                        `Sheet cache error: ${pageConfig.sheetId}\nRow item miss required field '${requiredField}'\n${rowItemJson}`
-                    )
-                }
+            if (itemParseResult.success === false || !itemParseResult.data) {
+                throw Error(
+                    [
+                        `Fail to parse item ${JSON.stringify(rowObject)}`,
+                        itemParseResult.error instanceof ZodError
+                            ? z.prettifyError(itemParseResult.error)
+                            : `Validation error: ${JSON.stringify(itemParseResult.error)}`,
+                    ].join('\n')
+                )
             }
 
             if (addMetadata) {
-                rowItem['sourceRowIndex'] = `${rowObject.rowIndex}`
+                Object.assign(itemParseResult.data, { sourceRowIndex: rowObject.rowIndex })
             }
-            return rowItem
+
+            if (configurationRowLanguagesSchema) {
+                const localizedValuesParseResult = configurationRowLanguagesSchema.safeParse(
+                    rowObject.content
+                )
+                if (localizedValuesParseResult.success === false) {
+                    throw Error(
+                        [
+                            `Fail to parse item localization ${JSON.stringify(rowObject)}`,
+                            localizedValuesParseResult.error instanceof ZodError
+                                ? z.prettifyError(localizedValuesParseResult.error)
+                                : `Validation error: ${JSON.stringify(localizedValuesParseResult.error)}`,
+                        ].join('\n')
+                    )
+                }
+                Object.assign(itemParseResult.data, {
+                    localizedValues: localizedValuesParseResult.data,
+                })
+            }
+            return itemParseResult.data
         })
 
         return result
@@ -160,7 +163,12 @@ export class SheetDataProviderService {
         return rows.map((row) => {
             const rowObject: Record<string, string> = {}
             configurationRow.forEach((key, index) => {
-                rowObject[key] = row.content[index]
+                let content = row.content[index]
+                if (content) {
+                    content = replaceMarkdownWithHtml(content).trim()
+                    validateStringHtmlTagsAll(content)
+                }
+                rowObject[key] = content
             })
             return {
                 rowIndex: row.rowIndex,

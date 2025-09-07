@@ -1,4 +1,5 @@
 {
+    "baseDir": "./src",
     "format": {
         "applyOnCommandsCompletion": true,
         "scrypt": "npm run format"
@@ -16,7 +17,7 @@
                 "namePlaceholders": {
                     "caseCamel": "<# sceneName #>",
                     "casePascal": "<# SceneName #>",
-                    "caseKebub": "<# scene-name #>"
+                    "caseKebab": "<# scene-name #>"
                 },
                 "git": {
                     "commitMessage": "Scene created: <# SceneName #>"
@@ -28,11 +29,6 @@
                     }
                 ],
                 "replacements": [
-                    {
-                        "filePath": "src/business-logic/user/enums/user-history-events.ts",
-                        "placeholder": "/** New scene event placeholder */",
-                        "replaceWith": "startScene<# SceneName #>: {\ntype: 'startScene<# SceneName #>',\nlocalizedTitle: 'Перешел к сцене <# sceneName #>',\n},\n/** New scene event placeholder */"
-                    },
                     {
                         "filePath": "src/presentation/scenes/models/scene-name.enum.ts",
                         "placeholder": "/** New scene name placeholder */",
@@ -46,7 +42,7 @@
                     {
                         "filePath": "src/presentation/scenes/scene-factory/scene-factory.service.ts",
                         "placeholder": "/** New scene generation placeholder */",
-                        "replaceWith": "case '<# sceneName #>':\n return this.injectionsProvider.resolve(<# SceneName #>Scene)\n/** New scene generation placeholder */"
+                        "replaceWith": "<# sceneName #>: <# SceneName #>Scene,\n/** New scene generation placeholder */"
                     },
                     {
                         "filePath": "src/presentation/scenes/models/scene-entrance.interface.ts",
@@ -66,7 +62,7 @@
                 "namePlaceholders": {
                     "caseCamel": "<# entityName #>",
                     "casePascal": "<# EntityName #>",
-                    "caseKebub": "<# entity-name #>"
+                    "caseKebab": "<# entity-name #>"
                 },
                 "git": {
                     "commitMessage": "Entity created: <# EntityName #>"
@@ -92,12 +88,42 @@
                 "replacements": []
             },
             {
+                "title": "New spreadsheet page schema",
+                "nameQuestion": "Enter new spreadsheet page schema name",
+                "namePlaceholders": {
+                    "caseCamel": "<# pageName #>",
+                    "casePascal": "<# PageName #>",
+                    "caseKebab": "<# page-name #>"
+                },
+                "git": {
+                    "commitMessage": "Spreadsheet page schema created: <# pageName #>"
+                },
+                "createFiles": [
+                    {
+                        "resultSourceCodeFilePath": "src/core/sheet-data-provider/schemas/spreadsheet-pages/<# page-name #>.schema.ts",
+                        "templateFile": "scripts/templates/spreadsheet-pages.schema.txt"
+                    }
+                ],
+                "replacements": [
+                    {
+                        "filePath": "src/core/sheet-data-provider/schemas/spreadsheet.schema.ts",
+                        "placeholder": "/** New spreadsheet page schema placeholder */",
+                        "replaceWith": "<# pageName #>: {\nsheetId: '<# pageName #>',\nsheetPublicName: 'PUT_PAGE_NAME_HERE',\ncontentType: 'commonContent',\n...<# pageName #>,\n} satisfies DataSheetPageSchema,\n/** New spreadsheet page schema placeholder */"
+                    },
+                    {
+                        "filePath": "src/core/sheet-data-provider/schemas/spreadsheet.schema.ts",
+                        "placeholder": "/** New spreadsheet page schema import placeholder */",
+                        "replaceWith": "import { <# pageName #> } from './spreadsheet-pages/<# page-name #>.schema'\n/** New spreadsheet page schema import placeholder */"
+                    }
+                ]
+            },
+            {
                 "title": "New extension",
                 "nameQuestion": "Enter new extension name",
                 "namePlaceholders": {
                     "caseCamel": "<# extensionName #>",
                     "casePascal": "<# ExtensionName #>",
-                    "caseKebub": "<# extension-name #>"
+                    "caseKebab": "<# extension-name #>"
                 },
                 "git": {
                     "commitMessage": "Extension created: <# ExtensionName #>"

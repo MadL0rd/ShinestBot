@@ -3,7 +3,7 @@ import { UserProfile } from 'src/entities/user-profile'
 import { SceneEntrance } from 'src/presentation/scenes/models/scene-entrance.interface'
 
 export namespace SurveyContextProviderType {
-    export const allCases = ['default', 'moderationEditing'] as const
+    export const allCases = ['registration'] as const
     export type Union = (typeof allCases)[number]
 
     export function getId(sceneName: Union): number {
@@ -34,7 +34,7 @@ export interface ISurveyContextProviderTyped {
     /**
      * Provider identifier
      */
-    type: SurveyContextProviderType.Union
+    readonly type: SurveyContextProviderType.Union
 }
 
 export interface ISurveyContextProviderPublicMethods {

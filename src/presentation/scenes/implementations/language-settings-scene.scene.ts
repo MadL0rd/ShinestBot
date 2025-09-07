@@ -1,16 +1,13 @@
-import { logger } from 'src/app/app.logger'
+import { BotContentService } from 'src/business-logic/bot-content/bot-content.service'
 import { UserService } from 'src/business-logic/user/user.service'
-import { Markup, Context } from 'telegraf'
-import { Update } from 'telegraf/types'
-import { SceneCallbackData } from '../models/scene-callback'
+import { LanguageCode } from 'src/utils/languages-info/getLanguageName'
+import { ExtendedMessageContext } from 'src/utils/telegraf-middlewares/extended-message-context'
 import { SceneEntrance } from '../models/scene-entrance.interface'
 import { SceneName } from '../models/scene-name.enum'
-import { SceneHandlerCompletion } from '../models/scene.interface'
-import { Scene } from '../models/scene.abstract'
 import { SceneUsagePermissionsValidator } from '../models/scene-usage-permissions-validator'
+import { Scene } from '../models/scene.abstract'
+import { SceneHandlerCompletion } from '../models/scene.interface'
 import { InjectableSceneConstructor } from '../scene-factory/scene-injections-provider.service'
-import { BotContentService } from 'src/business-logic/bot-content/bot-content.service'
-import { LanguageCode } from 'src/utils/languages-info/getLanguageName'
 
 // =====================
 // Scene data classes
@@ -20,7 +17,7 @@ export class LanguageSettingsSceneSceneEntranceDto implements SceneEntrance.Dto 
     readonly nextScene?: SceneEntrance.SomeSceneDto
 }
 type SceneEnterDataType = LanguageSettingsSceneSceneEntranceDto
-interface ISceneData {
+type ISceneData = {
     readonly nextScene?: SceneEntrance.SomeSceneDto
 }
 
@@ -34,16 +31,16 @@ export class LanguageSettingsSceneScene extends Scene<ISceneData, SceneEnterData
     // Properties
     // =====================
 
-    readonly name: SceneName.Union = 'languageSettings'
-    protected get dataDefault(): ISceneData {
+    override readonly name: SceneName.Union = 'languageSettings'
+    protected override get dataDefault(): ISceneData {
         return {} as ISceneData
     }
-    protected get permissionsValidator(): SceneUsagePermissionsValidator.IPermissionsValidator {
+    protected override get permissionsValidator(): SceneUsagePermissionsValidator.IPermissionsValidator {
         return new SceneUsagePermissionsValidator.CanUseIfNotBanned()
     }
 
     constructor(
-        protected readonly userService: UserService,
+        protected override readonly userService: UserService,
         private readonly botContentService: BotContentService
     ) {
         super()
@@ -53,52 +50,36 @@ export class LanguageSettingsSceneScene extends Scene<ISceneData, SceneEnterData
     // Public methods
     // =====================
 
-    async handleEnterScene(
-        ctx: Context,
-        data?: SceneEnterDataType
-    ): Promise<SceneHandlerCompletion> {
-        logger.log(
-            `${this.name} scene handleEnterScene. User: ${this.user.telegramInfo.id} ${this.user.telegramInfo.username}`
-        )
-        await this.logToUserHistory({ type: 'startSceneLanguageSettingsScene' })
-
+    override async handleEnterScene(data?: SceneEnterDataType): Promise<SceneHandlerCompletion> {
         const languages = await this.botContentService.getLocalLanguages()
         const languagesButtons = languages.map((code) => LanguageCode.getLanguageName(code))
 
-        await ctx.replyWithHTML(
-            this.text.common.selectLanguageText,
-            super.keyboardMarkupWithAutoLayoutFor(languagesButtons, true)
+        await this.ddi.sendHtml(
+            this.text.common.textSelectLanguage,
+            super.keyboardMarkupWithAutoLayoutFor(languagesButtons, { columnsCount: 2 })
         )
 
         return this.completion.inProgress({ nextScene: data?.nextScene })
     }
 
-    async handleMessage(ctx: Context, dataRaw: object): Promise<SceneHandlerCompletion> {
-        logger.log(
-            `${this.name} scene handleMessage. User: ${this.user.telegramInfo.id} ${this.user.telegramInfo.username}`
-        )
-
+    override async handleMessage(
+        ctx: ExtendedMessageContext,
+        dataRaw: object
+    ): Promise<SceneHandlerCompletion> {
         const data = dataRaw as ISceneData | undefined
 
         const message = ctx.message
-        if (!message || !('text' in message)) return this.completion.canNotHandle({})
+        if (message.type !== 'text') return this.completion.canNotHandle()
 
         const languages = await this.botContentService.getLocalLanguages()
         const languagesButtons = languages.map((code) => LanguageCode.getLanguageName(code))
         const languageIndex = languagesButtons.indexOf(message.text)
         const selectedLanguage = languages[languageIndex]
-        if (!selectedLanguage) return this.completion.canNotHandle({})
+        if (!selectedLanguage) return this.completion.canNotHandle()
 
-        this.user.internalInfo.language = selectedLanguage
-        await this.userService.update(this.user)
+        this.user.language = selectedLanguage
+        await this.userService.update(this.user, ['language'])
         return this.completion.complete(data?.nextScene)
-    }
-
-    async handleCallback(
-        ctx: Context<Update.CallbackQueryUpdate>,
-        data: SceneCallbackData
-    ): Promise<SceneHandlerCompletion> {
-        throw Error('Method not implemented.')
     }
 
     // =====================

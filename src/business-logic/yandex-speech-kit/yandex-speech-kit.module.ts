@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common'
-import { YandexSpeechKitService } from './yandex-speech-kit.service'
 import { TelegrafModule } from 'nestjs-telegraf'
+import { YandexSpeechKitService } from './yandex-speech-kit.service'
 
 @Module({
     imports: [TelegrafModule],

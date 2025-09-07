@@ -1,6 +1,6 @@
 import { BotContent } from 'src/entities/bot-content'
-import { PermissionsValidationResult } from './scene.interface'
 import { UserProfile } from 'src/entities/user-profile'
+import { PermissionsValidationResult } from './scene.interface'
 
 export namespace SceneUsagePermissionsValidator {
     export interface IPermissionsValidator {

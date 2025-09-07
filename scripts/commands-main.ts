@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common'
-import { CommandFactory } from 'nest-commander'
-import { CacheUniqueMessagesCommand } from './commands/cache-unique-messages.command'
 import { ConfigModule } from '@nestjs/config'
+import { CommandFactory } from 'nest-commander'
 import { SheetDataProviderModule } from '../src/core/sheet-data-provider/sheet-data-provider.module'
 import { ExtensionsModule } from '../src/extensions/extensions.module'
+import { CacheUniqueMessagesCommand } from './commands/cache-unique-messages.command'
 
 @Module({
     imports: [ConfigModule.forRoot(), SheetDataProviderModule],
@@ -12,8 +12,7 @@ import { ExtensionsModule } from '../src/extensions/extensions.module'
 export class AppCommandsModule {}
 
 async function bootstrap() {
-    const extensions = new ExtensionsModule()
-    extensions.initExtensions()
+    ExtensionsModule.initExtensions()
     await CommandFactory.run(AppCommandsModule)
 }
 
