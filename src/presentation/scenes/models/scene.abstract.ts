@@ -37,7 +37,7 @@ export abstract class Scene<
     private _content: BotContent.BaseType
     private _text: BotContent.UniqueMessage
     private _user: UserProfileDocument
-    private _userActivePermissions: UserProfile.PermissionNames.Union[]
+    private _userAccessRules: UserProfile.AccessRules
     private _ddi: TelegramDirectDialogInteractor
 
     // =====================
@@ -49,8 +49,8 @@ export abstract class Scene<
     protected get user(): UserProfile.BaseType {
         return this._user
     }
-    protected get userActivePermissions(): UserProfile.PermissionNames.Union[] {
-        return this._userActivePermissions
+    protected get userAccessRules(): UserProfile.AccessRules {
+        return this._userAccessRules
     }
     protected get content(): BotContent.BaseType {
         return this._content
@@ -108,7 +108,7 @@ export abstract class Scene<
         this._content = userContext.botContent
         this._text = userContext.botContent.uniqueMessage
         this._user = userContext.user
-        this._userActivePermissions = userContext.userActivePermissions
+        this._userAccessRules = userContext.userAccessRules
         this._text = userContext.botContent.uniqueMessage
         this._ddi = userContext.ddi
         return this
@@ -116,7 +116,7 @@ export abstract class Scene<
 
     validateUseScenePermissions(): PermissionsValidationResult {
         const validator = this.permissionsValidator
-        return validator.validateUseScenePermissions(this.userActivePermissions, this.text)
+        return validator.validateUseScenePermissions(this.userAccessRules, this.text)
     }
 
     handleEnterScene(data?: SceneEnterDataType): Promise<SceneHandlerCompletion> {

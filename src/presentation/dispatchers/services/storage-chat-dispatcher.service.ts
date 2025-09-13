@@ -222,7 +222,7 @@ export class StorageChatDispatcherService {
 
         return {
             user: user,
-            accessRules: UserProfile.Helper.getUserAccessRules(user),
+            accessRules: UserProfile.Helper.getUserAccessRules(user.permissions),
         }
     }
 }

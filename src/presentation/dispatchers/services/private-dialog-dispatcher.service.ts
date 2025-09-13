@@ -245,13 +245,12 @@ export class PrivateDialogDispatcherService {
             user.telegramUserIsDeactivated = false
             this.userService.update(user, ['isBotBlocked', 'telegramUserIsDeactivated'])
         }
-        const userActivePermissions = UserProfile.Helper.getActivePermissionNames(user)
-
+        const userAccessRules = UserProfile.Helper.getUserAccessRules(user.permissions)
         const botContent = await this.botContentService.getContentForUser(user)
 
         return {
             user: user,
-            userActivePermissions: userActivePermissions,
+            userAccessRules: userAccessRules,
             botContent: botContent,
             ddi: this.telegramBridgeFactory.generateDdi({ userTelegramId: userTelegramId }),
         }

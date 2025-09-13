@@ -103,8 +103,9 @@ export class AdminMenuUsersManagementSceneScene extends Scene<ISceneData, SceneE
                 telegramUsername: targetUser.telegramInfo.username
                     ? `@${targetUser.telegramInfo.username}`
                     : emptyValue,
-                activePermissions:
-                    UserProfile.Helper.getActivePermissionNames(targetUser).join(', '),
+                activePermissions: UserProfile.Helper.getActivePermissionNames(
+                    targetUser.permissions
+                ).join(', '),
                 enableStartParamRewriting: targetUser.enableStartParamRewriting ? 'Да' : 'Нет',
                 chainTasksQueueIsIssued: userTasksQueueInfo.isIssued ? 'Да' : 'Нет',
                 chainTasksCount: userTasksQueueInfo.count,
@@ -188,7 +189,7 @@ export class AdminMenuUsersManagementSceneScene extends Scene<ISceneData, SceneE
             }
 
             case this.text.adminMenuUsersManagement.buttonEnableStartParamRewriting: {
-                const accessRules = UserProfile.Helper.getUserAccessRules(targetUser)
+                const accessRules = UserProfile.Helper.getUserAccessRules(targetUser.permissions)
                 if (accessRules.canBeUsedForStartParamRewriting.isFalse) {
                     await this.ddi.sendHtml(
                         `Эту функцию можно применить только к пользователям с правами доступа 'admin' или 'owner'`

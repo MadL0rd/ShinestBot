@@ -7,10 +7,10 @@ import { _UserProfileEntity as UserProfile } from './user-profile.entity'
  */
 export namespace _UserProfileHelper {
     export function getActivePermissionNames(
-        user: UserProfile.BaseType
+        permissions: UserProfile.Permission[]
     ): UserProfile.PermissionNames.Union[] {
         return (
-            user.permissions?.compactMap((permission) => {
+            permissions?.compactMap((permission) => {
                 if (permission.expirationDate && permission.expirationDate < new Date()) return null
                 return UserProfile.PermissionNames.castToInstance(permission.permissionName)
             }) ?? []
@@ -25,39 +25,40 @@ export namespace _UserProfileHelper {
         )
     }
 
-    type AccessRules = {
-        canWriteInModerationForum: boolean
-        canBeUsedForStartParamRewriting: boolean
-        canManageMailings: boolean
-        canUseHints: boolean
-        canMergeLeads: boolean
-    }
-    export function getUserAccessRules(user: UserProfile.BaseType): AccessRules {
-        const permissionNames = getActivePermissionNames(user)
-        const rules: AccessRules = {
+    export function getUserAccessRules(
+        permissions: UserProfile.Permission[]
+    ): UserProfile.AccessRules {
+        const permissionNames = getActivePermissionNames(permissions)
+        const rules: UserProfile.AccessRules = {
+            activePermissionNames: permissionNames,
             canWriteInModerationForum: false,
             canBeUsedForStartParamRewriting: false,
             canManageMailings: false,
-            canUseHints: false,
-            canMergeLeads: false,
+            canAccessAdminMenu: false,
+            isBanned: false,
+            canAppointAdmins: false,
+            canBanUsers: false,
+            canBeBanned: false,
         }
 
         for (const permission of permissionNames) {
+            if (permission === 'owner') rules.canAppointAdmins = true
             switch (permission) {
                 case 'owner':
                 case 'admin':
                     rules.canBeUsedForStartParamRewriting = true
                     rules.canWriteInModerationForum = true
                     rules.canManageMailings = true
-                    rules.canUseHints = true
-                    rules.canMergeLeads = true
+                    rules.canAccessAdminMenu = true
+                    rules.canBanUsers = true
+                    rules.canBeBanned = false
+
                     break
                 case 'moderator':
                     rules.canWriteInModerationForum = true
-                    rules.canUseHints = true
-                    rules.canMergeLeads = true
                     break
                 case 'banned':
+                    rules.isBanned = true
                     break
             }
         }

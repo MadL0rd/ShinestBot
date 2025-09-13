@@ -50,8 +50,9 @@ export interface PermissionsValidationResult {
  * @field user
  * Service internal user model
  *
- * @field userActivePermissions
+ * @field userAccessRules
  * User permissions validated by current date and time
+ * and converted to access rules
  *
  * @field botContent
  * Value of all remote content localized by user language
@@ -61,7 +62,7 @@ export interface PermissionsValidationResult {
  */
 export interface SceneUserContext {
     readonly user: UserProfileDocument
-    readonly userActivePermissions: UserProfile.PermissionNames.Union[]
+    readonly userAccessRules: UserProfile.AccessRules
     readonly botContent: BotContent.BaseType
     readonly ddi: TelegramDirectDialogInteractor
 }

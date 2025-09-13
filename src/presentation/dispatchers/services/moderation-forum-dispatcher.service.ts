@@ -30,7 +30,7 @@ export class ModerationForumDispatcherService {
     }): Promise<void> {
         const { ctx, adminProfile, userProfile: user } = args
 
-        const access = UserProfile.Helper.getUserAccessRules(adminProfile)
+        const access = UserProfile.Helper.getUserAccessRules(adminProfile.permissions)
         if (!access.canWriteInModerationForum) {
             const tgUserInfo = JSON.stringify(ctx.from, null, 2)
             logger.error(`This user have no access to write in moderation forum\n${tgUserInfo}`)

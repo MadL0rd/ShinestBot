@@ -77,4 +77,16 @@ export namespace _UserProfileEntity {
         startDate: Date
         expirationDate?: Date
     }
+
+    export type AccessRules = {
+        activePermissionNames: PermissionNames.Union[]
+        canWriteInModerationForum: boolean
+        canBeUsedForStartParamRewriting: boolean
+        canManageMailings: boolean
+        canAccessAdminMenu: boolean
+        canAppointAdmins: boolean
+        canBanUsers: boolean
+        canBeBanned: boolean
+        isBanned: boolean
+    }
 }

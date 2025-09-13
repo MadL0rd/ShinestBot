@@ -90,7 +90,7 @@ export class AdminMenuUserPermissionsEditorScene extends Scene<ISceneData, Scene
         }
         let permissionUpdateEnable = false
 
-        const targetUserActivePermissions = UserProfile.Helper.getActivePermissionNames(targetUser)
+        const targetUserAccessRules = UserProfile.Helper.getUserAccessRules(targetUser.permissions)
 
         // Include only enabled actions
         switch (targetPermission) {
@@ -100,21 +100,13 @@ export class AdminMenuUserPermissionsEditorScene extends Scene<ISceneData, Scene
 
             // Only owner can set admin permission
             case 'admin':
-                if (this.userActivePermissions.includes('owner')) {
-                    permissionUpdateEnable = true
-                }
+                if (this.userAccessRules.canAppointAdmins) permissionUpdateEnable = true
                 break
 
             // Owner and admin can ban user
             // Nobody can ban owner and admin
             case 'banned':
-                if (
-                    targetUserActivePermissions &&
-                    targetUserActivePermissions.includes('owner') === false &&
-                    targetUserActivePermissions.includes('admin') === false
-                ) {
-                    permissionUpdateEnable = true
-                }
+                if (targetUserAccessRules.canBeBanned) permissionUpdateEnable = true
                 break
 
             // Other actions from admin and owner are enabled
@@ -127,7 +119,7 @@ export class AdminMenuUserPermissionsEditorScene extends Scene<ISceneData, Scene
             return this.completion.inProgress(data)
         }
 
-        if (targetUserActivePermissions.includes(targetPermission)) {
+        if (targetUserAccessRules.activePermissionNames.includes(targetPermission)) {
             // Remove permission
             targetUser.permissions = targetUser.permissions.filter(
                 (permission) => permission.permissionName != targetPermission
@@ -153,7 +145,9 @@ export class AdminMenuUserPermissionsEditorScene extends Scene<ISceneData, Scene
         const targetUser = await this.userService.findOneByTelegramId(data.targetUserTelegramId)
         if (!targetUser) return this.completion.complete({ sceneName: 'adminMenuUsersManagement' })
 
-        const targetUserActivePermissions = UserProfile.Helper.getActivePermissionNames(targetUser)
+        const targetUserActivePermissions = UserProfile.Helper.getActivePermissionNames(
+            targetUser.permissions
+        )
         const buttons: string[] = []
         for (const permission of UserProfile.PermissionNames.allCases) {
             const permissionValue = permission
