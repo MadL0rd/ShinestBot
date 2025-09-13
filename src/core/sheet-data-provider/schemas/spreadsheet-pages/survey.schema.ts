@@ -5,10 +5,30 @@ import z from 'zod'
 import { DataSheetPageSchemaBase } from '../data-sheet-page-schema.interface'
 import { zSheet } from '../z-sheet-data-util-schemas'
 
-const answerOptionSchema = z.object({
-    id: z.string().nonempty(),
-    text: z.string().nonempty(),
-})
+const answerOptionsArraySchema = z
+    .object({
+        id: z.string().nonempty(),
+        text: z.string().nonempty(),
+    })
+    .array()
+    .nonempty()
+    .check((ctx) => {
+        const items = ctx.value
+        const notUnique = {
+            id: items.map((item) => item.id).justNotUnique,
+            text: items.map((item) => item.text).justNotUnique,
+        }
+        for (const key of ['id', 'text'] as const) {
+            if (notUnique[key].isNotEmpty) {
+                ctx.issues.push({
+                    code: 'custom',
+                    message: `Found options '${key}' duplicates: ${notUnique[key]}`,
+                    path: [],
+                    input: items,
+                })
+            }
+        }
+    })
 
 export const survey = {
     cacheConfiguration: {
@@ -45,13 +65,13 @@ export const survey = {
                 z.discriminatedUnion('type', [
                     z.object({
                         type: z.enum(['options', 'optionsInline']),
-                        options: answerOptionSchema.array().nonempty(),
+                        options: answerOptionsArraySchema,
                         useIdAsPublicationTag: z.boolean(),
                         boolConvertibleAnswers: z.boolean(),
                     }),
                     z.object({
                         type: z.literal('multipleChoice'),
-                        options: answerOptionSchema.array().nonempty(),
+                        options: answerOptionsArraySchema,
                         useIdAsPublicationTag: z.boolean(),
                         minCount: zSheet.number.int.required.check(z.positive()),
                         maxCount: zSheet.number.int.required.check(z.positive()),
