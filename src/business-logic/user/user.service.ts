@@ -31,8 +31,8 @@ export class UserService implements OnModuleInit {
         const existingUser = await this.findOneByTelegramId(createUserDto.telegramId)
         if (existingUser) return existingUser
 
-        const createdUser = await this.userModel
-            .findOneAndUpdate(
+        const { upsertSuccess, createdUser } = await this.userModel
+            .updateOne(
                 { telegramId: createUserDto.telegramId },
                 {
                     $setOnInsert: createUserDto,
@@ -40,15 +40,23 @@ export class UserService implements OnModuleInit {
                 { upsert: true }
             )
             .lean()
+            .then(async (result) => ({
+                upsertSuccess: Boolean(result.upsertedCount),
+                createdUser: result.upsertedId
+                    ? await this.userModel.findById(result.upsertedId).lean()
+                    : await this.userModel.findOne({ telegramId: createUserDto.telegramId }).lean(),
+            }))
 
         if (!createdUser) {
             throw Error(`User creation failed. Telegram id: ${createUserDto.telegramId}`)
         }
-        this.logToUserHistory(createdUser, {
-            type: 'userCreated',
-            startParam: createdUser.startParam ?? null,
-            startParamString: createdUser.startParamString ?? null,
-        })
+        if (upsertSuccess) {
+            this.logToUserHistory(createdUser, {
+                type: 'userCreated',
+                startParam: createdUser.startParam ?? null,
+                startParamString: createdUser.startParamString ?? null,
+            })
+        }
         return createdUser
     }
 
