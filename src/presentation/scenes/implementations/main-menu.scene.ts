@@ -1,7 +1,6 @@
 import { internalConstants } from 'src/app/app.internal-constants'
 import { UserService } from 'src/business-logic/user/user.service'
 import { BotContent } from 'src/entities/bot-content'
-import { UserSupportService } from 'src/presentation/user-adapter/user-support/user-support.service'
 import { formatRedirectLinksInText } from 'src/presentation/utils/link-formatter.utils'
 import { ExtendedMessageContext } from 'src/utils/telegraf-middlewares/extended-message-context'
 import { Context } from 'telegraf'
@@ -42,10 +41,7 @@ export class MainMenuScene extends Scene<ISceneData, SceneEnterDataType> {
         return new SceneUsagePermissionsValidator.CanUseIfNotBanned()
     }
 
-    constructor(
-        protected override readonly userService: UserService,
-        private readonly userSupport: UserSupportService
-    ) {
+    constructor(protected override readonly userService: UserService) {
         super()
     }
 
@@ -115,7 +111,7 @@ export class MainMenuScene extends Scene<ISceneData, SceneEnterDataType> {
         }
         if (!chosenButton) return this.completion.canNotHandle()
 
-        return await this.handleSelectedMenuButton({ ctx, chosenButton })
+        return await this.handleSelectedMenuButton(chosenButton)
     }
 
     override async handleCallback(
@@ -137,10 +133,7 @@ export class MainMenuScene extends Scene<ISceneData, SceneEnterDataType> {
                 if (chosenButton.hideInlineKeyboardOnTap && ctx.callbackQuery.message) {
                     await this.ddi.resetMessageInlineKeyboard(ctx.callbackQuery.message.message_id)
                 }
-                return this.handleSelectedMenuButton({
-                    ctx: ctx,
-                    chosenButton: chosenButton,
-                })
+                return this.handleSelectedMenuButton(chosenButton)
             }
 
             default:
@@ -156,11 +149,11 @@ export class MainMenuScene extends Scene<ISceneData, SceneEnterDataType> {
         return this.text.mainMenu.text
     }
 
-    private async isMenuButtonAvailableForUser(
+    private isMenuButtonAvailableForUser(
         button: BotContent.MainMenuButton.BaseType | undefined
-    ): Promise<boolean> {
+    ): boolean {
         if (!button) return false
-        if (button.inlineModeOnly) return false
+        if (button.displayMode.type === 'inlineOnly') return false
         if (button.appTagFilter !== 'all' && button.appTagFilter !== internalConstants.app.tag) {
             return false
         }
@@ -168,20 +161,9 @@ export class MainMenuScene extends Scene<ISceneData, SceneEnterDataType> {
         return true
     }
 
-    private async handleSelectedMenuButton(args: {
-        ctx: ExtendedMessageContext | Context<Update.CallbackQueryUpdate>
-        chosenButton: BotContent.MainMenuButton.BaseType
-    }) {
-        const { ctx, chosenButton } = args
+    private async handleSelectedMenuButton(chosenButton: BotContent.MainMenuButton.BaseType) {
         switch (chosenButton.actionType) {
             case 'sendContent': {
-                if (chosenButton.id.startsWith('support')) {
-                    await this.userSupport.handleSupportRequest({
-                        user: this.user,
-                        ctx: ctx,
-                        sourceType: 'mainMenuPressSupportButton',
-                    })
-                }
                 const messageText = chosenButton.messageText
                     ? formatRedirectLinksInText({
                           text: chosenButton.messageText,
@@ -198,8 +180,15 @@ export class MainMenuScene extends Scene<ISceneData, SceneEnterDataType> {
                 return this.completion.inProgress({})
             }
 
-            case 'trainingStart':
+            case 'training':
                 return this.completion.complete({ sceneName: 'trainingStart' })
+
+            case 'survey':
+                return this.completion.complete({
+                    sceneName: 'survey',
+                    providerType: 'registration',
+                    allowContinueQuestion: true,
+                })
 
             case 'none':
                 return this.completion.doNothing()
@@ -209,37 +198,27 @@ export class MainMenuScene extends Scene<ISceneData, SceneEnterDataType> {
     }
 
     private async menuMarkup(): Promise<ReplyKeyboardMarkup> {
-        const ownerOrAdmin =
-            this.userActivePermissions.includes('admin') ||
-            this.userActivePermissions.includes('owner')
-        const menuButtonsForUser = await this.content.mainMenuMarkup
-            .map(async (button) => {
-                const isButtonAvailable = await this.isMenuButtonAvailableForUser(button)
-                return isButtonAvailable ? button : null
-            })
-            .combinePromises()
-            .then((buttons) => buttons.compact.toSorted((a, b) => a.rowNumber - b.rowNumber))
+        const menuButtonsForUser = this.content.mainMenuMarkup
+            .filter(
+                (button): button is typeof button & { displayMode: { type: 'default' } } =>
+                    button.displayMode.type !== 'inlineOnly' &&
+                    this.isMenuButtonAvailableForUser(button) &&
+                    button.actionType !== 'none'
+            )
+            .toSorted((a, b) => a.displayMode.rowNumber - b.displayMode.rowNumber)
 
         const menuMarkup: KeyboardButton[][] = []
         let currentRowNumber: number | undefined
         menuButtonsForUser.forEach((button) => {
-            if (currentRowNumber != button.rowNumber) {
-                currentRowNumber = button.rowNumber
+            if (currentRowNumber != button.displayMode.rowNumber) {
+                currentRowNumber = button.displayMode.rowNumber
                 menuMarkup.push([])
             }
-            switch (button.actionType) {
-                case 'sendContent':
-                case 'trainingStart':
-                    menuMarkup.last?.push(button.buttonText)
-                    break
 
-                case 'none':
-                    throw new Error(
-                        `Not should not be keyboard button: "${button.actionType}" case`
-                    )
-            }
+            menuMarkup.last?.push(button.buttonText)
         })
-        if (ownerOrAdmin) menuMarkup.push([this.text.mainMenu.buttonAdminMenu])
+        if (this.userAccessRules.canAccessAdminMenu)
+            menuMarkup.push([this.text.mainMenu.buttonAdminMenu])
         return { keyboard: menuMarkup, resize_keyboard: true }
     }
 }

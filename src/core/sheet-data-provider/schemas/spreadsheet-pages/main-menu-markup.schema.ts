@@ -16,7 +16,6 @@ export const mainMenuMarkup = {
     itemSchema: z
         .object({
             id: zSheet.string.required,
-            inlineModeOnly: zSheet.boolean.required,
             hideInlineKeyboardOnTap: zSheet.boolean.required,
             buttonText: zSheet.string.required,
             appTagFilter: zSheet.appTagFilter,
@@ -34,12 +33,31 @@ export const mainMenuMarkup = {
                         .pipe(z.coerce.number())
                         .array()
                 ),
-            rowNumber: zSheet.number.int.required,
         })
+        .and(
+            z
+                .union([
+                    z.object({
+                        inlineModeOnly: zSheet.boolean.true,
+                    }),
+                    z.object({
+                        inlineModeOnly: zSheet.boolean.false,
+                        rowNumber: zSheet.number.int.required,
+                    }),
+                ])
+                .transform((data) => ({
+                    displayMode: (data.inlineModeOnly
+                        ? { type: 'inlineOnly' }
+                        : {
+                              type: 'default',
+                              rowNumber: data.rowNumber,
+                          }) as BotContent.MainMenuButton.DisplayMode,
+                }))
+        )
         .and(
             z.union([
                 z.object({
-                    actionType: z.enum(['trainingStart', 'none']),
+                    actionType: z.enum(['training', 'survey', 'none']),
                 }),
 
                 z

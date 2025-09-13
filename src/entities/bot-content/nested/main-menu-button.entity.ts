@@ -5,12 +5,20 @@ export namespace _MainMenuButton {
 
     export type ButtonBase = {
         id: string
-        inlineModeOnly: boolean
         hideInlineKeyboardOnTap: boolean
         buttonText: string
         appTagFilter: 'dev' | 'prod' | 'all'
-        rowNumber: number
+        displayMode: DisplayMode
     }
+
+    export type DisplayMode =
+        | {
+              type: 'default'
+              rowNumber: number
+          }
+        | {
+              type: 'inlineOnly'
+          }
 
     export type ButtonTypified = ButtonSendContent | ButtonSceneSegue | ButtonWebApp | ButtonOther
 
@@ -22,7 +30,7 @@ export namespace _MainMenuButton {
     }
 
     type ButtonSceneSegue = {
-        actionType: Exclude<ActionType.Union, 'sendContent' | 'sendDayStat'>
+        actionType: Exclude<ActionType.Union, 'sendContent'>
     }
 
     type ButtonWebApp = {
@@ -35,7 +43,7 @@ export namespace _MainMenuButton {
 
     export namespace ActionType {
         export type Union = (typeof allCases)[number]
-        export const allCases = ['sendContent', 'trainingStart', 'none'] as const
+        export const allCases = ['sendContent', 'training', 'survey', 'none'] as const
 
         export function includes(value: string | Union): value is Union {
             return allCases.includes(value)

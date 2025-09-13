@@ -417,9 +417,9 @@ export class BotContentService implements OnModuleInit {
                         )
                         if (targetQuestionContainsValidValue) continue
 
-                        const questionString = JSON.stringify(question, null, 2)
+                        const info = JSON.stringify({ question, targetQuestion }, null, 2)
                         throw Error(
-                            `Question filters contains option id '${validOptionId}' but target question answer options does not contains same id\n${questionString}`
+                            `Question filters contains option id '${validOptionId}' but target question ${targetQuestion.id} answer options does not contains same id\n${info}`
                         )
                     }
                 }
