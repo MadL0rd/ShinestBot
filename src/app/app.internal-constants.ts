@@ -40,7 +40,6 @@ const envSchemas = [
             APP_API_AUTH_TOKEN: z.string(),
             APP_EXPOSE_PORT: z.coerce.number(),
             APP_EXPOSE_PORT_WEBHOOK: z.coerce.number(),
-            APP_EXPOSE_PORT_WEBHOOK_SERVICE_BOT: z.coerce.number(),
             APP_ENABLE_INTERNAL_CORS: z.stringbool(),
         })
         .transform((env) => ({
