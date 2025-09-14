@@ -157,7 +157,7 @@ export class AdminMenu {
      * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=27:27)
      */
     readonly textMenuOther =
-        '🛠️ Другое\n\nОчередь на паузе: <b>chainTasksQueIsPaused</b>\nЗадач в очереди: <b>chainTasksCountTotal</b>\nИз них зависших: <b>chainTasksCountIssued</b>\nЗависшие пользователи: <code>chainTasksIssuedUsers</code>\n\nVersion: <b>versionNumber</b>'
+        '🛠️ Другое\n\nОчередь на паузе: <b>chainTasksQueIsOnPause</b>\nЗадач в очереди: <b>chainTasksCountTotal</b>\nИз них зависших: <b>chainTasksCountIssued</b>\nЗависшие пользователи: <code>chainTasksIssuedUsers</code>\n\nVersion: <b>versionNumber</b>'
     /**
      * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=28:28)
      */
@@ -221,7 +221,7 @@ export class AdminMenuWithParams {
         return this.base.buttonOther
     }
     /**
-     * @value: 🛠️ Другое\n\nОчередь на паузе: <b>chainTasksQueIsPaused</b>\nЗадач в очереди: <b>chainTasksCountTotal</b>\nИз них зависших: <b>chainTasksCountIssued</b>\nЗависшие пользователи: <code>chainTasksIssuedUsers</code>\n\nVersion: <b>versionNumber</b>
+     * @value: 🛠️ Другое\n\nОчередь на паузе: <b>chainTasksQueIsOnPause</b>\nЗадач в очереди: <b>chainTasksCountTotal</b>\nИз них зависших: <b>chainTasksCountIssued</b>\nЗависшие пользователи: <code>chainTasksIssuedUsers</code>\n\nVersion: <b>versionNumber</b>
      * @description [Spreadsheet row link](https://docs.google.com/spreadsheets/d/1z4Rkun7e9MrTo4RbkjKpKuVXPUGFvalvs6dAkLltdz4/edit#gid=0&range=27:27)
      */
     textMenuOther(args: {

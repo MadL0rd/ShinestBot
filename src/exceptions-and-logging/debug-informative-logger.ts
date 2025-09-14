@@ -8,7 +8,7 @@ import { inspect } from 'util'
 import * as winston from 'winston'
 import DailyRotateFile from 'winston-daily-rotate-file'
 import z, { ZodError } from 'zod'
-import { DebugLineInfo, sourceFileLayerPrefix } from './debug-line-info.model'
+import { DebugLineInfo } from './debug-line-info.model'
 
 const baseDir = process.cwd()
 
@@ -24,7 +24,7 @@ const filesLogsFormat = winston.format.printf((logLineInfo) => {
     const label = logLineInfo.label
     const link = logLineInfo.sourceCodeLink
     const message = logLineInfo.message
-    const messagePrefix = sourceFileLayerPrefix(logLineInfo.codeLayer)
+    const messagePrefix = logLineInfo.codeLayerPrefix
 
     return `${levelCaption}\t${timestamp}\t${label}\t${link}\n${messagePrefix}\t${message}\n`
 })
@@ -53,7 +53,14 @@ const loggerWinston = WinstonModule.createLogger({
     format: winston.format.combine(
         winston.format.timestamp({ format: dateFormatCurrentTimeZone }),
         winston.format.metadata({
-            fillExcept: ['message', 'level', 'timestamp', 'label', 'sourceCodeLink', 'codeLayer'],
+            fillExcept: [
+                'message',
+                'level',
+                'timestamp',
+                'label',
+                'sourceCodeLink',
+                'codeLayerPrefix',
+            ],
         })
     ),
     transports: [
@@ -79,7 +86,7 @@ const loggerWinston = WinstonModule.createLogger({
                     const label = chalk.blue(`[ ${logLineInfo.label} ]`)
                     const link = chalk.blue(`${logLineInfo.sourceCodeLink}`)
                     const message = chalk.greenBright(logLineInfo.message)
-                    const messagePrefix = sourceFileLayerPrefix(logLineInfo.codeLayer)
+                    const messagePrefix = logLineInfo.codeLayerPrefix
 
                     return `${levelCaption}\t${timestamp}\t${label}\t${link}\n${messagePrefix}\t${message}\n`
                 })
@@ -129,7 +136,7 @@ export class DebugInformativeLogger implements LoggerService {
                 message: this.generateComplicatedLoggingMessage(params, ' ◀︎▶︎ '),
                 label: debugLine.functionInfo,
                 sourceCodeLink: debugLine.relativeLineLink,
-                codeLayer: debugLine.codeLayer,
+                codeLayerPrefix: debugLine.codeLayerPrefix,
             },
             params
         )
@@ -143,7 +150,7 @@ export class DebugInformativeLogger implements LoggerService {
             message: this.generateComplicatedLoggingMessage(params, ' ◀︎▶︎ '),
             label: debugLine.functionInfo,
             sourceCodeLink: debugLine.relativeLineLink,
-            codeLayer: debugLine.codeLayer,
+            codeLayerPrefix: debugLine.codeLayerPrefix,
         })
     }
 
@@ -156,7 +163,7 @@ export class DebugInformativeLogger implements LoggerService {
                 message: this.generateComplicatedLoggingMessage(params, ' ◀︎▶︎ '),
                 label: debugLine.functionInfo,
                 sourceCodeLink: debugLine.relativeLineLink,
-                codeLayer: debugLine.codeLayer,
+                codeLayerPrefix: debugLine.codeLayerPrefix,
             },
             params
         )
@@ -172,7 +179,7 @@ export class DebugInformativeLogger implements LoggerService {
                 message: this.generateComplicatedLoggingMessage(params),
                 label: debugLine.functionInfo,
                 sourceCodeLink: debugLine.relativeLineLink,
-                codeLayer: debugLine.codeLayer,
+                codeLayerPrefix: debugLine.codeLayerPrefix,
             },
             params
         )
@@ -189,7 +196,7 @@ export class DebugInformativeLogger implements LoggerService {
                 message,
                 label: debugLine.functionInfo,
                 sourceCodeLink: debugLine.relativeLineLink,
-                codeLayer: debugLine.codeLayer,
+                codeLayerPrefix: debugLine.codeLayerPrefix,
             },
             params
         )
@@ -211,7 +218,7 @@ export class DebugInformativeLogger implements LoggerService {
                 message: message,
                 label: debugLine.functionInfo,
                 sourceCodeLink: debugLine.relativeLineLink,
-                codeLayer: debugLine.codeLayer,
+                codeLayerPrefix: debugLine.codeLayerPrefix,
             },
             params
         )

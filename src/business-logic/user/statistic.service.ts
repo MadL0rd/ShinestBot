@@ -563,9 +563,8 @@ export class StatisticService implements OnModuleInit {
 
     private async createUsersWs(): Promise<XLSX.WorkSheet> {
         const paramsTableTitle = [
-            'Дата регистрации',
+            'Дата запуска бота',
             'ID телеграм',
-            'Статус',
             'Заблокировал',
             'Удалился из тг',
             'Username',

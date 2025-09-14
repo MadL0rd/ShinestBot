@@ -1,25 +1,23 @@
-export enum SourceFileLayerType {
-    nodeModule = 'node_modules',
-    core = 'core',
-    presentation = 'presentation',
-    app = 'app',
-    other = 'other',
-}
+namespace SourceFileLayerType {
+    export type Union = (typeof allCases)[number]
+    export const allCases = ['node_modules', 'core', 'presentation', 'app', 'other'] as const
 
-export function sourceFileLayerPrefix(layer: SourceFileLayerType): string {
-    switch (layer) {
-        case SourceFileLayerType.nodeModule:
-            return '🧰'
-        case SourceFileLayerType.core:
-            return '🛠'
-        case SourceFileLayerType.presentation:
-            return '📝'
-        case SourceFileLayerType.app:
-            return '🍏'
-        case SourceFileLayerType.other:
-            break
+    export const emoji: Record<Union, string> = {
+        node_modules: '🧰',
+        core: '🛠',
+        presentation: '📝',
+        app: '🍏',
+        other: '❓',
     }
-    return '❓'
+
+    export function getByFilePath(filePath: string): Union {
+        if (filePath.includes('main.ts')) return 'app'
+
+        for (const value of allCases) {
+            if (filePath.includes(value)) return value
+        }
+        return 'other'
+    }
 }
 
 export class DebugLineInfo {
@@ -34,7 +32,8 @@ export class DebugLineInfo {
     readonly fileName: string
     readonly lineNumber: number
     readonly linePosition: number
-    readonly codeLayer: SourceFileLayerType
+    readonly codeLayer: SourceFileLayerType.Union
+    readonly codeLayerPrefix: string
 
     /**
      * Returns a stack trace line
@@ -55,18 +54,8 @@ export class DebugLineInfo {
         this.lineNumber = Number(info.lineNumber)
         this.linePosition = Number(info.linePosition)
 
-        this.codeLayer = SourceFileLayerType.other
-        if (this.relativeFilePath.includes('main.ts')) {
-            this.codeLayer = SourceFileLayerType.app
-        }
-        for (const codeLayerKey in SourceFileLayerType) {
-            const key = codeLayerKey as keyof typeof SourceFileLayerType
-            const codeLayer = SourceFileLayerType[key]
-            if (this.relativeFilePath.includes(codeLayer)) {
-                this.codeLayer = codeLayer
-                return
-            }
-        }
+        this.codeLayer = SourceFileLayerType.getByFilePath(this.relativeFilePath)
+        this.codeLayerPrefix = SourceFileLayerType.emoji[this.codeLayer]
     }
 
     get relativeLineLink(): string {
