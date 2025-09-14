@@ -79,15 +79,17 @@ export class AdminMenuScene extends Scene<ISceneData, SceneEnterDataType> {
                 const tasksQueueInfo = await this.chainTasksService.getTasksQueueInfo()
                 await this.ddi.sendHtml(
                     this.text.adminMenu.textMenuOther({
-                        versionNumber: internalConstants.app.projectVersion ?? 'undefined',
+                        chainTasksQueIsOnPause: `${tasksQueueInfo.config.queuePaused}`,
                         chainTasksCountTotal: tasksQueueInfo.totalTasksCount,
                         chainTasksCountIssued: tasksQueueInfo.issuedTasksCount,
                         chainTasksIssuedUsers: JSON.stringify(
                             tasksQueueInfo.config.issuedUserTelegramIds
                         ),
+                        versionNumber: internalConstants.app.projectVersion ?? 'undefined',
                     }),
                     this.keyboardMarkup([
                         this.text.adminMenu.buttonResetIssuedUserTelegramIds,
+                        this.text.adminMenu.buttonToggleExecutionQueuePause,
                         this.text.adminMenu.returnBack,
                     ])
                 )
@@ -124,6 +126,10 @@ export class AdminMenuScene extends Scene<ISceneData, SceneEnterDataType> {
 
             case this.text.adminMenu.buttonResetIssuedUserTelegramIds:
                 await this.chainTasksService.clearIssuedUserTelegramIds()
+                return this.completion.complete({ sceneName: 'adminMenu', mode: 'other' })
+
+            case this.text.adminMenu.buttonToggleExecutionQueuePause:
+                await this.chainTasksService.toggleExecutionQueuePause()
                 return this.completion.complete({ sceneName: 'adminMenu', mode: 'other' })
 
             case this.text.adminMenu.returnBack:

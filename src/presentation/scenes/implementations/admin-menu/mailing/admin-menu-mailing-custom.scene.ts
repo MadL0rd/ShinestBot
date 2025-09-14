@@ -295,10 +295,12 @@ export class AdminMenuMailingCustomScene extends Scene<ISceneData, SceneEnterDat
                 await this.ddi.sendHtml(
                     this.text.adminMenuMailingCustom.textSetInlineButtonsLayout,
                     this.keyboardMarkup([
-                        [
-                            this.text.adminMenuMailingCustom.buttonSkipInlineButtons,
-                            this.text.common.cancel,
-                        ],
+                        this.text.adminMenuMailingCustom.buttonSkipInlineButtons,
+                        this.content.mainMenuMarkup.some((btn) => btn.id === 'like') &&
+                        this.content.mainMenuMarkup.some((btn) => btn.id === 'dislike')
+                            ? this.text.adminMenuMailingCustom.buttonAddButtonsPresetLikeDislike
+                            : null,
+                        this.text.common.cancel,
                     ])
                 )
                 return this.completion.inProgress(data)
