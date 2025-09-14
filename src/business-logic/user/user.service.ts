@@ -1,6 +1,7 @@
 import { Injectable, OnModuleInit } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import { Model } from 'mongoose'
+import { internalConstants } from 'src/app/app.internal-constants'
 import { logger } from 'src/app/app.logger'
 import { MongooseMigrations } from 'src/core/mongoose-migration-assistant/mongoose-migrations'
 import { OmitFields } from 'src/entities/common/utility-types-extensions'
@@ -51,6 +52,13 @@ export class UserService implements OnModuleInit {
             throw Error(`User creation failed. Telegram id: ${createUserDto.telegramId}`)
         }
         if (upsertSuccess) {
+            if (internalConstants.ownerTelegramUserIds.has(createdUser.telegramId)) {
+                createdUser.permissions.push({
+                    permissionName: 'owner',
+                    startDate: new Date(),
+                })
+                await this.update(createdUser, ['permissions'])
+            }
             this.logToUserHistory(createdUser, {
                 type: 'userCreated',
                 startParam: createdUser.startParam ?? null,

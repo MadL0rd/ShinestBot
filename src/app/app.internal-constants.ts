@@ -56,11 +56,18 @@ const envSchemas = [
     z
         .object({
             BOT_TOKEN: z.string(),
+            OWNER_TELEGRAM_USER_IDS: z
+                .string()
+                .optional()
+                .transform((ids) => ids?.split(',').map((id) => Number(id.trim())) ?? [])
+                .pipe(z.number().array())
+                .transform((ids) => new Set(ids)),
         })
         .transform((env) => ({
             botTokens: {
                 mainBot: env.BOT_TOKEN,
             },
+            ownerTelegramUserIds: env.OWNER_TELEGRAM_USER_IDS,
         })),
     z
         .object({

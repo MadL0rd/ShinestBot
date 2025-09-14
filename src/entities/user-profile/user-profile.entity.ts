@@ -72,7 +72,7 @@ export namespace _UserProfileEntity {
     }
 
     export type Permission = {
-        permissionName: PermissionNames.Union | string
+        permissionName: PermissionNames.Union
         comment?: string
         startDate: Date
         expirationDate?: Date
