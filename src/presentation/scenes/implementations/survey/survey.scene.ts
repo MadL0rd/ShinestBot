@@ -1,23 +1,21 @@
 import { logger } from 'src/app/app.logger'
 import { UserService } from 'src/business-logic/user/user.service'
-import { Markup, Context } from 'telegraf'
-import { Update } from 'telegraf/types'
-import { SceneCallbackData } from '../../models/scene-callback'
-import { SceneEntrance } from '../../models/scene-entrance.interface'
-import { SceneName } from '../../models/scene-name.enum'
-import { SceneHandlerCompletion } from '../../models/scene.interface'
-import { Scene } from '../../models/scene.abstract'
-import { SceneUsagePermissionsValidator } from '../../models/scene-usage-permissions-validator'
-import { InjectableSceneConstructor } from '../../scene-factory/scene-injections-provider.service'
+import { Survey } from 'src/entities/survey'
 import { SurveyContextProviderType } from 'src/presentation/survey-context/abstract/survey-context-provider.interface'
 import { SurveyContextProviderFactoryService } from 'src/presentation/survey-context/survey-context-provider-factory/survey-context-provider-factory.service'
-import { Survey } from 'src/entities/survey'
+import { ExtendedMessageContext } from 'src/utils/telegraf-middlewares/extended-message-context'
+import { SceneEntrance } from '../../models/scene-entrance.interface'
+import { SceneName } from '../../models/scene-name.enum'
+import { SceneUsagePermissionsValidator } from '../../models/scene-usage-permissions-validator'
+import { Scene } from '../../models/scene.abstract'
+import { SceneHandlerCompletion } from '../../models/scene.interface'
+import { InjectableSceneConstructor } from '../../scene-factory/scene-injections-provider.service'
 
 // =====================
 // Scene data classes
 // =====================
-export class SurveySceneEntranceDto implements SceneEntrance.Dto {
-    readonly sceneName = 'survey'
+export interface SurveySceneEntranceDto extends SceneEntrance.Dto {
+    readonly sceneName: 'survey'
     readonly providerType: SurveyContextProviderType.Union
     readonly allowContinueQuestion: boolean
     readonly allowBackToPreviousQuestion?: boolean
@@ -26,8 +24,8 @@ export class SurveySceneEntranceDto implements SceneEntrance.Dto {
         | { type: 'beforeQuestionWithId'; questionId: string }
         | { type: 'byQuestionIndex'; questionIndex: number }
 }
-type SceneEnterDataType = SurveySceneEntranceDto
-interface ISceneData {
+type SceneEnterData = SurveySceneEntranceDto
+type SceneData = {
     readonly providerType: SurveyContextProviderType.Union
 }
 
@@ -36,21 +34,21 @@ interface ISceneData {
 // =====================
 
 @InjectableSceneConstructor()
-export class SurveyScene extends Scene<ISceneData, SceneEnterDataType> {
+export class SurveyScene extends Scene<SceneData, SceneEnterData> {
     // =====================
     // Properties
     // =====================
 
-    readonly name: SceneName.Union = 'survey'
-    protected get dataDefault(): ISceneData {
-        return {} as ISceneData
+    override readonly name: SceneName.Union = 'survey'
+    protected override get dataDefault(): SceneData {
+        return {} as SceneData
     }
-    protected get permissionsValidator(): SceneUsagePermissionsValidator.IPermissionsValidator {
+    protected override get permissionsValidator(): SceneUsagePermissionsValidator.IPermissionsValidator {
         return new SceneUsagePermissionsValidator.CanUseIfNotBanned()
     }
 
     constructor(
-        protected readonly userService: UserService,
+        protected override readonly userService: UserService,
         private readonly dataProviderFactory: SurveyContextProviderFactoryService
     ) {
         super()
@@ -60,14 +58,7 @@ export class SurveyScene extends Scene<ISceneData, SceneEnterDataType> {
     // Public methods
     // =====================
 
-    async handleEnterScene(
-        ctx: Context,
-        data?: SceneEnterDataType
-    ): Promise<SceneHandlerCompletion> {
-        logger.log(
-            `${this.name} scene handleEnterScene. User: ${this.user.telegramInfo.id} ${this.user.telegramInfo.username}`
-        )
-        await this.logToUserHistory({ type: 'startSceneSurvey', surveyType: data?.providerType })
+    override async handleEnterScene(data?: SceneEnterData): Promise<SceneHandlerCompletion> {
         if (!data) {
             logger.error('Scene start data corrupted')
             return this.completion.complete()
@@ -76,9 +67,9 @@ export class SurveyScene extends Scene<ISceneData, SceneEnterDataType> {
         const provider = this.dataProviderFactory.getSurveyContextProvider(data.providerType)
 
         const validationResult = await provider.validateUserCanStartSurvey(this.user)
-        if (validationResult.canStartSurvey == false) {
+        if (validationResult.canStartSurvey === false) {
             if (validationResult.message) {
-                await ctx.replyWithHTML(validationResult.message)
+                await this.ddi.sendHtml(validationResult.message)
             }
             return this.completion.complete(validationResult.nextScene)
         }
@@ -123,17 +114,20 @@ export class SurveyScene extends Scene<ISceneData, SceneEnterDataType> {
 
         let mediaGroupBufferCache: Survey.TelegramFileData[] = []
         let multipleChoiceBufferCache: string[] = []
-        if (previousAnswer && nextQuestion.id == previousAnswer.question.id) {
+        if (previousAnswer && nextQuestion.id === previousAnswer.question.id) {
             switch (previousAnswer.type) {
                 case 'string':
                 case 'options':
+                case 'optionsInline':
                 case 'numeric':
                 case 'stringGptTips':
+                case 'phoneNumber':
                     break
                 case 'multipleChoice':
                     multipleChoiceBufferCache = previousAnswer.selectedOptionsIds
                     break
                 case 'image':
+                case 'singleImage':
                 case 'video':
                 case 'mediaGroup':
                     mediaGroupBufferCache = previousAnswer.media
@@ -141,11 +135,12 @@ export class SurveyScene extends Scene<ISceneData, SceneEnterDataType> {
         }
 
         const isQuestionFirst =
-            cache.passedAnswers.isEmpty || surveySource.questions.first?.id == nextQuestion.id
+            cache.passedAnswers.isEmpty || surveySource.questions.first?.id === nextQuestion.id
         const allowBackToPreviousQuestion =
             data.allowBackToPreviousQuestion === false ? false : !isQuestionFirst
-        await this.logToUserHistory({
-            type: 'surveyQuestionStartAnswering',
+        this.logToUserHistory({
+            type: 'surveyQuestionWasShown',
+            providerType: 'registration',
             questionId: nextQuestion.id,
         })
         switch (nextQuestion.type) {
@@ -156,6 +151,15 @@ export class SurveyScene extends Scene<ISceneData, SceneEnterDataType> {
                     question: nextQuestion,
                     allowBackToPreviousQuestion: allowBackToPreviousQuestion,
                 })
+
+            case 'optionsInline':
+                return this.completion.complete({
+                    sceneName: 'surveyQuestionOptionsInline',
+                    providerType: data.providerType,
+                    question: nextQuestion,
+                    allowBackToPreviousQuestion: allowBackToPreviousQuestion,
+                })
+
             case 'multipleChoice':
                 return this.completion.complete({
                     sceneName: 'surveyQuestionMultipleChoice',
@@ -164,6 +168,7 @@ export class SurveyScene extends Scene<ISceneData, SceneEnterDataType> {
                     allowBackToPreviousQuestion: allowBackToPreviousQuestion,
                     selectedOptionsIdsList: multipleChoiceBufferCache,
                 })
+
             case 'numeric':
             case 'string':
                 return this.completion.complete({
@@ -172,6 +177,7 @@ export class SurveyScene extends Scene<ISceneData, SceneEnterDataType> {
                     question: nextQuestion,
                     allowBackToPreviousQuestion: allowBackToPreviousQuestion,
                 })
+
             case 'stringGptTips':
                 return this.completion.complete({
                     sceneName: 'surveyQuestionStringGptTips',
@@ -179,6 +185,7 @@ export class SurveyScene extends Scene<ISceneData, SceneEnterDataType> {
                     question: nextQuestion,
                     allowBackToPreviousQuestion: allowBackToPreviousQuestion,
                 })
+
             case 'image':
             case 'video':
             case 'mediaGroup':
@@ -189,22 +196,32 @@ export class SurveyScene extends Scene<ISceneData, SceneEnterDataType> {
                     allowBackToPreviousQuestion: allowBackToPreviousQuestion,
                     mediaGroupBuffer: mediaGroupBufferCache,
                 })
+
+            case 'singleImage':
+                return this.completion.complete({
+                    sceneName: 'surveyQuestionSingleImage',
+                    providerType: data.providerType,
+                    question: nextQuestion,
+                    allowBackToPreviousQuestion: allowBackToPreviousQuestion,
+                    mediaGroupBuffer: mediaGroupBufferCache,
+                })
+
+            case 'phoneNumber':
+                return this.completion.complete({
+                    sceneName: 'surveyQuestionPhoneNumber',
+                    providerType: data.providerType,
+                    question: nextQuestion,
+                    allowBackToPreviousQuestion: allowBackToPreviousQuestion,
+                })
         }
     }
 
-    async handleMessage(ctx: Context, dataRaw: object): Promise<SceneHandlerCompletion> {
-        throw Error('Method not implemented.')
-        logger.log(
-            `${this.name} scene handleMessage. User: ${this.user.telegramInfo.id} ${this.user.telegramInfo.username}`
-        )
-        return this.completion.complete()
-    }
-
-    async handleCallback(
-        ctx: Context<Update.CallbackQueryUpdate>,
-        data: SceneCallbackData
+    override async handleMessage(
+        ctx: ExtendedMessageContext,
+        dataRaw: object
     ): Promise<SceneHandlerCompletion> {
-        throw Error('Method not implemented.')
+        logger.error('User flow error. Redirect to main menu')
+        return this.completion.complete()
     }
 
     // =====================

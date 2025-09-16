@@ -1,9 +1,7 @@
-import { Injectable } from '@nestjs/common'
-
 declare global {
     interface Array<T> {
-        get first(): T | null
-        get last(): T | null
+        get first(): T | undefined
+        get last(): T | undefined
         get isEmpty(): boolean
         get isNotEmpty(): boolean
         get compact(): Exclude<T, null | undefined>[]
@@ -23,8 +21,16 @@ declare global {
         ): Exclude<U, null | undefined>[]
 
         generateItemsRecord<KeyType extends string | number | symbol>(
-            generateKeyFunc: (item: T) => KeyType
+            keySelector: (item: T, index: number) => KeyType
         ): Record<KeyType, T>
+
+        /**
+         * Groups members of an iterable according to the return value of the passed callback.
+         * @param keySelector A callback which will be invoked for each item in items.
+         */
+        groupBy<KeyType extends string | number | symbol>(
+            keySelector: (item: T, index: number) => KeyType
+        ): Partial<Record<KeyType, T[]>>
     }
 
     interface ArrayConstructor {
@@ -32,7 +38,6 @@ declare global {
     }
 }
 
-@Injectable()
 export class ArrayExtensionService {
     initExtensions() {
         Object.defineProperty(Array.prototype, 'first', {
@@ -51,14 +56,14 @@ export class ArrayExtensionService {
             get: function () {
                 if (this.isEmpty) return null
                 const index = Math.floor(Math.random() * this.length)
-                if (index == this.length) return this.last
+                if (index === this.length) return this.last
                 return this[index]
             },
         })
 
         Object.defineProperty(Array.prototype, 'isEmpty', {
             get: function () {
-                return this.length == 0
+                return this.length === 0
             },
         })
 
@@ -72,11 +77,15 @@ export class ArrayExtensionService {
             get: function () {
                 const filteredArray: any[] = []
                 for (const element of this) {
-                    if (typeof element === 'number' && element === 0) {
+                    if (
+                        typeof element === 'number' &&
+                        element === 0 &&
+                        Number.isNaN(element) === false
+                    ) {
                         filteredArray.push(element)
                         continue
                     }
-                    if (typeof element === 'string' && element.trimmed.isEmpty) continue
+                    if (typeof element === 'string' && element.trim().isEmpty) continue
                     if (!element) continue
                     filteredArray.push(element)
                 }
@@ -103,7 +112,7 @@ export class ArrayExtensionService {
                 // original array won't be modified)
                 const results = []
                 for (let i = 0; i < sortedArr.length - 1; i++) {
-                    if (sortedArr[i + 1] == sortedArr[i]) {
+                    if (sortedArr[i + 1] === sortedArr[i]) {
                         results.push(sortedArr[i])
                     }
                 }
@@ -113,7 +122,7 @@ export class ArrayExtensionService {
 
         Object.defineProperty(Array.prototype, 'copy', {
             get: function () {
-                return [...this]
+                return this.slice()
             },
         })
 
@@ -130,17 +139,24 @@ export class ArrayExtensionService {
         Array.prototype.generateItemsRecord = function <
             T,
             KeyType extends string | number | symbol,
-        >(generateKeyFunc: (item: T) => KeyType): Record<KeyType, T> {
-            return Object.assign(
-                {},
-                ...this.map((arrayItem) => ({ [generateKeyFunc(arrayItem)]: arrayItem }))
-            )
+        >(keySelector: (item: T, index: number) => KeyType): Record<KeyType, T> {
+            return this.reduce((acc, item, index) => {
+                return Object.assign(acc, { [keySelector(item, index)]: item })
+            }, {})
+        }
+
+        Array.prototype.groupBy = function <T, KeyType extends string | number | symbol>(
+            keySelector: (item: T, index: number) => KeyType
+        ): Partial<Record<KeyType, T[]>> {
+            return Object.groupBy(this, keySelector)
         }
 
         Array.range = function (start: number, count: number): number[] {
-            const array: number[] = []
-            for (let i = start; i < start + count; i++) {
-                array.push(i)
+            if (count <= 0) return []
+
+            const array: number[] = Array(count)
+            for (let value = start, index = 0; index < count; value++, index++) {
+                array[index] = value
             }
             return array
         }

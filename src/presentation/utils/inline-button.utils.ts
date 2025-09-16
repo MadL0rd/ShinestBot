@@ -1,16 +1,11 @@
 import { logger } from 'src/app/app.logger'
 import { InlineKeyboardButton } from 'telegraf/types'
-import {
-    SceneCallbackAction,
-    SceneCallbackData,
-    SceneCallbackDataSegue,
-} from '../scenes/models/scene-callback'
+import { CallbackActionData, compressCallbackData } from '../scenes/models/scene-callback'
 import { SceneName } from '../scenes/models/scene-name.enum'
 
 export interface InlineButtonDto {
     text: string
-    action: SceneCallbackAction
-    data?: object
+    action: CallbackActionData
 }
 
 /**
@@ -21,12 +16,10 @@ export function generateInlineButton(
     button: InlineButtonDto,
     sceneName: SceneName.Union
 ): InlineKeyboardButton {
-    const callbackData = new SceneCallbackData(
-        SceneName.getId(sceneName),
-        button.action,
-        button.data ?? {}
-    )
-    const callbackDataCompressed = callbackData.toString()
+    const callbackDataCompressed = compressCallbackData({
+        sceneName: sceneName,
+        callbackData: button.action,
+    })
     const inlineButton: InlineKeyboardButton = {
         text: button.text,
         callback_data: callbackDataCompressed,
@@ -38,19 +31,4 @@ export function generateInlineButton(
         )
     }
     return inlineButton
-}
-
-interface InlineSegueButtonDto {
-    text: string
-    action: SceneCallbackAction
-    data: SceneCallbackDataSegue
-}
-
-/**
- * Max callback data size is 64 chars in UTF-8
- * MongoDB id length: 24
- * Segue will be handled in MainMenu
- */
-export function generateInlineButtonSegue(button: InlineSegueButtonDto): InlineKeyboardButton {
-    return generateInlineButton(button, 'mainMenu')
 }

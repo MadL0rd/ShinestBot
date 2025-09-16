@@ -1,0 +1,8 @@
+{
+    "eslint.useFlatConfig": true,
+    "editor.codeActionsOnSave": {
+        "source.sortImports": "explicit",
+        "source.removeUnusedImports": "explicit"
+    },
+    "editor.formatOnSave": true
+}

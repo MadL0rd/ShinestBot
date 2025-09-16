@@ -1,7 +1,10 @@
+import { ReplyKeyboardMarkup } from 'telegraf/types'
+import { StartParam } from '../start-param'
+import { Survey } from '../survey'
+import { _UserProfilePermissionNames } from './nested/permission-names.enum'
+import { _TelegramTopic } from './nested/telegram-topic-info.entity'
 import { _UserProfileFormatter } from './user-profile.formatter'
 import { _UserProfileHelper } from './user-profile.helper'
-import { _UserProfileInternalInfo } from './nested/internal-info.entity'
-import { _UserProfilePermissionNames } from './nested/permission-names.enum'
 
 /**
  * Namespace for UserProfile entity related functionality.
@@ -10,21 +13,33 @@ import { _UserProfilePermissionNames } from './nested/permission-names.enum'
 export namespace _UserProfileEntity {
     export import Helper = _UserProfileHelper
     export import Formatter = _UserProfileFormatter
-
-    export type BaseType = {
-        telegramId: number
-        telegramTopic?: TelegramTopicInfo
-        telegramInfo: TelegramInfo
-        sceneData: SceneData
-        internalInfo: InternalInfo.BaseType
-    }
-
-    export import InternalInfo = _UserProfileInternalInfo
+    export import TelegramTopic = _TelegramTopic
     export import PermissionNames = _UserProfilePermissionNames
 
-    export type TelegramTopicInfo = {
-        chatId: number
-        messageThreadId: number
+    export type BaseType = {
+        readonly telegramId: number
+        readonly createdAt: Date
+        readonly updatedAt: Date
+        isBotBlocked: boolean
+        telegramUserIsDeactivated: boolean
+        enableStartParamRewriting?: boolean
+        unsuccessfulManagerNotificationsCount: number
+
+        telegramTopic: TelegramTopic.BaseType | null
+        telegramTopicHistory: TelegramTopic.BaseType[]
+        telegramInfo: TelegramInfo
+        sceneData: SceneData | null
+        currentKeyboard?: ReplyKeyboardInfo | null
+
+        startParam: StartParam.BaseType | null
+        startParamString: string | null
+
+        language: string | null
+        permissions: Permission[]
+
+        surveyAnswersCache: Survey.PassedAnswersCache | null
+        trainingParagraphId: string | null
+        lastContactWithModerator: LastContactWithModeratorInfo | null
     }
 
     export type TelegramInfo = {
@@ -36,8 +51,42 @@ export namespace _UserProfileEntity {
         language_code?: string
     }
 
+    export type ReplyKeyboardInfo =
+        | {
+              exists: true
+              messageId: number
+              replyMarkup: ReplyKeyboardMarkup
+          }
+        | {
+              exists: false
+          }
+
     export type SceneData = {
-        sceneName?: string
-        data?: object
+        sceneName: string
+        data?: Record<string, unknown>
+    }
+
+    type LastContactWithModeratorInfo = {
+        moderatorId?: number
+        datetime?: Date
+    }
+
+    export type Permission = {
+        permissionName: PermissionNames.Union
+        comment?: string
+        startDate: Date
+        expirationDate?: Date
+    }
+
+    export type AccessRules = {
+        activePermissionNames: PermissionNames.Union[]
+        canWriteInModerationForum: boolean
+        canBeUsedForStartParamRewriting: boolean
+        canManageMailings: boolean
+        canAccessAdminMenu: boolean
+        canAppointAdmins: boolean
+        canBanUsers: boolean
+        canBeBanned: boolean
+        isBanned: boolean
     }
 }

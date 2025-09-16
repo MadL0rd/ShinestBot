@@ -1,48 +1,47 @@
-import { logger } from 'src/app/app.logger'
+import { StatisticService } from 'src/business-logic/user/statistic.service'
 import { UserService } from 'src/business-logic/user/user.service'
-import { Markup, Context } from 'telegraf'
-import { Update } from 'telegraf/types'
-import moment from 'moment'
-import { SceneCallbackData } from '../../models/scene-callback'
+import { ExtendedMessageContext } from 'src/utils/telegraf-middlewares/extended-message-context'
 import { SceneEntrance } from '../../models/scene-entrance.interface'
 import { SceneName } from '../../models/scene-name.enum'
-import { SceneHandlerCompletion } from '../../models/scene.interface'
-import { Scene } from '../../models/scene.abstract'
 import { SceneUsagePermissionsValidator } from '../../models/scene-usage-permissions-validator'
+import { Scene } from '../../models/scene.abstract'
+import { SceneHandlerCompletion } from '../../models/scene.interface'
 import { InjectableSceneConstructor } from '../../scene-factory/scene-injections-provider.service'
-import { StatisticService } from 'src/business-logic/user/statistic.service'
-import { internalConstants } from 'src/app/app.internal-constants'
-import { FileName } from '../../models/file-name.enum'
 
 // =====================
 // Scene data classes
 // =====================
-export class AdminMenuGenerateMetricsSceneEntranceDto implements SceneEntrance.Dto {
-    readonly sceneName = 'adminMenuGenerateMetrics'
+export interface AdminMenuGenerateMetricsSceneEntranceDto extends SceneEntrance.Dto {
+    readonly sceneName: 'adminMenuGenerateMetrics'
 }
-type SceneEnterDataType = AdminMenuGenerateMetricsSceneEntranceDto
-interface ISceneData {}
+type SceneEnterData = AdminMenuGenerateMetricsSceneEntranceDto
+type SceneData = {
+    state: SceneState
+    stat?: 'main' | 'redirect'
+}
+
+type SceneState = 'default' | 'chosePeriod'
 
 // =====================
 // Scene main class
 // =====================
 
 @InjectableSceneConstructor()
-export class AdminMenuGenerateMetricsScene extends Scene<ISceneData, SceneEnterDataType> {
+export class AdminMenuGenerateMetricsScene extends Scene<SceneData, SceneEnterData> {
     // =====================
     // Properties
     // =====================
 
-    readonly name: SceneName.Union = 'adminMenuGenerateMetrics'
-    protected get dataDefault(): ISceneData {
-        return {} as ISceneData
+    override readonly name: SceneName.Union = 'adminMenuGenerateMetrics'
+    protected override get dataDefault(): SceneData {
+        return {} as SceneData
     }
-    protected get permissionsValidator(): SceneUsagePermissionsValidator.IPermissionsValidator {
+    protected override get permissionsValidator(): SceneUsagePermissionsValidator.IPermissionsValidator {
         return new SceneUsagePermissionsValidator.OwnerOrAdminOnly()
     }
 
     constructor(
-        protected readonly userService: UserService,
+        protected override readonly userService: UserService,
         private readonly statisticService: StatisticService
     ) {
         super()
@@ -52,127 +51,237 @@ export class AdminMenuGenerateMetricsScene extends Scene<ISceneData, SceneEnterD
     // Public methods
     // =====================
 
-    async handleEnterScene(
-        ctx: Context,
-        data?: SceneEnterDataType
-    ): Promise<SceneHandlerCompletion> {
-        logger.log(
-            `${this.name} scene handleEnterScene. User: ${this.user.telegramInfo.id} ${this.user.telegramInfo.username}`
-        )
-        await this.logToUserHistory({ type: 'startSceneAdminMenuGenerateMetrics' })
-
-        await ctx.replyWithHTML(this.text.adminMenuMetrics.selectDateText, this.menuMarkup())
-
-        return this.completion.inProgress({})
+    override async handleEnterScene(data?: SceneEnterData): Promise<SceneHandlerCompletion> {
+        return this.initState({ state: 'default' })
     }
 
-    async handleMessage(ctx: Context, dataRaw: object): Promise<SceneHandlerCompletion> {
-        logger.log(
-            `${this.name} scene handleMessage. User: ${this.user.telegramInfo.id} ${this.user.telegramInfo.username}`
-        )
+    override async handleMessage(
+        ctx: ExtendedMessageContext,
+        dataRaw: object
+    ): Promise<SceneHandlerCompletion> {
+        const data = this.restoreData(dataRaw)
         const message = ctx.message
-        if (!message || !('text' in message)) return this.completion.canNotHandle({})
+        if (message.type !== 'text') return this.completion.canNotHandle()
 
+        // state handler
+        switch (data.state) {
+            case 'default': {
+                return await this.handleDefaultState(message.text, ctx, data)
+            }
+            case 'chosePeriod': {
+                return await this.handleChosePeriodState(message.text, ctx, data)
+            }
+        }
+    }
+
+    // =====================
+    // State methods
+    // =====================
+    private async initState(data: SceneData): Promise<SceneHandlerCompletion> {
+        switch (data.state) {
+            case 'default': {
+                await this.ddi.sendHtml(
+                    this.text.adminMenuMetrics.selectDateText,
+                    this.menuMarkup()
+                )
+                break
+            }
+
+            case 'chosePeriod': {
+                await this.sendChosePeriodMessage()
+                break
+            }
+        }
+        return this.completion.inProgress(data)
+    }
+
+    private async handleDefaultState(
+        messageText: string,
+        ctx: ExtendedMessageContext,
+        data: SceneData
+    ): Promise<SceneHandlerCompletion> {
+        switch (messageText) {
+            case this.text.adminMenuMetrics.getMainStat:
+                data.stat = 'main'
+                data.state = 'chosePeriod'
+                return this.initState(data)
+
+            case this.text.adminMenuMetrics.getRedirectStat:
+                data.stat = 'redirect'
+                data.state = 'chosePeriod'
+                return this.initState(data)
+
+            case this.text.adminMenuMetrics.getUsersInfo: {
+                const resultTable = await this.statisticService.createUsersInfoTable()
+                const botUsername = this.ddi.bot.botInfo?.username
+                await this.ddi.sendDocument({
+                    document: {
+                        source: resultTable,
+                        filename: `Пользователи ${botUsername} ${Date.new().moment().format('DD.MM.yyyy')}.xlsx`,
+                    },
+                })
+                return this.completion.complete({ sceneName: 'adminMenu' })
+            }
+
+            case this.text.adminMenu.returnBack:
+                return this.completion.complete({ sceneName: 'adminMenu' })
+
+            default:
+                return this.completion.canNotHandle()
+        }
+    }
+
+    private async sendChosePeriodMessage() {
+        const markup = this.keyboardMarkup([
+            [
+                this.text.adminMenuMetrics.selectDateMonth,
+                this.text.adminMenuMetrics.selectDateQuarter,
+                this.text.adminMenuMetrics.selectDateYear,
+            ],
+            [this.text.adminMenuMetrics.selectDateYearPrevious],
+            [this.text.common.buttonBackToPreviousMenu],
+        ])
+        await this.ddi.sendHtml(this.text.adminMenuMetrics.selectDateText, markup)
+    }
+
+    private async handleChosePeriodState(
+        messageText: string,
+        ctx: ExtendedMessageContext,
+        data: SceneData
+    ) {
         const currentDate = new Date()
-        let beginningDate: Date | null = null
 
-        switch (message?.text) {
+        let endDate = Date.new()
+        let startDate: Date | null = null
+
+        switch (messageText) {
             case this.text.adminMenuMetrics.selectDateMonth:
                 if (currentDate.getMonth() !== 0) {
-                    beginningDate = new Date(
+                    startDate = new Date(
                         currentDate.getFullYear(),
                         currentDate.getMonth() - 1,
                         currentDate.getDay()
                     )
                 } else {
-                    beginningDate = new Date(
-                        currentDate.getFullYear() - 1,
-                        11,
-                        currentDate.getDay()
-                    )
+                    startDate = new Date(currentDate.getFullYear() - 1, 11, currentDate.getDay())
                 }
                 break
 
             case this.text.adminMenuMetrics.selectDateQuarter:
-                if (currentDate.getMonth() > 2) {
-                    beginningDate = new Date(
-                        currentDate.getFullYear(),
-                        currentDate.getMonth() - 3,
-                        currentDate.getDay()
-                    )
-                } else {
-                    switch (currentDate.getMonth()) {
-                        case 2:
-                            beginningDate = new Date(
-                                currentDate.getFullYear() - 1,
-                                11,
-                                currentDate.getDay()
-                            )
-                            break
-                        case 1:
-                            beginningDate = new Date(
-                                currentDate.getFullYear() - 1,
-                                10,
-                                currentDate.getDay()
-                            )
-                            break
-                        case 0:
-                            beginningDate = new Date(
-                                currentDate.getFullYear() - 1,
-                                9,
-                                currentDate.getDay()
-                            )
-                            break
-                    }
+                switch (currentDate.getMonth()) {
+                    case 0:
+                        startDate = new Date(currentDate.getFullYear() - 1, 9, currentDate.getDay())
+                        break
+                    case 1:
+                        startDate = new Date(
+                            currentDate.getFullYear() - 1,
+                            10,
+                            currentDate.getDay()
+                        )
+                        break
+                    case 2:
+                        startDate = new Date(
+                            currentDate.getFullYear() - 1,
+                            11,
+                            currentDate.getDay()
+                        )
+                        break
+
+                    default:
+                        startDate = new Date(
+                            currentDate.getFullYear(),
+                            currentDate.getMonth() - 3,
+                            currentDate.getDay()
+                        )
                 }
                 break
 
             case this.text.adminMenuMetrics.selectDateYear:
-                beginningDate = new Date(currentDate.getFullYear(), 0, 1)
+                startDate = new Date(currentDate.getFullYear(), 0, 1)
                 break
+
+            case this.text.adminMenuMetrics.selectDateYearPrevious: {
+                const prevYear = currentDate.getFullYear() - 1
+                startDate = new Date(prevYear, 0, 1)
+                endDate = new Date(prevYear, 11, 31)
+                break
+            }
+
+            case this.text.common.buttonBackToPreviousMenu:
+                data.state = 'default'
+                return this.initState(data)
 
             case this.text.adminMenu.returnBack:
                 return this.completion.complete({ sceneName: 'adminMenu' })
-        }
-        if (beginningDate) {
-            const dateFormat = 'DD.MM.yyyy'
-            const beginningDateString = moment(beginningDate)
-                .utcOffset(internalConstants.appTimeZoneUtcOffset)
-                .format(dateFormat)
-            const currentDateString = moment(currentDate)
-                .utcOffset(internalConstants.appTimeZoneUtcOffset)
-                .format(dateFormat)
-            const resultFileName = `${FileName.statisticsMain} c ${beginningDateString} по ${currentDateString}.xlsx`
-            const resultMetricsTable = await this.statisticService.createTable(
-                beginningDate,
-                currentDate
-            )
-            await ctx.replyWithDocument({
-                source: resultMetricsTable,
-                filename: resultFileName,
-            })
-            return this.completion.complete({ sceneName: 'adminMenu' })
+
+            default:
+                return this.completion.canNotHandle()
         }
 
-        return this.completion.canNotHandle({})
-    }
+        if (!startDate) {
+            return this.completion.canNotHandle()
+        }
 
-    async handleCallback(
-        ctx: Context<Update.CallbackQueryUpdate>,
-        data: SceneCallbackData
-    ): Promise<SceneHandlerCompletion> {
-        throw Error('Method not implemented.')
+        switch (data.stat) {
+            case 'main':
+                this.prepareAndSendMainStatistic({ startDate, endDate })
+                return this.completion.complete({ sceneName: 'adminMenu' })
+            case 'redirect':
+                this.prepareAndSendRedirectStatistics({ startDate, endDate })
+                return this.completion.complete({ sceneName: 'adminMenu' })
+            default:
+                return this.completion.canNotHandle()
+        }
     }
 
     // =====================
     // Private methods
     // =====================
     private menuMarkup(): object {
-        return this.keyboardMarkupWithAutoLayoutFor([
-            this.text.adminMenuMetrics.selectDateMonth,
-            this.text.adminMenuMetrics.selectDateQuarter,
-            this.text.adminMenuMetrics.selectDateYear,
+        return this.keyboardMarkup([
+            [this.text.adminMenuMetrics.getMainStat, this.text.adminMenuMetrics.getRedirectStat],
+            this.text.adminMenuMetrics.getUsersInfo,
             this.text.adminMenu.returnBack,
         ])
+    }
+
+    private async prepareAndSendMainStatistic(args: { startDate: Date; endDate: Date }) {
+        const { startDate, endDate } = args
+
+        const dateFormat = 'DD.MM.yyyy'
+        const beginningDateString = startDate.moment().format(dateFormat)
+        const currentDateString = endDate.moment().format(dateFormat)
+        const metricsFileName = `Статистика основное c ${beginningDateString} по ${currentDateString}.xlsx`
+
+        const resultMetricsTable = await this.statisticService.createStatisticTable({
+            startDate,
+            endDate,
+            addAllUsersPage: true,
+        })
+        await this.ddi.sendDocument({
+            document: {
+                source: resultMetricsTable,
+                filename: metricsFileName,
+            },
+        })
+    }
+
+    private async prepareAndSendRedirectStatistics(args: { startDate: Date; endDate: Date }) {
+        const { startDate, endDate } = args
+
+        const dateFormat = 'DD.MM.yyyy'
+        const beginningDateString = startDate.moment().format(dateFormat)
+        const currentDateString = endDate.moment().format(dateFormat)
+        const redirectLinkStatFileName = `Статистика редиректов c ${beginningDateString} по ${currentDateString}.xlsx`
+        const resultRedirectLinkStatTable = await this.statisticService.createRedirectLinkTable(
+            startDate,
+            endDate
+        )
+        await this.ddi.sendDocument({
+            document: {
+                source: resultRedirectLinkStatTable,
+                filename: redirectLinkStatFileName,
+            },
+        })
     }
 }

@@ -1,3 +1,4 @@
+import z from 'zod'
 import { Survey } from '.'
 import { BotContent } from '../bot-content'
 
@@ -6,38 +7,6 @@ import { BotContent } from '../bot-content'
  * This namespace should contain functions that assist in processing or manipulating entity data.
  */
 export namespace _SurveyHelper {
-    // =====================
-    // Cache helpers
-    // =====================
-    export const answerTypeNames = {
-        options: 'Выбор варианта',
-        numeric: 'Число',
-        string: 'Строка',
-        stringGptTips: 'Строка + GPT',
-        image: 'Изображение',
-        video: 'Видео',
-        mediaGroup: 'Медиа группа',
-        multipleChoice: 'Множественный выбор',
-    }
-
-    export const answerTypeNameAllCases = Object.keys(answerTypeNames) as Survey.AnswerTypeName[]
-
-    const swapFn = <T extends Record<string, S>, S extends string>(obj: T) => {
-        const res = {} as any // I'm not worried about impl safety
-        Object.entries(obj).forEach(([key, value]) => {
-            res[value] = key
-        })
-        return res as { [K in keyof T as T[K]]: K }
-    }
-    export const answerTypeNameByPublicName = swapFn(answerTypeNames)
-
-    export function getAnswerTypePublicName(type: Survey.AnswerTypeName) {
-        return answerTypeNames[type]
-    }
-    export function getAnswerTypeByPublicName(publicName: string) {
-        return answerTypeNameByPublicName[publicName]
-    }
-
     // =====================
     // Usage helpers
     // =====================
@@ -49,10 +18,13 @@ export namespace _SurveyHelper {
             case 'string':
             case 'stringGptTips':
             case 'options':
+            case 'optionsInline':
             case 'numeric':
             case 'multipleChoice':
+            case 'phoneNumber':
                 return false
             case 'image':
+            case 'singleImage':
             case 'video':
             case 'mediaGroup':
                 return true
@@ -63,23 +35,37 @@ export namespace _SurveyHelper {
         passedQuestionAnswers: Survey.PassedAnswer[]
     ): Survey.Question | null {
         const allQuestions = survey.questions.filter(function (question) {
-            for (const filter of question.filters) {
+            for (const filter of question.filters.filter((filter) => filter.type === 'showIf')) {
                 const targetAnswer = passedQuestionAnswers.find(
-                    (answer) => answer.question.id == filter.targetQuestionId
+                    (answer) => answer.question.id === filter.targetQuestionId
                 )
-                if (!targetAnswer || targetAnswer.type != 'options') {
-                    return false
+                if (!targetAnswer) return false
+
+                switch (targetAnswer.type) {
+                    case 'options':
+                    case 'optionsInline':
+                        break
+                    case 'string':
+                    case 'multipleChoice':
+                    case 'numeric':
+                    case 'stringGptTips':
+                    case 'image':
+                    case 'singleImage':
+                    case 'video':
+                    case 'mediaGroup':
+                    case 'phoneNumber':
+                        return false
                 }
 
                 const answerValue = targetAnswer.selectedOptionId
-                if (!answerValue || filter.validOptionIds.includes(answerValue) == false) {
+                if (!answerValue || filter.validOptionIds.includes(answerValue) === false) {
                     return false
                 }
             }
             return true
         })
         for (const question of allQuestions) {
-            if (!passedQuestionAnswers.some((element) => element.question.id == question.id)) {
+            if (!passedQuestionAnswers.some((element) => element.question.id === question.id)) {
                 return question
             }
         }
@@ -92,8 +78,9 @@ export namespace _SurveyHelper {
     ): string | null {
         switch (answer.type) {
             case 'options':
+            case 'optionsInline':
                 return (
-                    answer.question.options.find((option) => option.id == answer.selectedOptionId)
+                    answer.question.options.find((option) => option.id === answer.selectedOptionId)
                         ?.text ?? null
                 )
             case 'multipleChoice':
@@ -104,28 +91,89 @@ export namespace _SurveyHelper {
                           .map((option) => option.text)
                           .join(', ')
 
-            case 'numeric':
+            case 'numeric': {
                 const unitLabel = answer.question.unit
                 if (unitLabel && answer.selectedNumber) {
                     return `${answer.selectedNumber.toStringWithSpaces} ${unitLabel}`
                 } else {
                     return answer.selectedNumber?.toStringWithSpaces ?? null
                 }
+            }
 
             case 'string':
             case 'stringGptTips':
+            case 'phoneNumber':
                 return answer.selectedString
+
+            case 'singleImage':
+                return answer.media.isEmpty
+                    ? text.surveyFinal.textMediaAnswerForSkippedQuestion
+                    : `${text.surveyFinal.textMediaPrefix} (1 ${text.surveyFinal.textMediaUnit})`
 
             case 'image':
             case 'video':
             case 'mediaGroup':
-                return `${text.surveyFinal.textMediaPrefix} (${answer.media.length} ${text.surveyFinal.textMediaUnit})`
+                return answer.media.isEmpty
+                    ? text.surveyFinal.textMediaAnswerForSkippedQuestion
+                    : `${text.surveyFinal.textMediaPrefix} (${answer.media.length} ${text.surveyFinal.textMediaUnit})`
         }
+    }
+
+    export function extractAnswerValue(answer: Survey.PassedAnswer) {
+        switch (answer.type) {
+            case 'options':
+            case 'optionsInline':
+                if (answer.selectedOptionId) {
+                    if (answer.question.boolConvertibleAnswers) {
+                        return answer.selectedOptionId.toLowerCase().startsWith('yes')
+                    } else if (
+                        // Conversion for legacy cached questions
+                        answer.question.boolConvertibleAnswers === undefined &&
+                        answer.question.options.length === 2 &&
+                        answer.question.options.some((option) => option.id.startsWith('yes')) &&
+                        answer.question.options.some((option) => option.id.startsWith('no'))
+                    ) {
+                        return answer.selectedOptionId.toLowerCase().startsWith('yes')
+                    }
+                }
+
+                return answer.selectedOptionId
+
+            case 'multipleChoice':
+                return answer.selectedOptionsIds
+
+            case 'numeric':
+                return answer.selectedNumber
+
+            case 'string':
+            case 'stringGptTips':
+            case 'phoneNumber':
+                return answer.selectedString
+
+            case 'singleImage':
+                return answer.media[0] ?? null
+
+            case 'image':
+            case 'video':
+            case 'mediaGroup':
+                return answer.media
+        }
+    }
+
+    export function transformAnswerToDataObject(answers: Survey.PassedAnswer[]) {
+        return answers.reduce(
+            (acc, answer) => {
+                acc[answer.question.id] = extractAnswerValue(answer)
+                return acc
+            },
+            {} as Record<string, unknown>
+        )
     }
 
     export function isAnswerSpecified(answer: Survey.PassedAnswer): boolean {
         switch (answer.type) {
             case 'options':
+            case 'optionsInline':
                 return typeof answer.selectedOptionId === 'string'
 
             case 'multipleChoice':
@@ -136,8 +184,10 @@ export namespace _SurveyHelper {
 
             case 'string':
             case 'stringGptTips':
+            case 'phoneNumber':
                 return typeof answer.selectedString === 'string'
 
+            case 'singleImage':
             case 'image':
             case 'video':
             case 'mediaGroup':
@@ -170,6 +220,7 @@ export namespace _SurveyHelper {
                     question: question,
                     selectedString: null,
                 }
+
             case 'stringGptTips':
                 return {
                     type: 'stringGptTips',
@@ -179,6 +230,12 @@ export namespace _SurveyHelper {
             case 'options':
                 return {
                     type: 'options',
+                    question: question,
+                    selectedOptionId: null,
+                }
+            case 'optionsInline':
+                return {
+                    type: 'optionsInline',
                     question: question,
                     selectedOptionId: null,
                 }
@@ -200,6 +257,12 @@ export namespace _SurveyHelper {
                     question: question,
                     media: [],
                 }
+            case 'singleImage':
+                return {
+                    type: 'singleImage',
+                    question: question,
+                    media: [],
+                }
             case 'video':
                 return {
                     type: 'video',
@@ -212,6 +275,12 @@ export namespace _SurveyHelper {
                     question: question,
                     media: [],
                 }
+            case 'phoneNumber':
+                return {
+                    type: 'phoneNumber',
+                    question: question,
+                    selectedString: null,
+                }
         }
     }
 
@@ -220,12 +289,52 @@ export namespace _SurveyHelper {
         survey: Survey.BaseType
     ): Survey.PassedAnswer[] {
         return passedAnswers.compactMap((answer) => {
-            const localizedQuesion = survey.questions.find(
-                (question) => question.id == answer.question.id
+            const localizedQuestion = survey.questions.find(
+                (question) => question.id === answer.question.id
             )
-            if (!localizedQuesion) return null
-            answer.question = localizedQuesion
+            if (!localizedQuestion) return null
+            answer.question = localizedQuestion
             return answer
         })
+    }
+
+    type PassedAnswerWithOptionsOrSomeOther =
+        | Pick<
+              Exclude<Survey.PassedAnswer, { type: 'options' | 'optionsInline' }>,
+              'type' | 'question'
+          >
+        | Survey.PassedAnswerWithOptionsDefault
+        | Survey.PassedAnswerWithOptionsInline
+
+    export function extractPassedAnswerSelectedOptionId(args: {
+        passedAnswers: PassedAnswerWithOptionsOrSomeOther[]
+        targetQuestionId: string
+    }): string | null {
+        const { passedAnswers, targetQuestionId } = args
+        const targetAnswer = passedAnswers.find(
+            (answer): answer is Survey.PassedAnswerWithOneSelectedOption =>
+                answer.question.id === targetQuestionId &&
+                (answer.type === 'optionsInline' || answer.type === 'options')
+        )
+
+        return targetAnswer?.selectedOptionId ?? null
+    }
+
+    export function extractPassedAnswerSelectedOptionIdWithValidation<
+        OptionIdSchema extends z.Schema,
+    >(args: {
+        passedAnswers: PassedAnswerWithOptionsOrSomeOther[]
+        targetQuestionId: string
+        schema: OptionIdSchema
+    }): z.output<OptionIdSchema> | null {
+        const { passedAnswers, targetQuestionId, schema } = args
+        const targetAnswer = passedAnswers.find(
+            (answer): answer is Survey.PassedAnswerWithOneSelectedOption =>
+                answer.question.id === targetQuestionId &&
+                (answer.type === 'optionsInline' || answer.type === 'options')
+        )
+        if (!targetAnswer) return null
+
+        return schema.safeParse(targetAnswer.selectedOptionId).data ?? null
     }
 }

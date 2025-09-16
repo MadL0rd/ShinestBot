@@ -1,14 +1,13 @@
 import { Injectable } from '@nestjs/common'
-import { ISheetDataProvider } from '../../abscract/sheet-data-provider.interface'
-import { SheetStringsMarkdownValidatorService } from '../../sheet-strings-markdown-validator/sheet-strings-markdown-validator.service'
 import { logger } from 'src/app/app.logger'
 import * as XLSX from 'xlsx'
+import { ISheetDataProvider } from '../../abstract/sheet-data-provider.interface'
 
 @Injectable()
 export class LocalXlsxProviderService implements ISheetDataProvider {
-    constructor(private readonly rowsValidator?: SheetStringsMarkdownValidatorService) {}
+    constructor() {}
 
-    async getContentByListName(pageName: string, range: string): Promise<string[][]> {
+    async getContentFromPage(pageName: string, range: string): Promise<string[][]> {
         logger.log(`Start cache ${pageName}`)
 
         const workbook = XLSX.read('./ShinestBotOpenDataTable.xlsx', {
@@ -23,6 +22,6 @@ export class LocalXlsxProviderService implements ISheetDataProvider {
         })
         const rows = localRows.filter((row) => row.isNotEmpty)
 
-        return this.rowsValidator?.validateAndUpdateRows(rows) ?? rows
+        return rows
     }
 }

@@ -1,35 +1,35 @@
 import { logger } from 'src/app/app.logger'
+import { TelegramDirectDialogInteractor } from 'src/business-logic/telegram-bridge/telegram-ddi/telegram-ddi'
 import { UserHistoryEvent } from 'src/business-logic/user/enums/user-history-event.enum'
 import { UserProfileDocument } from 'src/business-logic/user/schemas/user.schema'
 import { UserService } from 'src/business-logic/user/user.service'
+import { BotContent } from 'src/entities/bot-content'
+import { UserProfile } from 'src/entities/user-profile'
+import { generateInlineButton, InlineButtonDto } from 'src/presentation/utils/inline-button.utils'
+import { ExtendedMessageContext } from 'src/utils/telegraf-middlewares/extended-message-context'
 import { Context, Markup } from 'telegraf'
 import {
-    Update,
-    ReplyKeyboardMarkup,
-    ReplyKeyboardRemove,
-    InputMediaPhoto,
-    InputMediaVideo,
-    InputMediaAudio,
-    InputMediaDocument,
     InlineKeyboardButton,
     KeyboardButton,
+    ReplyKeyboardMarkup,
+    ReplyKeyboardRemove,
+    Update,
 } from 'telegraf/types'
+import { SceneCallbackData } from './scene-callback'
 import { SceneEntrance } from './scene-entrance.interface'
 import { SceneName } from './scene-name.enum'
 import { SceneUsagePermissionsValidator } from './scene-usage-permissions-validator'
 import {
     IScene,
-    SceneUserContext,
     PermissionsValidationResult,
     SceneHandlerCompletion,
+    SceneUserContext,
 } from './scene.interface'
-import { SceneCallbackData } from './scene-callback'
-import { InlineButtonDto, generateInlineButton } from 'src/presentation/utils/inline-button.utils'
-import { UserProfile } from 'src/entities/user-profile'
-import { BotContent } from 'src/entities/bot-content'
 
-export abstract class Scene<SceneDataType extends object, SceneEnterDataType extends object>
-    implements IScene
+export abstract class Scene<
+    SceneDataType extends Record<string, unknown>,
+    SceneEnterData extends object,
+> implements IScene
 {
     // =====================
     // Private properties
@@ -37,26 +37,29 @@ export abstract class Scene<SceneDataType extends object, SceneEnterDataType ext
     private _content: BotContent.BaseType
     private _text: BotContent.UniqueMessage
     private _user: UserProfileDocument
-    private _userActivePermissions: UserProfile.PermissionNames.Union[]
+    private _userAccessRules: UserProfile.AccessRules
+    private _ddi: TelegramDirectDialogInteractor
 
     // =====================
     // Protected properties:
     // syntactic sugar
     // =====================
     protected readonly completion = new SceneHandlerCompletionTemplates<SceneDataType>()
-    protected readonly historyEvent = UserHistoryEvent
 
-    protected get user(): UserProfileDocument {
+    protected get user(): UserProfile.BaseType {
         return this._user
     }
-    protected get userActivePermissions(): UserProfile.PermissionNames.Union[] {
-        return this._userActivePermissions
+    protected get userAccessRules(): UserProfile.AccessRules {
+        return this._userAccessRules
     }
     protected get content(): BotContent.BaseType {
         return this._content
     }
     protected get text(): BotContent.UniqueMessage {
         return this._text
+    }
+    protected get ddi() {
+        return this._ddi
     }
 
     // =====================
@@ -74,24 +77,55 @@ export abstract class Scene<SceneDataType extends object, SceneEnterDataType ext
     // =====================
     // IScene methods
     // =====================
+    constructor() {
+        const { handleEnterScene, handleMessage, handleCallback } = this
+        this.handleEnterScene = (...args: any) => {
+            logger.log(
+                `${this.name} handleEnterScene. User: ${this.user.telegramInfo.id} ${this.user.telegramInfo.username}`
+            )
+            this.logToUserHistory({
+                type: 'enterScene',
+                sceneName: this.name,
+                sceneEntranceDto: args[0],
+            })
+            return handleEnterScene.apply(this, args)
+        }
+        this.handleMessage = (...args: any) => {
+            logger.log(
+                `${this.name} handleMessage. User: ${this.user.telegramInfo.id} ${this.user.telegramInfo.username}`
+            )
+            return handleMessage.apply(this, args)
+        }
+        this.handleCallback = (...args: any) => {
+            logger.log(
+                `${this.name} handleCallback. User: ${this.user.telegramInfo.id} ${this.user.telegramInfo.username}`
+            )
+            return handleCallback.apply(this, args)
+        }
+    }
+
     injectUserContext(userContext: SceneUserContext) {
         this._content = userContext.botContent
         this._text = userContext.botContent.uniqueMessage
         this._user = userContext.user
-        this._userActivePermissions = userContext.userActivePermissions
+        this._userAccessRules = userContext.userAccessRules
         this._text = userContext.botContent.uniqueMessage
+        this._ddi = userContext.ddi
         return this
     }
 
     validateUseScenePermissions(): PermissionsValidationResult {
         const validator = this.permissionsValidator
-        return validator.validateUseScenePermissions(this.userActivePermissions, this.text)
+        return validator.validateUseScenePermissions(this.userAccessRules, this.text)
     }
 
-    handleEnterScene(ctx: Context, data?: SceneEnterDataType): Promise<SceneHandlerCompletion> {
+    handleEnterScene(data?: SceneEnterData): Promise<SceneHandlerCompletion> {
         throw Error('Method not implemented.')
     }
-    handleMessage(ctx: Context, data: SceneDataType): Promise<SceneHandlerCompletion> {
+    handleMessage(
+        ctx: ExtendedMessageContext,
+        data: SceneDataType
+    ): Promise<SceneHandlerCompletion> {
         throw Error('Method not implemented.')
     }
     handleCallback(
@@ -110,29 +144,38 @@ export abstract class Scene<SceneDataType extends object, SceneEnterDataType ext
         return data ?? this.dataDefault
     }
 
-    protected restoreData(dataRaw: object): SceneDataType {
+    protected restoreData(dataRaw: unknown): SceneDataType {
         const data: SceneDataType = dataRaw as SceneDataType
         return data ?? this.dataDefault
     }
 
-    protected keyboardMarkupFor(
-        keyboard: string[][]
+    protected keyboardMarkup(
+        keyboard: ((KeyboardButton | null)[] | KeyboardButton | null)[]
     ): Markup.Markup<ReplyKeyboardMarkup | ReplyKeyboardRemove> {
-        if (keyboard.length == 0) {
-            return Markup.removeKeyboard()
-        }
-        return Markup.keyboard(keyboard).resize()
+        const keyboardResult = keyboard.compact
+            .map((buttonOrLine) =>
+                buttonOrLine instanceof Array
+                    ? buttonOrLine.compact
+                    : buttonOrLine
+                      ? [buttonOrLine]
+                      : []
+            )
+            .filter((buttonsLine) => buttonsLine.isNotEmpty)
+        return keyboardResult.isNotEmpty
+            ? Markup.keyboard(keyboardResult).resize()
+            : Markup.removeKeyboard()
     }
 
     protected keyboardMarkupWithAutoLayoutFor(
         keyboard: KeyboardButton[],
-        twoColumnsForce: boolean = false
+        args?: { columnsCount?: 1 | 2 }
     ): Markup.Markup<ReplyKeyboardMarkup | ReplyKeyboardRemove> {
-        if (keyboard.length == 0) return Markup.removeKeyboard()
+        if (keyboard.isEmpty) return Markup.removeKeyboard()
 
         let keyboardWithAutoLayout: KeyboardButton[][]
 
-        if (keyboard.length < 5 && !twoColumnsForce) {
+        const columnsCount = (args?.columnsCount ?? keyboard.length < 5) ? 1 : 2
+        if (columnsCount === 1) {
             // For short keyboards place 1 button on every row
             keyboardWithAutoLayout = keyboard.map((button) => [button])
         } else {
@@ -146,96 +189,13 @@ export abstract class Scene<SceneDataType extends object, SceneEnterDataType ext
                 }
             })
         }
-        return Markup.keyboard(keyboard).resize()
+        return Markup.keyboard(keyboardWithAutoLayout).resize()
     }
 
     protected async logToUserHistory<EventName extends UserHistoryEvent.EventTypeName>(
         event: UserHistoryEvent.SomeEventType<EventName>
     ) {
-        await this.userService.logToUserHistory(this.user, event)
-    }
-
-    protected async replyMediaContent(
-        ctx: Context<Update>,
-        media: BotContent.OnboardingPage.MediaContent.BaseType,
-        separatedContentType: null | 'images' | 'videos' | 'audio' | 'docks' = null
-    ): Promise<void> {
-        // Media group
-        const mediaGroupArgs: (InputMediaPhoto | InputMediaVideo)[] = []
-        if (!separatedContentType || separatedContentType == 'videos') {
-            media.videos.forEach((url) =>
-                mediaGroupArgs.push({
-                    type: 'video',
-                    media: url,
-                })
-            )
-        }
-
-        if (!separatedContentType || separatedContentType == 'images') {
-            media.images.forEach((url) =>
-                mediaGroupArgs.push({
-                    type: 'photo',
-                    media: url,
-                })
-            )
-        }
-
-        if (mediaGroupArgs.length > 0) {
-            try {
-                await ctx.replyWithMediaGroup(mediaGroupArgs)
-            } catch (error) {
-                logger.error(
-                    `Fail to reply with media group (photo, video) ${JSON.stringify(
-                        mediaGroupArgs
-                    )}`,
-                    error
-                )
-            }
-        }
-
-        if (!separatedContentType || separatedContentType == 'audio') {
-            const audioGroupArgs: InputMediaAudio[] = []
-            media.audio.forEach((url) =>
-                audioGroupArgs.push({
-                    type: 'audio',
-                    media: url,
-                })
-            )
-
-            if (audioGroupArgs.length > 0) {
-                try {
-                    await ctx.replyWithMediaGroup(audioGroupArgs)
-                } catch (error) {
-                    logger.error(
-                        `Fail to reply with media group (audio) ${JSON.stringify(audioGroupArgs)}`,
-                        error
-                    )
-                }
-            }
-        }
-
-        if (!separatedContentType || separatedContentType == 'docks') {
-            const docsGroupArgs: InputMediaDocument[] = []
-            media.documents.forEach((url) =>
-                docsGroupArgs.push({
-                    type: 'document',
-                    media: url,
-                })
-            )
-
-            if (docsGroupArgs.length > 0) {
-                try {
-                    await ctx.replyWithMediaGroup(docsGroupArgs)
-                } catch (error) {
-                    logger.error(
-                        `Fail to reply with media group (document) ${JSON.stringify(
-                            docsGroupArgs
-                        )}`,
-                        error
-                    )
-                }
-            }
-        }
+        this.userService.logToUserHistory(this.user, event)
     }
 
     /**
@@ -246,50 +206,40 @@ export abstract class Scene<SceneDataType extends object, SceneEnterDataType ext
         return generateInlineButton(button, this.name)
     }
 
-    protected async completeAndSendErrorMessage(ctx: Context<Update>, errorMessage?: string) {
-        await ctx.replyWithHTML(errorMessage ?? this.text.common.errorMessage)
+    protected async completeAndSendErrorMessage(errorMessage?: string) {
+        await this.ddi.sendHtml(errorMessage ?? this.text.common.errorMessage)
         return this.completion.complete()
     }
 }
 
-class SceneHandlerCompletionTemplates<SceneDataType extends object> {
-    canNotHandle(data: SceneDataType): SceneHandlerCompletion {
+class SceneHandlerCompletionTemplates<SceneDataType extends Record<string, unknown>> {
+    canNotHandle(args?: { didAlreadySendErrorMessage: true }): SceneHandlerCompletion {
         return {
-            inProgress: true,
+            type: 'doNothing',
             didHandledUserInteraction: false,
-            sceneData: data ?? ({} as SceneDataType),
+            didAlreadySendErrorMessage: args?.didAlreadySendErrorMessage ?? false,
         }
     }
 
-    canNotHandleUnsafe(): SceneHandlerCompletion {
+    doNothing(): SceneHandlerCompletion {
         return {
-            inProgress: true,
-            didHandledUserInteraction: false,
-            sceneData: {} as SceneDataType,
+            type: 'doNothing',
+            didHandledUserInteraction: true,
+            didAlreadySendErrorMessage: false,
         }
     }
 
     inProgress(data: SceneDataType): SceneHandlerCompletion {
         return {
-            inProgress: true,
-            didHandledUserInteraction: true,
-            sceneData: data ?? ({} as SceneDataType),
+            type: 'inProgress',
+            sceneData: data,
         }
     }
 
     complete(enterSceneDto?: SceneEntrance.SomeSceneDto): SceneHandlerCompletion {
         return {
-            inProgress: false,
-            didHandledUserInteraction: true,
-            nextSceneIfCompleted: enterSceneDto,
-        }
-    }
-
-    completeWithUnsafeSceneEntrance(sceneName: SceneName.Union): SceneHandlerCompletion {
-        return {
-            inProgress: false,
-            didHandledUserInteraction: true,
-            nextSceneIfCompleted: { sceneName: sceneName } as any,
+            type: 'transition',
+            nextScene: enterSceneDto,
         }
     }
 }

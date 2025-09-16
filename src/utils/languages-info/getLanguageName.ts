@@ -4,17 +4,16 @@ export namespace LanguageCode {
     export type Union = keyof typeof languagesInfo
     export const allCases = Object.keys(languagesInfo) as Union[]
 
-    export function isInstance(value?: string | Union | null): value is Union {
-        if (!value) return false
+    export function includes(value: string | Union): value is Union {
         return allCases.includes(value)
     }
-
     export function castToInstance(value?: string | Union | null): Union | null {
-        return isInstance(value) ? value : null
+        if (!value) return null
+        return includes(value) ? value : null
     }
 
     export function getLanguageName(countryCode: string): string {
-        if (!isInstance(countryCode)) return countryCode
+        if (!includes(countryCode)) return countryCode
         const language = languagesInfo[countryCode] as LanguagesInfoType
 
         const languageName = language.nativeName ?? countryCode

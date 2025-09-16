@@ -1,30 +1,29 @@
 import { logger } from 'src/app/app.logger'
 import { UserService } from 'src/business-logic/user/user.service'
-import { Markup, Context } from 'telegraf'
-import { Update } from 'telegraf/types'
-import { SceneCallbackData } from '../../../models/scene-callback'
-import { SceneEntrance } from '../../../models/scene-entrance.interface'
-import { SceneName } from '../../../models/scene-name.enum'
-import { SceneHandlerCompletion } from '../../../models/scene.interface'
-import { Scene } from '../../../models/scene.abstract'
-import { SceneUsagePermissionsValidator } from '../../../models/scene-usage-permissions-validator'
-import { InjectableSceneConstructor } from '../../../scene-factory/scene-injections-provider.service'
 import { Survey } from 'src/entities/survey'
 import { SurveyContextProviderType } from 'src/presentation/survey-context/abstract/survey-context-provider.interface'
 import { SurveyContextProviderFactoryService } from 'src/presentation/survey-context/survey-context-provider-factory/survey-context-provider-factory.service'
+import { ExtendedMessageContext } from 'src/utils/telegraf-middlewares/extended-message-context'
+import { SceneEntrance } from '../../../models/scene-entrance.interface'
+import { SceneName } from '../../../models/scene-name.enum'
+import { SceneUsagePermissionsValidator } from '../../../models/scene-usage-permissions-validator'
+import { Scene } from '../../../models/scene.abstract'
+import { SceneHandlerCompletion } from '../../../models/scene.interface'
+import { InjectableSceneConstructor } from '../../../scene-factory/scene-injections-provider.service'
 
 // =====================
 // Scene data classes
 // =====================
-export class SurveyQuestionStringGptTipsAnswerEditingSceneEntranceDto implements SceneEntrance.Dto {
-    readonly sceneName = 'surveyQuestionStringGptTipsAnswerEditing'
+export interface SurveyQuestionStringGptTipsAnswerEditingSceneEntranceDto
+    extends SceneEntrance.Dto {
+    readonly sceneName: 'surveyQuestionStringGptTipsAnswerEditing'
     readonly providerType: SurveyContextProviderType.Union
     readonly question: Survey.QuestionStringGptTips
     readonly allowBackToPreviousQuestion: boolean
     currentAnswer: string
 }
-type SceneEnterDataType = SurveyQuestionStringGptTipsAnswerEditingSceneEntranceDto
-interface ISceneData {
+type SceneEnterData = SurveyQuestionStringGptTipsAnswerEditingSceneEntranceDto
+type SceneData = {
     readonly providerType: SurveyContextProviderType.Union
     readonly question: Survey.QuestionStringGptTips
     readonly allowBackToPreviousQuestion: boolean
@@ -37,23 +36,23 @@ interface ISceneData {
 
 @InjectableSceneConstructor()
 export class SurveyQuestionStringGptTipsAnswerEditingScene extends Scene<
-    ISceneData,
-    SceneEnterDataType
+    SceneData,
+    SceneEnterData
 > {
     // =====================
     // Properties
     // =====================
 
-    readonly name: SceneName.Union = 'surveyQuestionStringGptTipsAnswerEditing'
-    protected get dataDefault(): ISceneData {
-        return {} as ISceneData
+    override readonly name: SceneName.Union = 'surveyQuestionStringGptTipsAnswerEditing'
+    protected override get dataDefault(): SceneData {
+        return {} as SceneData
     }
-    protected get permissionsValidator(): SceneUsagePermissionsValidator.IPermissionsValidator {
+    protected override get permissionsValidator(): SceneUsagePermissionsValidator.IPermissionsValidator {
         return new SceneUsagePermissionsValidator.CanUseIfNotBanned()
     }
 
     constructor(
-        protected readonly userService: UserService,
+        protected override readonly userService: UserService,
         private readonly dataProviderFactory: SurveyContextProviderFactoryService
     ) {
         super()
@@ -63,22 +62,14 @@ export class SurveyQuestionStringGptTipsAnswerEditingScene extends Scene<
     // Public methods
     // =====================
 
-    async handleEnterScene(
-        ctx: Context,
-        data?: SceneEnterDataType
-    ): Promise<SceneHandlerCompletion> {
-        logger.log(
-            `${this.name} scene handleEnterScene. User: ${this.user.telegramInfo.id} ${this.user.telegramInfo.username}`
-        )
-        await this.logToUserHistory({ type: 'startSceneSurveyQuestionStringGptTipsAnswerEditing' })
-
+    override async handleEnterScene(data?: SceneEnterData): Promise<SceneHandlerCompletion> {
         if (!data) {
             logger.error('Scene start data corrupted')
             return this.completion.complete()
         }
 
-        await ctx.replyWithHTML(data.question.questionText)
-        await ctx.replyWithHTML(
+        await this.ddi.sendHtml(data.question.questionText)
+        await this.ddi.sendHtml(
             this.text.surveyQuestionGptTip.textAnswerEditing,
             super.keyboardMarkupWithAutoLayoutFor(
                 [
@@ -92,15 +83,15 @@ export class SurveyQuestionStringGptTipsAnswerEditingScene extends Scene<
                 ].compact
             )
         )
-        await ctx.replyWithHTML(data.currentAnswer)
+        await this.ddi.sendHtml(data.currentAnswer)
 
         return this.completion.inProgress(data)
     }
 
-    async handleMessage(ctx: Context, dataRaw: object): Promise<SceneHandlerCompletion> {
-        logger.log(
-            `${this.name} scene handleMessage. User: ${this.user.telegramInfo.id} ${this.user.telegramInfo.username}`
-        )
+    override async handleMessage(
+        ctx: ExtendedMessageContext,
+        dataRaw: object
+    ): Promise<SceneHandlerCompletion> {
         const data = this.restoreData(dataRaw)
         if (!data || !data.providerType || !data.question || !data.currentAnswer) {
             logger.error('Start data corrupted')
@@ -109,7 +100,7 @@ export class SurveyQuestionStringGptTipsAnswerEditingScene extends Scene<
         const provider = this.dataProviderFactory.getSurveyContextProvider(data.providerType)
 
         const message = ctx.message
-        if (!message || !('text' in message)) return this.completion.canNotHandle(data)
+        if (message.type !== 'text') return this.completion.canNotHandle()
 
         switch (message.text) {
             case this.text.survey.buttonOptionalQuestionSkip:
@@ -162,16 +153,12 @@ export class SurveyQuestionStringGptTipsAnswerEditingScene extends Scene<
                     providerType: data.providerType,
                     allowContinueQuestion: false,
                 })
+
+            default:
+                break
         }
 
         return this.completion.complete()
-    }
-
-    async handleCallback(
-        ctx: Context<Update.CallbackQueryUpdate>,
-        data: SceneCallbackData
-    ): Promise<SceneHandlerCompletion> {
-        throw Error('Method not implemented.')
     }
 
     // =====================
