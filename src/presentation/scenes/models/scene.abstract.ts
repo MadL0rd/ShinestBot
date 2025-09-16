@@ -28,7 +28,7 @@ import {
 
 export abstract class Scene<
     SceneDataType extends Record<string, unknown>,
-    SceneEnterDataType extends object,
+    SceneEnterData extends object,
 > implements IScene
 {
     // =====================
@@ -119,7 +119,7 @@ export abstract class Scene<
         return validator.validateUseScenePermissions(this.userAccessRules, this.text)
     }
 
-    handleEnterScene(data?: SceneEnterDataType): Promise<SceneHandlerCompletion> {
+    handleEnterScene(data?: SceneEnterData): Promise<SceneHandlerCompletion> {
         throw Error('Method not implemented.')
     }
     handleMessage(

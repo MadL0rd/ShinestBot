@@ -14,8 +14,8 @@ import { InjectableSceneConstructor } from '../../scene-factory/scene-injections
 export class AdminMenuGenerateMetricsSceneEntranceDto implements SceneEntrance.Dto {
     readonly sceneName = 'adminMenuGenerateMetrics'
 }
-type SceneEnterDataType = AdminMenuGenerateMetricsSceneEntranceDto
-type ISceneData = {
+type SceneEnterData = AdminMenuGenerateMetricsSceneEntranceDto
+type SceneData = {
     state: SceneState
     stat?: 'main' | 'redirect'
 }
@@ -27,14 +27,14 @@ type SceneState = 'default' | 'chosePeriod'
 // =====================
 
 @InjectableSceneConstructor()
-export class AdminMenuGenerateMetricsScene extends Scene<ISceneData, SceneEnterDataType> {
+export class AdminMenuGenerateMetricsScene extends Scene<SceneData, SceneEnterData> {
     // =====================
     // Properties
     // =====================
 
     override readonly name: SceneName.Union = 'adminMenuGenerateMetrics'
-    protected override get dataDefault(): ISceneData {
-        return {} as ISceneData
+    protected override get dataDefault(): SceneData {
+        return {} as SceneData
     }
     protected override get permissionsValidator(): SceneUsagePermissionsValidator.IPermissionsValidator {
         return new SceneUsagePermissionsValidator.OwnerOrAdminOnly()
@@ -51,7 +51,7 @@ export class AdminMenuGenerateMetricsScene extends Scene<ISceneData, SceneEnterD
     // Public methods
     // =====================
 
-    override async handleEnterScene(data?: SceneEnterDataType): Promise<SceneHandlerCompletion> {
+    override async handleEnterScene(data?: SceneEnterData): Promise<SceneHandlerCompletion> {
         return this.initState({ state: 'default' })
     }
 
@@ -77,7 +77,7 @@ export class AdminMenuGenerateMetricsScene extends Scene<ISceneData, SceneEnterD
     // =====================
     // State methods
     // =====================
-    private async initState(data: ISceneData): Promise<SceneHandlerCompletion> {
+    private async initState(data: SceneData): Promise<SceneHandlerCompletion> {
         switch (data.state) {
             case 'default': {
                 await this.ddi.sendHtml(
@@ -98,7 +98,7 @@ export class AdminMenuGenerateMetricsScene extends Scene<ISceneData, SceneEnterD
     private async handleDefaultState(
         messageText: string,
         ctx: ExtendedMessageContext,
-        data: ISceneData
+        data: SceneData
     ): Promise<SceneHandlerCompletion> {
         switch (messageText) {
             case this.text.adminMenuMetrics.getMainStat:
@@ -147,7 +147,7 @@ export class AdminMenuGenerateMetricsScene extends Scene<ISceneData, SceneEnterD
     private async handleChosePeriodState(
         messageText: string,
         ctx: ExtendedMessageContext,
-        data: ISceneData
+        data: SceneData
     ) {
         const currentDate = new Date()
 

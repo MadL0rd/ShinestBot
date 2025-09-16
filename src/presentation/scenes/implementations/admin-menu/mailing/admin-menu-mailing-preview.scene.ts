@@ -18,8 +18,8 @@ export class AdminMenuMailingPreviewSceneEntranceDto implements SceneEntrance.Dt
     readonly sceneName = 'adminMenuMailingPreview'
     readonly mailingMessage: MailingMessageAny
 }
-type SceneEnterDataType = AdminMenuMailingPreviewSceneEntranceDto
-type ISceneData = {
+type SceneEnterData = AdminMenuMailingPreviewSceneEntranceDto
+type SceneData = {
     state: SceneState
     readonly mailingMessage: MailingMessageAny
 }
@@ -31,14 +31,14 @@ type SceneState = 'default'
 // =====================
 
 @InjectableSceneConstructor()
-export class AdminMenuMailingPreviewScene extends Scene<ISceneData, SceneEnterDataType> {
+export class AdminMenuMailingPreviewScene extends Scene<SceneData, SceneEnterData> {
     // =====================
     // Properties
     // =====================
 
     override readonly name: SceneName.Union = 'adminMenuMailingPreview'
-    protected override get dataDefault(): ISceneData {
-        return {} as ISceneData
+    protected override get dataDefault(): SceneData {
+        return {} as SceneData
     }
     protected override get permissionsValidator(): SceneUsagePermissionsValidator.IPermissionsValidator {
         return new SceneUsagePermissionsValidator.CanUseIfNotBanned()
@@ -56,14 +56,14 @@ export class AdminMenuMailingPreviewScene extends Scene<ISceneData, SceneEnterDa
     // Public methods
     // =====================
 
-    override async handleEnterScene(data?: SceneEnterDataType): Promise<SceneHandlerCompletion> {
+    override async handleEnterScene(data?: SceneEnterData): Promise<SceneHandlerCompletion> {
         if (!data?.mailingMessage) {
             logger.error(
                 'Scene entrance data corrupted: cannot find mailingMessage. Redirect to admin menu'
             )
             return this.completion.complete({ sceneName: 'adminMenu' })
         }
-        const sceneData: ISceneData = {
+        const sceneData: SceneData = {
             state: 'default',
             mailingMessage: data.mailingMessage,
         }
@@ -92,7 +92,7 @@ export class AdminMenuMailingPreviewScene extends Scene<ISceneData, SceneEnterDa
     // =====================
     // Private methods
     // =====================
-    private async initState(data: ISceneData): Promise<SceneHandlerCompletion> {
+    private async initState(data: SceneData): Promise<SceneHandlerCompletion> {
         switch (data.state) {
             case 'default': {
                 await this.sendDefaultMessage(data)
@@ -102,7 +102,7 @@ export class AdminMenuMailingPreviewScene extends Scene<ISceneData, SceneEnterDa
         return this.completion.inProgress(data)
     }
 
-    private async sendDefaultMessage(data: ISceneData) {
+    private async sendDefaultMessage(data: SceneData) {
         await this.ddi.sendHtml(
             this.text.adminMenuMailingPreview.text({
                 delaySec: data.mailingMessage.delaySecPerSending ?? 0,
@@ -126,7 +126,7 @@ export class AdminMenuMailingPreviewScene extends Scene<ISceneData, SceneEnterDa
     private async handleDefaultState(
         messageText: string,
         ctx: ExtendedMessageContext,
-        data: ISceneData
+        data: SceneData
     ): Promise<SceneHandlerCompletion> {
         const delayCommandRegExp = /[/]delay ([0-9]{1,12})/
         const parseResult = delayCommandRegExp.exec(messageText)

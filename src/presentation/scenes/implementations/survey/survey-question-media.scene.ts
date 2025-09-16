@@ -25,8 +25,8 @@ export class SurveyQuestionMediaSceneEntranceDto implements SceneEntrance.Dto {
     readonly allowBackToPreviousQuestion: boolean
     readonly mediaGroupBuffer: Survey.TelegramFileData[]
 }
-type SceneEnterDataType = SurveyQuestionMediaSceneEntranceDto
-type ISceneData = {
+type SceneEnterData = SurveyQuestionMediaSceneEntranceDto
+type SceneData = {
     readonly providerType: SurveyContextProviderType.Union
     readonly question: Survey.QuestionMedia
     readonly allowBackToPreviousQuestion: boolean
@@ -38,14 +38,14 @@ type ISceneData = {
 // =====================
 
 @InjectableSceneConstructor()
-export class SurveyQuestionMediaScene extends Scene<ISceneData, SceneEnterDataType> {
+export class SurveyQuestionMediaScene extends Scene<SceneData, SceneEnterData> {
     // =====================
     // Properties
     // =====================
 
     override readonly name: SceneName.Union = 'surveyQuestionMedia'
-    protected override get dataDefault(): ISceneData {
-        return {} as ISceneData
+    protected override get dataDefault(): SceneData {
+        return {} as SceneData
     }
     protected override get permissionsValidator(): SceneUsagePermissionsValidator.IPermissionsValidator {
         return new SceneUsagePermissionsValidator.CanUseIfNotBanned()
@@ -62,13 +62,13 @@ export class SurveyQuestionMediaScene extends Scene<ISceneData, SceneEnterDataTy
     // Public methods
     // =====================
 
-    override async handleEnterScene(data?: SceneEnterDataType): Promise<SceneHandlerCompletion> {
+    override async handleEnterScene(data?: SceneEnterData): Promise<SceneHandlerCompletion> {
         if (!data) {
             logger.error('Scene start data corrupted')
             return this.completion.complete()
         }
 
-        const sceneData: ISceneData = {
+        const sceneData: SceneData = {
             providerType: data.providerType,
             question: data.question,
             allowBackToPreviousQuestion: data.allowBackToPreviousQuestion,
@@ -217,7 +217,7 @@ export class SurveyQuestionMediaScene extends Scene<ISceneData, SceneEnterDataTy
     // Private methods
     // =====================
 
-    private async showMediaUploadingMenu(data: ISceneData) {
+    private async showMediaUploadingMenu(data: SceneData) {
         // Extracting media group information.
         const mediaGroupArgs = data.mediaGroupBuffer.map((item) => ({
             type: item.fileType,

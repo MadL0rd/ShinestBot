@@ -18,8 +18,8 @@ export class AdminMenuUsersManagementSceneSceneEntranceDto implements SceneEntra
     readonly sceneName = 'adminMenuUsersManagement'
     readonly targetUserTelegramId?: number
 }
-type SceneEnterDataType = AdminMenuUsersManagementSceneSceneEntranceDto
-type ISceneData = {
+type SceneEnterData = AdminMenuUsersManagementSceneSceneEntranceDto
+type SceneData = {
     targetUserTelegramId?: number
 }
 
@@ -28,14 +28,14 @@ type ISceneData = {
 // =====================
 
 @InjectableSceneConstructor()
-export class AdminMenuUsersManagementSceneScene extends Scene<ISceneData, SceneEnterDataType> {
+export class AdminMenuUsersManagementSceneScene extends Scene<SceneData, SceneEnterData> {
     // =====================
     // Properties
     // =====================
 
     override readonly name: SceneName.Union = 'adminMenuUsersManagement'
-    protected override get dataDefault(): ISceneData {
-        return {} as ISceneData
+    protected override get dataDefault(): SceneData {
+        return {} as SceneData
     }
     protected override get permissionsValidator(): SceneUsagePermissionsValidator.IPermissionsValidator {
         return new SceneUsagePermissionsValidator.OwnerOrAdminOnly()
@@ -52,7 +52,7 @@ export class AdminMenuUsersManagementSceneScene extends Scene<ISceneData, SceneE
     // Public methods
     // =====================
 
-    override async handleEnterScene(data?: SceneEnterDataType): Promise<SceneHandlerCompletion> {
+    override async handleEnterScene(data?: SceneEnterData): Promise<SceneHandlerCompletion> {
         return await this.initState(data ?? {})
     }
 
@@ -72,7 +72,7 @@ export class AdminMenuUsersManagementSceneScene extends Scene<ISceneData, SceneE
     // Private methods
     // =====================
 
-    private async initState(data: ISceneData): Promise<SceneHandlerCompletion> {
+    private async initState(data: SceneData): Promise<SceneHandlerCompletion> {
         const targetUser = data.targetUserTelegramId
             ? await this.userService.findOneByTelegramId(data.targetUserTelegramId)
             : null

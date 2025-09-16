@@ -22,8 +22,8 @@ export class SurveyQuestionStringGptTipsSceneEntranceDto implements SceneEntranc
     readonly question: Survey.QuestionStringGptTips
     readonly allowBackToPreviousQuestion: boolean
 }
-type SceneEnterDataType = SurveyQuestionStringGptTipsSceneEntranceDto
-type ISceneData = {
+type SceneEnterData = SurveyQuestionStringGptTipsSceneEntranceDto
+type SceneData = {
     readonly providerType: SurveyContextProviderType.Union
     readonly question: Survey.QuestionStringGptTips
     readonly allowBackToPreviousQuestion: boolean
@@ -35,14 +35,14 @@ type ISceneData = {
 // =====================
 
 @InjectableSceneConstructor()
-export class SurveyQuestionStringGptTipsScene extends Scene<ISceneData, SceneEnterDataType> {
+export class SurveyQuestionStringGptTipsScene extends Scene<SceneData, SceneEnterData> {
     // =====================
     // Properties
     // =====================
 
     override readonly name: SceneName.Union = 'surveyQuestionStringGptTips'
-    protected override get dataDefault(): ISceneData {
-        return {} as ISceneData
+    protected override get dataDefault(): SceneData {
+        return {} as SceneData
     }
     protected override get permissionsValidator(): SceneUsagePermissionsValidator.IPermissionsValidator {
         return new SceneUsagePermissionsValidator.CanUseIfNotBanned()
@@ -60,7 +60,7 @@ export class SurveyQuestionStringGptTipsScene extends Scene<ISceneData, SceneEnt
     // Public methods
     // =====================
 
-    override async handleEnterScene(data?: SceneEnterDataType): Promise<SceneHandlerCompletion> {
+    override async handleEnterScene(data?: SceneEnterData): Promise<SceneHandlerCompletion> {
         if (!data) {
             logger.error('Scene start data corrupted')
             return this.completion.complete()
@@ -113,7 +113,7 @@ export class SurveyQuestionStringGptTipsScene extends Scene<ISceneData, SceneEnt
 
     private async handleMessageStartMenu(
         ctx: ExtendedMessageContext,
-        data: ISceneData
+        data: SceneData
     ): Promise<SceneHandlerCompletion> {
         const message = ctx.message
         const chat = ctx.chat
@@ -188,7 +188,7 @@ export class SurveyQuestionStringGptTipsScene extends Scene<ISceneData, SceneEnt
 
     private async handleMessageWaitingForUserAnswer(
         ctx: ExtendedMessageContext,
-        data: ISceneData
+        data: SceneData
     ): Promise<SceneHandlerCompletion> {
         const message = ctx.message
         if (!message) return this.completion.canNotHandle()

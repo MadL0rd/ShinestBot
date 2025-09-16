@@ -21,22 +21,22 @@ export class AdminMenuSceneEntranceDto implements SceneEntrance.Dto {
     readonly sceneName = 'adminMenu'
     readonly mode?: 'default' | 'other'
 }
-type SceneEnterDataType = AdminMenuSceneEntranceDto
-type ISceneData = {}
+type SceneEnterData = AdminMenuSceneEntranceDto
+type SceneData = {}
 
 // =====================
 // Scene main class
 // =====================
 
 @InjectableSceneConstructor()
-export class AdminMenuScene extends Scene<ISceneData, SceneEnterDataType> {
+export class AdminMenuScene extends Scene<SceneData, SceneEnterData> {
     // =====================
     // Properties
     // =====================
 
     override readonly name: SceneName.Union = 'adminMenu'
-    protected override get dataDefault(): ISceneData {
-        return {} as ISceneData
+    protected override get dataDefault(): SceneData {
+        return {} as SceneData
     }
     protected override get permissionsValidator(): SceneUsagePermissionsValidator.IPermissionsValidator {
         return new SceneUsagePermissionsValidator.OwnerOrAdminOnly()
@@ -54,7 +54,7 @@ export class AdminMenuScene extends Scene<ISceneData, SceneEnterDataType> {
     // Public methods
     // =====================
 
-    override async handleEnterScene(data?: SceneEnterDataType): Promise<SceneHandlerCompletion> {
+    override async handleEnterScene(data?: SceneEnterData): Promise<SceneHandlerCompletion> {
         const mode = data?.mode ?? 'default'
 
         switch (mode) {

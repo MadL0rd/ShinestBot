@@ -16,8 +16,8 @@ export class LanguageSettingsSceneSceneEntranceDto implements SceneEntrance.Dto 
     readonly sceneName = 'languageSettings'
     readonly nextScene?: SceneEntrance.SomeSceneDto
 }
-type SceneEnterDataType = LanguageSettingsSceneSceneEntranceDto
-type ISceneData = {
+type SceneEnterData = LanguageSettingsSceneSceneEntranceDto
+type SceneData = {
     readonly nextScene?: SceneEntrance.SomeSceneDto
 }
 
@@ -26,14 +26,14 @@ type ISceneData = {
 // =====================
 
 @InjectableSceneConstructor()
-export class LanguageSettingsSceneScene extends Scene<ISceneData, SceneEnterDataType> {
+export class LanguageSettingsSceneScene extends Scene<SceneData, SceneEnterData> {
     // =====================
     // Properties
     // =====================
 
     override readonly name: SceneName.Union = 'languageSettings'
-    protected override get dataDefault(): ISceneData {
-        return {} as ISceneData
+    protected override get dataDefault(): SceneData {
+        return {} as SceneData
     }
     protected override get permissionsValidator(): SceneUsagePermissionsValidator.IPermissionsValidator {
         return new SceneUsagePermissionsValidator.CanUseIfNotBanned()
@@ -50,7 +50,7 @@ export class LanguageSettingsSceneScene extends Scene<ISceneData, SceneEnterData
     // Public methods
     // =====================
 
-    override async handleEnterScene(data?: SceneEnterDataType): Promise<SceneHandlerCompletion> {
+    override async handleEnterScene(data?: SceneEnterData): Promise<SceneHandlerCompletion> {
         const languages = await this.botContentService.getLocalLanguages()
         const languagesButtons = languages.map((code) => LanguageCode.getLanguageName(code))
 
@@ -66,7 +66,7 @@ export class LanguageSettingsSceneScene extends Scene<ISceneData, SceneEnterData
         ctx: ExtendedMessageContext,
         dataRaw: object
     ): Promise<SceneHandlerCompletion> {
-        const data = dataRaw as ISceneData | undefined
+        const data = dataRaw as SceneData | undefined
 
         const message = ctx.message
         if (message.type !== 'text') return this.completion.canNotHandle()

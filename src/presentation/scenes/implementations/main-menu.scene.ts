@@ -20,22 +20,22 @@ export class MainMenuSceneEntranceDto implements SceneEntrance.Dto {
     readonly sceneName = 'mainMenu'
     readonly forceSendMenuMessageOnEnter?: boolean
 }
-type SceneEnterDataType = MainMenuSceneEntranceDto
-type ISceneData = {}
+type SceneEnterData = MainMenuSceneEntranceDto
+type SceneData = {}
 
 // =====================
 // Scene main class
 // =====================
 
 @InjectableSceneConstructor()
-export class MainMenuScene extends Scene<ISceneData, SceneEnterDataType> {
+export class MainMenuScene extends Scene<SceneData, SceneEnterData> {
     // =====================
     // Properties
     // =====================
 
     override readonly name: SceneName.Union = 'mainMenu'
-    protected override get dataDefault(): ISceneData {
-        return {} as ISceneData
+    protected override get dataDefault(): SceneData {
+        return {} as SceneData
     }
     protected override get permissionsValidator(): SceneUsagePermissionsValidator.IPermissionsValidator {
         return new SceneUsagePermissionsValidator.CanUseIfNotBanned()
@@ -49,7 +49,7 @@ export class MainMenuScene extends Scene<ISceneData, SceneEnterDataType> {
     // Public methods
     // =====================
 
-    override async handleEnterScene(data?: SceneEnterDataType): Promise<SceneHandlerCompletion> {
+    override async handleEnterScene(data?: SceneEnterData): Promise<SceneHandlerCompletion> {
         /**
          * Check current menu buttons
          * and update only if keyboard is different

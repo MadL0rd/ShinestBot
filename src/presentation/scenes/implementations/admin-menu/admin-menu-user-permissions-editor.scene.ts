@@ -17,8 +17,8 @@ export class AdminMenuUserPermissionsEditorSceneEntranceDto implements SceneEntr
     readonly sceneName = 'adminMenuUserPermissionsEditor'
     readonly targetUserTelegramId: number
 }
-type SceneEnterDataType = AdminMenuUserPermissionsEditorSceneEntranceDto
-type ISceneData = {
+type SceneEnterData = AdminMenuUserPermissionsEditorSceneEntranceDto
+type SceneData = {
     targetUserTelegramId: number
 }
 
@@ -27,14 +27,14 @@ type ISceneData = {
 // =====================
 
 @InjectableSceneConstructor()
-export class AdminMenuUserPermissionsEditorScene extends Scene<ISceneData, SceneEnterDataType> {
+export class AdminMenuUserPermissionsEditorScene extends Scene<SceneData, SceneEnterData> {
     // =====================
     // Properties
     // =====================
 
     override readonly name: SceneName.Union = 'adminMenuUserPermissionsEditor'
-    protected override get dataDefault(): ISceneData {
-        return {} as ISceneData
+    protected override get dataDefault(): SceneData {
+        return {} as SceneData
     }
     protected override get permissionsValidator(): SceneUsagePermissionsValidator.IPermissionsValidator {
         return new SceneUsagePermissionsValidator.OwnerOrAdminOnly()
@@ -48,7 +48,7 @@ export class AdminMenuUserPermissionsEditorScene extends Scene<ISceneData, Scene
     // Public methods
     // =====================
 
-    override async handleEnterScene(data?: SceneEnterDataType): Promise<SceneHandlerCompletion> {
+    override async handleEnterScene(data?: SceneEnterData): Promise<SceneHandlerCompletion> {
         if (!data?.targetUserTelegramId)
             return this.completion.complete({ sceneName: 'adminMenuUsersManagement' })
 
@@ -141,7 +141,7 @@ export class AdminMenuUserPermissionsEditorScene extends Scene<ISceneData, Scene
     // Private methods
     // =====================
 
-    private async initDefaultState(data: ISceneData): Promise<SceneHandlerCompletion> {
+    private async initDefaultState(data: SceneData): Promise<SceneHandlerCompletion> {
         const targetUser = await this.userService.findOneByTelegramId(data.targetUserTelegramId)
         if (!targetUser) return this.completion.complete({ sceneName: 'adminMenuUsersManagement' })
 

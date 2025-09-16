@@ -25,8 +25,8 @@ export class SurveyQuestionStringNumericSceneEntranceDto implements SceneEntranc
     readonly question: Survey.QuestionString | Survey.QuestionNumeric
     readonly allowBackToPreviousQuestion: boolean
 }
-type SceneEnterDataType = SurveyQuestionStringNumericSceneEntranceDto
-type ISceneData = {
+type SceneEnterData = SurveyQuestionStringNumericSceneEntranceDto
+type SceneData = {
     readonly providerType: SurveyContextProviderType.Union
     readonly question: Survey.QuestionString | Survey.QuestionNumeric
     navigationMessageId?: number
@@ -54,14 +54,14 @@ type CallbackDataType = {
 // =====================
 
 @InjectableSceneConstructor()
-export class SurveyQuestionStringNumericScene extends Scene<ISceneData, SceneEnterDataType> {
+export class SurveyQuestionStringNumericScene extends Scene<SceneData, SceneEnterData> {
     // =====================
     // Properties
     // =====================
 
     override readonly name: SceneName.Union = 'surveyQuestionStringNumeric'
-    protected override get dataDefault(): ISceneData {
-        return {} as ISceneData
+    protected override get dataDefault(): SceneData {
+        return {} as SceneData
     }
     protected override get permissionsValidator(): SceneUsagePermissionsValidator.IPermissionsValidator {
         return new SceneUsagePermissionsValidator.CanUseIfNotBanned()
@@ -78,13 +78,13 @@ export class SurveyQuestionStringNumericScene extends Scene<ISceneData, SceneEnt
     // Public methods
     // =====================
 
-    override async handleEnterScene(data?: SceneEnterDataType): Promise<SceneHandlerCompletion> {
+    override async handleEnterScene(data?: SceneEnterData): Promise<SceneHandlerCompletion> {
         if (!data) {
             logger.error('Scene start data corrupted')
             return this.completion.complete()
         }
 
-        const sceneData: ISceneData = data
+        const sceneData: SceneData = data
 
         if (data.allowBackToPreviousQuestion) {
             const provider = this.dataProviderFactory.getSurveyContextProvider(data.providerType)

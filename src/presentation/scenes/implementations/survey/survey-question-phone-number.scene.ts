@@ -24,8 +24,8 @@ export class SurveyQuestionPhoneNumberSceneEntranceDto implements SceneEntrance.
     readonly question: Survey.QuestionTelephoneNumber
     readonly allowBackToPreviousQuestion: boolean
 }
-type SceneEnterDataType = SurveyQuestionPhoneNumberSceneEntranceDto
-type ISceneData = {
+type SceneEnterData = SurveyQuestionPhoneNumberSceneEntranceDto
+type SceneData = {
     readonly providerType: SurveyContextProviderType.Union
     readonly question: Survey.QuestionTelephoneNumber
     state: 'started' | 'selfWritingSelected'
@@ -45,14 +45,14 @@ type CallbackDataType = {
 // =====================
 
 @InjectableSceneConstructor()
-export class SurveyQuestionPhoneNumberScene extends Scene<ISceneData, SceneEnterDataType> {
+export class SurveyQuestionPhoneNumberScene extends Scene<SceneData, SceneEnterData> {
     // =====================
     // Properties
     // =====================
 
     override readonly name: SceneName.Union = 'surveyQuestionPhoneNumber'
-    protected override get dataDefault(): ISceneData {
-        return {} as ISceneData
+    protected override get dataDefault(): SceneData {
+        return {} as SceneData
     }
     protected override get permissionsValidator(): SceneUsagePermissionsValidator.IPermissionsValidator {
         return new SceneUsagePermissionsValidator.CanUseIfNotBanned()
@@ -69,12 +69,12 @@ export class SurveyQuestionPhoneNumberScene extends Scene<ISceneData, SceneEnter
     // Public methods
     // =====================
 
-    override async handleEnterScene(data?: SceneEnterDataType): Promise<SceneHandlerCompletion> {
+    override async handleEnterScene(data?: SceneEnterData): Promise<SceneHandlerCompletion> {
         if (!data) {
             logger.error('Scene start data corrupted')
             return this.completion.complete()
         }
-        const sceneData: Omit<ISceneData, 'state'> = { ...data, contentMessageIds: [] }
+        const sceneData: Omit<SceneData, 'state'> = { ...data, contentMessageIds: [] }
         // Navigation
         if (!data.question.isRequired || data.allowBackToPreviousQuestion) {
             const provider = this.dataProviderFactory.getSurveyContextProvider(data.providerType)

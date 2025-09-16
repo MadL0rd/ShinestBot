@@ -15,22 +15,22 @@ import { InjectableSceneConstructor } from '../scene-factory/scene-injections-pr
 export class <# SceneName #>SceneEntranceDto implements SceneEntrance.Dto {
     readonly sceneName = '<# sceneName #>'
 }
-type SceneEnterDataType = <# SceneName #>SceneEntranceDto
-type ISceneData = {}
+type SceneEnterData = <# SceneName #>SceneEntranceDto
+type SceneData = {}
 
 // =====================
 // Scene main class
 // =====================
 
 @InjectableSceneConstructor()
-export class <# SceneName #>Scene extends Scene<ISceneData, SceneEnterDataType> {
+export class <# SceneName #>Scene extends Scene<SceneData, SceneEnterData> {
     // =====================
     // Properties
     // =====================
 
     override readonly name: SceneName.Union = '<# sceneName #>'
-    protected override get dataDefault(): ISceneData {
-        return {} as ISceneData
+    protected override get dataDefault(): SceneData {
+        return {} as SceneData
     }
     protected override get permissionsValidator(): SceneUsagePermissionsValidator.IPermissionsValidator {
         return new SceneUsagePermissionsValidator.CanUseIfNotBanned()
@@ -44,7 +44,7 @@ export class <# SceneName #>Scene extends Scene<ISceneData, SceneEnterDataType> 
     // Public methods
     // =====================
 
-    override async handleEnterScene(data?: SceneEnterDataType): Promise<SceneHandlerCompletion> {
+    override async handleEnterScene(data?: SceneEnterData): Promise<SceneHandlerCompletion> {
         await this.ddi.sendHtml('Hello from <# SceneName #>', super.keyboardMarkupWithAutoLayoutFor(['Hello']))
 
         return this.completion.inProgress({})

@@ -15,8 +15,8 @@ import { InjectableSceneConstructor } from '../../../scene-factory/scene-injecti
 export class AdminMenuMailingPreformedSceneEntranceDto implements SceneEntrance.Dto {
     readonly sceneName = 'adminMenuMailingPreformed'
 }
-type SceneEnterDataType = AdminMenuMailingPreformedSceneEntranceDto
-type ISceneData = {
+type SceneEnterData = AdminMenuMailingPreformedSceneEntranceDto
+type SceneData = {
     state: SceneState
 }
 
@@ -27,14 +27,14 @@ type SceneState = 'default' | 'creation'
 // =====================
 
 @InjectableSceneConstructor()
-export class AdminMenuMailingPreformedScene extends Scene<ISceneData, SceneEnterDataType> {
+export class AdminMenuMailingPreformedScene extends Scene<SceneData, SceneEnterData> {
     // =====================
     // Properties
     // =====================
 
     override readonly name: SceneName.Union = 'adminMenuMailingPreformed'
-    protected override get dataDefault(): ISceneData {
-        return {} as ISceneData
+    protected override get dataDefault(): SceneData {
+        return {} as SceneData
     }
     protected override get permissionsValidator(): SceneUsagePermissionsValidator.IPermissionsValidator {
         return new SceneUsagePermissionsValidator.CanUseIfNotBanned()
@@ -52,8 +52,8 @@ export class AdminMenuMailingPreformedScene extends Scene<ISceneData, SceneEnter
     // Public methods
     // =====================
 
-    override async handleEnterScene(data?: SceneEnterDataType): Promise<SceneHandlerCompletion> {
-        const sceneData: ISceneData = {
+    override async handleEnterScene(data?: SceneEnterData): Promise<SceneHandlerCompletion> {
+        const sceneData: SceneData = {
             state: 'default',
         }
 
@@ -85,7 +85,7 @@ export class AdminMenuMailingPreformedScene extends Scene<ISceneData, SceneEnter
     // =====================
     // Private methods
     // =====================
-    private async initState(data: ISceneData): Promise<SceneHandlerCompletion> {
+    private async initState(data: SceneData): Promise<SceneHandlerCompletion> {
         switch (data.state) {
             case 'default': {
                 await this.sendDefaultMessage()
@@ -115,7 +115,7 @@ export class AdminMenuMailingPreformedScene extends Scene<ISceneData, SceneEnter
     private async handleDefaultState(
         messageText: string,
         ctx: ExtendedMessageContext,
-        data: ISceneData
+        data: SceneData
     ): Promise<SceneHandlerCompletion> {
         switch (messageText) {
             case this.text.common.cancel:
@@ -145,7 +145,7 @@ export class AdminMenuMailingPreformedScene extends Scene<ISceneData, SceneEnter
     private async handleCreationState(
         messageText: string,
         ctx: ExtendedMessageContext,
-        data: ISceneData
+        data: SceneData
     ): Promise<SceneHandlerCompletion> {
         switch (messageText) {
             case this.text.common.cancel:

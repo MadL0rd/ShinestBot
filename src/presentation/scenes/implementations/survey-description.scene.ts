@@ -13,22 +13,22 @@ import { InjectableSceneConstructor } from '../scene-factory/scene-injections-pr
 export class SurveyDescriptionSceneEntranceDto implements SceneEntrance.Dto {
     readonly sceneName = 'surveyDescription'
 }
-type SceneEnterDataType = SurveyDescriptionSceneEntranceDto
-type ISceneData = {}
+type SceneEnterData = SurveyDescriptionSceneEntranceDto
+type SceneData = {}
 
 // =====================
 // Scene main class
 // =====================
 
 @InjectableSceneConstructor()
-export class SurveyDescriptionScene extends Scene<ISceneData, SceneEnterDataType> {
+export class SurveyDescriptionScene extends Scene<SceneData, SceneEnterData> {
     // =====================
     // Properties
     // =====================
 
     override readonly name: SceneName.Union = 'surveyDescription'
-    protected override get dataDefault(): ISceneData {
-        return {} as ISceneData
+    protected override get dataDefault(): SceneData {
+        return {} as SceneData
     }
     protected override get permissionsValidator(): SceneUsagePermissionsValidator.IPermissionsValidator {
         return new SceneUsagePermissionsValidator.CanUseIfNotBanned()
@@ -42,7 +42,7 @@ export class SurveyDescriptionScene extends Scene<ISceneData, SceneEnterDataType
     // Public methods
     // =====================
 
-    override async handleEnterScene(data?: SceneEnterDataType): Promise<SceneHandlerCompletion> {
+    override async handleEnterScene(data?: SceneEnterData): Promise<SceneHandlerCompletion> {
         await this.ddi.sendHtml(
             this.text.surveyDescription.text,
             super.keyboardMarkupWithAutoLayoutFor([

@@ -21,8 +21,8 @@ export class SurveyQuestionStringGptTipsAnswerEditingSceneEntranceDto implements
     readonly allowBackToPreviousQuestion: boolean
     currentAnswer: string
 }
-type SceneEnterDataType = SurveyQuestionStringGptTipsAnswerEditingSceneEntranceDto
-type ISceneData = {
+type SceneEnterData = SurveyQuestionStringGptTipsAnswerEditingSceneEntranceDto
+type SceneData = {
     readonly providerType: SurveyContextProviderType.Union
     readonly question: Survey.QuestionStringGptTips
     readonly allowBackToPreviousQuestion: boolean
@@ -35,16 +35,16 @@ type ISceneData = {
 
 @InjectableSceneConstructor()
 export class SurveyQuestionStringGptTipsAnswerEditingScene extends Scene<
-    ISceneData,
-    SceneEnterDataType
+    SceneData,
+    SceneEnterData
 > {
     // =====================
     // Properties
     // =====================
 
     override readonly name: SceneName.Union = 'surveyQuestionStringGptTipsAnswerEditing'
-    protected override get dataDefault(): ISceneData {
-        return {} as ISceneData
+    protected override get dataDefault(): SceneData {
+        return {} as SceneData
     }
     protected override get permissionsValidator(): SceneUsagePermissionsValidator.IPermissionsValidator {
         return new SceneUsagePermissionsValidator.CanUseIfNotBanned()
@@ -61,7 +61,7 @@ export class SurveyQuestionStringGptTipsAnswerEditingScene extends Scene<
     // Public methods
     // =====================
 
-    override async handleEnterScene(data?: SceneEnterDataType): Promise<SceneHandlerCompletion> {
+    override async handleEnterScene(data?: SceneEnterData): Promise<SceneHandlerCompletion> {
         if (!data) {
             logger.error('Scene start data corrupted')
             return this.completion.complete()

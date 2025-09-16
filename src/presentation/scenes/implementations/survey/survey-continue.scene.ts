@@ -17,8 +17,8 @@ export class SurveyContinueSceneEntranceDto implements SceneEntrance.Dto {
     readonly sceneName = 'surveyContinue'
     readonly providerType: SurveyContextProviderType.Union
 }
-type SceneEnterDataType = SurveyContinueSceneEntranceDto
-type ISceneData = {
+type SceneEnterData = SurveyContinueSceneEntranceDto
+type SceneData = {
     readonly providerType: SurveyContextProviderType.Union
 }
 
@@ -27,14 +27,14 @@ type ISceneData = {
 // =====================
 
 @InjectableSceneConstructor()
-export class SurveyContinueScene extends Scene<ISceneData, SceneEnterDataType> {
+export class SurveyContinueScene extends Scene<SceneData, SceneEnterData> {
     // =====================
     // Properties
     // =====================
 
     override readonly name: SceneName.Union = 'surveyContinue'
-    protected override get dataDefault(): ISceneData {
-        return {} as ISceneData
+    protected override get dataDefault(): SceneData {
+        return {} as SceneData
     }
     protected override get permissionsValidator(): SceneUsagePermissionsValidator.IPermissionsValidator {
         return new SceneUsagePermissionsValidator.CanUseIfNotBanned()
@@ -51,7 +51,7 @@ export class SurveyContinueScene extends Scene<ISceneData, SceneEnterDataType> {
     // Public methods
     // =====================
 
-    override async handleEnterScene(data?: SceneEnterDataType): Promise<SceneHandlerCompletion> {
+    override async handleEnterScene(data?: SceneEnterData): Promise<SceneHandlerCompletion> {
         if (!data) {
             logger.error('Start data corrupted')
             return this.completion.complete()

@@ -20,8 +20,8 @@ export class OnboardingSceneEntranceDto implements SceneEntrance.Dto {
     readonly sceneName = 'onboarding'
     readonly type: OnboardingTypes
 }
-type SceneEnterDataType = OnboardingSceneEntranceDto
-type ISceneData = {
+type SceneEnterData = OnboardingSceneEntranceDto
+type SceneData = {
     onboardingPageIndex: number
     continueButtonText: string
     readonly type: OnboardingTypes
@@ -32,14 +32,14 @@ type ISceneData = {
 // =====================
 
 @InjectableSceneConstructor()
-export class OnboardingScene extends Scene<ISceneData, SceneEnterDataType> {
+export class OnboardingScene extends Scene<SceneData, SceneEnterData> {
     // =====================
     // Properties
     // =====================
 
     override readonly name: SceneName.Union = 'onboarding'
-    protected override get dataDefault(): ISceneData {
-        return {} as ISceneData
+    protected override get dataDefault(): SceneData {
+        return {} as SceneData
     }
     protected override get permissionsValidator(): SceneUsagePermissionsValidator.IPermissionsValidator {
         return new SceneUsagePermissionsValidator.CanUseIfNotBanned()
@@ -53,7 +53,7 @@ export class OnboardingScene extends Scene<ISceneData, SceneEnterDataType> {
     // Public methods
     // =====================
 
-    override async handleEnterScene(data?: SceneEnterDataType): Promise<SceneHandlerCompletion> {
+    override async handleEnterScene(data?: SceneEnterData): Promise<SceneHandlerCompletion> {
         if (!data) {
             logger.error(
                 `Start data corrupted. User ${this.user.telegramInfo.username}. Redirection to main menu`

@@ -20,11 +20,11 @@ import { InlineKeyboardButton } from 'telegraf/types'
 export class AdminMenuMailingCustomSceneEntranceDto implements SceneEntrance.Dto {
     readonly sceneName = 'adminMenuMailingCustom'
 }
-type SceneEnterDataType = AdminMenuMailingCustomSceneEntranceDto
+type SceneEnterData = AdminMenuMailingCustomSceneEntranceDto
 type InlineButtonConfig =
     | { type: 'inlineButton'; button: InlineKeyboardButton; row: number; column: number }
     | { type: 'placeholder'; row: number; column: number }
-type ISceneData = {
+type SceneData = {
     state: SceneState
     uniqueMailingMessageShortId: string
     text?: string | null
@@ -48,14 +48,14 @@ type SceneState =
 // =====================
 
 @InjectableSceneConstructor()
-export class AdminMenuMailingCustomScene extends Scene<ISceneData, SceneEnterDataType> {
+export class AdminMenuMailingCustomScene extends Scene<SceneData, SceneEnterData> {
     // =====================
     // Properties
     // =====================
 
     override readonly name: SceneName.Union = 'adminMenuMailingCustom'
-    protected override get dataDefault(): ISceneData {
-        return {} as ISceneData
+    protected override get dataDefault(): SceneData {
+        return {} as SceneData
     }
     protected override get permissionsValidator(): SceneUsagePermissionsValidator.IPermissionsValidator {
         return new SceneUsagePermissionsValidator.CanUseIfNotBanned()
@@ -72,8 +72,8 @@ export class AdminMenuMailingCustomScene extends Scene<ISceneData, SceneEnterDat
     // Public methods
     // =====================
 
-    override async handleEnterScene(data?: SceneEnterDataType): Promise<SceneHandlerCompletion> {
-        const sceneData: ISceneData = {
+    override async handleEnterScene(data?: SceneEnterData): Promise<SceneHandlerCompletion> {
+        const sceneData: SceneData = {
             state: 'setText',
             uniqueMailingMessageShortId: MailingMessage.generateShortId(),
         }
@@ -264,7 +264,7 @@ export class AdminMenuMailingCustomScene extends Scene<ISceneData, SceneEnterDat
     // =====================
     // State methods
     // =====================
-    private async initState(data: ISceneData): Promise<SceneHandlerCompletion> {
+    private async initState(data: SceneData): Promise<SceneHandlerCompletion> {
         switch (data.state) {
             case 'setText': {
                 await this.ddi.sendHtml(

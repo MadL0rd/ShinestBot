@@ -16,8 +16,8 @@ import { InjectableSceneConstructor } from '../../scene-factory/scene-injections
 export class TrainingSceneEntranceDto implements SceneEntrance.Dto {
     readonly sceneName = 'training'
 }
-type SceneEnterDataType = TrainingSceneEntranceDto
-type ISceneData = {
+type SceneEnterData = TrainingSceneEntranceDto
+type SceneData = {
     trainingParagraphId: string
 }
 
@@ -26,15 +26,15 @@ type ISceneData = {
 // =====================
 
 @InjectableSceneConstructor()
-export class TrainingScene extends Scene<ISceneData, SceneEnterDataType> {
+export class TrainingScene extends Scene<SceneData, SceneEnterData> {
     // =====================
     // Properties
     // =====================
 
     override readonly name: SceneName.Union = 'training'
 
-    protected override get dataDefault(): ISceneData {
-        return {} as ISceneData
+    protected override get dataDefault(): SceneData {
+        return {} as SceneData
     }
     protected override get permissionsValidator(): SceneUsagePermissionsValidator.IPermissionsValidator {
         return new SceneUsagePermissionsValidator.CanUseIfNotBanned()
@@ -48,7 +48,7 @@ export class TrainingScene extends Scene<ISceneData, SceneEnterDataType> {
     // Public methods
     // =====================
 
-    override async handleEnterScene(data?: SceneEnterDataType): Promise<SceneHandlerCompletion> {
+    override async handleEnterScene(data?: SceneEnterData): Promise<SceneHandlerCompletion> {
         const training = this.content.training
         const paragraphId = this.user.trainingParagraphId ?? training.paragraphs[0].id
 

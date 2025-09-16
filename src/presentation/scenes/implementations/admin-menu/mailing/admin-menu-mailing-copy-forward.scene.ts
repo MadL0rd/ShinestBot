@@ -18,8 +18,8 @@ export class AdminMenuMailingCopyForwardSceneEntranceDto implements SceneEntranc
     readonly sceneName = 'adminMenuMailingCopyForward'
     readonly mailingType: SupportedMailingType
 }
-type SceneEnterDataType = AdminMenuMailingCopyForwardSceneEntranceDto
-type ISceneData = {
+type SceneEnterData = AdminMenuMailingCopyForwardSceneEntranceDto
+type SceneData = {
     mailingType: SupportedMailingType
 }
 
@@ -30,14 +30,14 @@ type SupportedMailingType = ExcludeCases<MailingMessage.MessageType, 'custom'>
 // =====================
 
 @InjectableSceneConstructor()
-export class AdminMenuMailingCopyForwardScene extends Scene<ISceneData, SceneEnterDataType> {
+export class AdminMenuMailingCopyForwardScene extends Scene<SceneData, SceneEnterData> {
     // =====================
     // Properties
     // =====================
 
     override readonly name: SceneName.Union = 'adminMenuMailingCopyForward'
-    protected override get dataDefault(): ISceneData {
-        return {} as ISceneData
+    protected override get dataDefault(): SceneData {
+        return {} as SceneData
     }
     protected override get permissionsValidator(): SceneUsagePermissionsValidator.IPermissionsValidator {
         return new SceneUsagePermissionsValidator.CanUseIfNotBanned()
@@ -54,7 +54,7 @@ export class AdminMenuMailingCopyForwardScene extends Scene<ISceneData, SceneEnt
     // Public methods
     // =====================
 
-    override async handleEnterScene(data?: SceneEnterDataType): Promise<SceneHandlerCompletion> {
+    override async handleEnterScene(data?: SceneEnterData): Promise<SceneHandlerCompletion> {
         if (!data?.mailingType) {
             logger.error(`Scene entrance data corrupted. Redirect to admin menu`)
             return this.completion.complete({ sceneName: 'adminMenu' })
