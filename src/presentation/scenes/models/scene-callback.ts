@@ -112,19 +112,13 @@ export const sceneCallbackDataCompressedSchema = z
     .transform((callbackData, ctx) => {
         const sceneName = SceneName.getById(callbackData.s)
         if (!sceneName) {
-            ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                message: 'Invalid scene name id',
-            })
+            ctx.addIssue('Invalid scene name id')
             return z.NEVER
         }
 
         const actionType = SceneCallbackAction.getById(callbackData.a)
         if (!actionType) {
-            ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                message: 'Invalid SceneCallbackAction id',
-            })
+            ctx.addIssue('Invalid SceneCallbackAction id')
             return z.NEVER
         }
 
