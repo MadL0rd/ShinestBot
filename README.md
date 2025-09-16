@@ -24,8 +24,13 @@ cspell link add @cspell/dict-ru_ru
 
 ### Access to google spreadsheets
 
-Put file `credentials.json` in the root folder
-File must contains json credentials for GoogleSpreadsheet API service account
+1. Create service account in google developer console
+2. Download credentials json file
+3. Encode file content to base64 format and set to env variable `GOOGLE_SPREADSHEET_SERVICE_ACCOUNT_CREDENTIALS`
+4. Copy spreadsheet id from url
+
+Make sure that your service account has access to rea it.
+If not - copy service account mail from credentials and manage access on spreadsheet editor menu.
 
 ### Inside container:
 
@@ -54,22 +59,9 @@ $ npm run start:dev
 docker-compose up -d --build
 ```
 
-### Container logs (last 50 lines of logs)
-
-```bash
-docker-compose logs --tail 50
-```
-
 ## Test spreadsheet
 
-[Google spreadsheet](https://docs.google.com/spreadsheets/d/1YLjE5g7Xa6GiV3F0q7Q6jFMZbFbOULrppV338E7_wiA/)
-
-## Nest cli tips
-
-```sh
-nest g mo business-logic/module-name
-nest g s business-logic/module-name --no-spec
-```
+Test content: [google spreadsheet](https://docs.google.com/spreadsheets/d/1Uk7Q8NRUIp2UbUjSMGDbOBZtKqB8JFpOikQ7fmo55W0/)
 
 ## Shinest Cli
 
@@ -86,6 +78,7 @@ shinest g
 ```
 
 ## Support
+
 🧐 Have any questions?</br>
 [🙌 Contact support](https://t.me/+6Kerrz2SndNmZjUy)
 
