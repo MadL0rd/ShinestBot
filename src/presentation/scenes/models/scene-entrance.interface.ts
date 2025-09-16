@@ -1,13 +1,13 @@
 import { AdminMenuGenerateMetricsSceneEntranceDto } from 'src/presentation/scenes/implementations/admin-menu/admin-menu-generate-metrics.scene'
 import { AdminMenuUserPermissionsEditorSceneEntranceDto } from 'src/presentation/scenes/implementations/admin-menu/admin-menu-user-permissions-editor.scene'
-import { AdminMenuUsersManagementSceneSceneEntranceDto } from 'src/presentation/scenes/implementations/admin-menu/admin-menu-users-management-scene.scene'
+import { AdminMenuUsersManagementSceneEntranceDto } from 'src/presentation/scenes/implementations/admin-menu/admin-menu-users-management-scene.scene'
 import { AdminMenuSceneEntranceDto } from 'src/presentation/scenes/implementations/admin-menu/admin-menu.scene'
 import { AdminMenuMailingCopyForwardSceneEntranceDto } from 'src/presentation/scenes/implementations/admin-menu/mailing/admin-menu-mailing-copy-forward.scene'
 import { AdminMenuMailingCustomSceneEntranceDto } from 'src/presentation/scenes/implementations/admin-menu/mailing/admin-menu-mailing-custom.scene'
 import { AdminMenuMailingPreformedSceneEntranceDto } from 'src/presentation/scenes/implementations/admin-menu/mailing/admin-menu-mailing-preformed.scene'
 import { AdminMenuMailingPreviewSceneEntranceDto } from 'src/presentation/scenes/implementations/admin-menu/mailing/admin-menu-mailing-preview.scene'
-import { AdminMenuMailingSceneSceneEntranceDto } from 'src/presentation/scenes/implementations/admin-menu/mailing/admin-menu-mailing-scene.scene'
-import { LanguageSettingsSceneSceneEntranceDto } from 'src/presentation/scenes/implementations/language-settings-scene.scene'
+import { AdminMenuMailingSceneEntranceDto } from 'src/presentation/scenes/implementations/admin-menu/mailing/admin-menu-mailing-scene.scene'
+import { LanguageSettingsSceneEntranceDto } from 'src/presentation/scenes/implementations/language-settings-scene.scene'
 import { MainMenuSceneEntranceDto } from 'src/presentation/scenes/implementations/main-menu.scene'
 import { OnboardingSceneEntranceDto } from 'src/presentation/scenes/implementations/onboarding.scene'
 import { SurveyContinueSceneEntranceDto } from 'src/presentation/scenes/implementations/survey/survey-continue.scene'
@@ -59,9 +59,9 @@ export namespace SceneEntrance {
         | OnboardingSceneEntranceDto
         | AdminMenuSceneEntranceDto
         | AdminMenuGenerateMetricsSceneEntranceDto
-        | AdminMenuUsersManagementSceneSceneEntranceDto
-        | AdminMenuMailingSceneSceneEntranceDto
-        | LanguageSettingsSceneSceneEntranceDto
+        | AdminMenuUsersManagementSceneEntranceDto
+        | AdminMenuMailingSceneEntranceDto
+        | LanguageSettingsSceneEntranceDto
         | SurveySceneEntranceDto
         | SurveyContinueSceneEntranceDto
         | SurveyFinalSceneEntranceDto

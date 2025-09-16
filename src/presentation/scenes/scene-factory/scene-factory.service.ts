@@ -1,14 +1,14 @@
 import { Injectable } from '@nestjs/common'
 import { AdminMenuGenerateMetricsScene } from 'src/presentation/scenes/implementations/admin-menu/admin-menu-generate-metrics.scene'
 import { AdminMenuUserPermissionsEditorScene } from 'src/presentation/scenes/implementations/admin-menu/admin-menu-user-permissions-editor.scene'
-import { AdminMenuUsersManagementSceneScene } from 'src/presentation/scenes/implementations/admin-menu/admin-menu-users-management-scene.scene'
+import { AdminMenuUsersManagementScene } from 'src/presentation/scenes/implementations/admin-menu/admin-menu-users-management-scene.scene'
 import { AdminMenuScene } from 'src/presentation/scenes/implementations/admin-menu/admin-menu.scene'
 import { AdminMenuMailingCopyForwardScene } from 'src/presentation/scenes/implementations/admin-menu/mailing/admin-menu-mailing-copy-forward.scene'
 import { AdminMenuMailingCustomScene } from 'src/presentation/scenes/implementations/admin-menu/mailing/admin-menu-mailing-custom.scene'
 import { AdminMenuMailingPreformedScene } from 'src/presentation/scenes/implementations/admin-menu/mailing/admin-menu-mailing-preformed.scene'
 import { AdminMenuMailingPreviewScene } from 'src/presentation/scenes/implementations/admin-menu/mailing/admin-menu-mailing-preview.scene'
-import { AdminMenuMailingSceneScene } from 'src/presentation/scenes/implementations/admin-menu/mailing/admin-menu-mailing-scene.scene'
-import { LanguageSettingsSceneScene } from 'src/presentation/scenes/implementations/language-settings-scene.scene'
+import { AdminMenuMailingScene } from 'src/presentation/scenes/implementations/admin-menu/mailing/admin-menu-mailing-scene.scene'
+import { LanguageSettingsScene } from 'src/presentation/scenes/implementations/language-settings-scene.scene'
 import { MainMenuScene } from 'src/presentation/scenes/implementations/main-menu.scene'
 import { OnboardingScene } from 'src/presentation/scenes/implementations/onboarding.scene'
 import { SurveyContinueScene } from 'src/presentation/scenes/implementations/survey/survey-continue.scene'
@@ -40,9 +40,9 @@ export class SceneFactoryService {
         onboarding: OnboardingScene,
         adminMenu: AdminMenuScene,
         adminMenuGenerateMetrics: AdminMenuGenerateMetricsScene,
-        adminMenuUsersManagement: AdminMenuUsersManagementSceneScene,
-        adminMenuMailing: AdminMenuMailingSceneScene,
-        languageSettings: LanguageSettingsSceneScene,
+        adminMenuUsersManagement: AdminMenuUsersManagementScene,
+        adminMenuMailing: AdminMenuMailingScene,
+        languageSettings: LanguageSettingsScene,
         survey: SurveyScene,
         surveyContinue: SurveyContinueScene,
         surveyFinal: SurveyFinalScene,

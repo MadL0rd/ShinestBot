@@ -17,8 +17,8 @@ import { InlineKeyboardButton } from 'telegraf/types'
 // =====================
 // Scene data classes
 // =====================
-export class AdminMenuMailingCustomSceneEntranceDto implements SceneEntrance.Dto {
-    readonly sceneName = 'adminMenuMailingCustom'
+export interface AdminMenuMailingCustomSceneEntranceDto extends SceneEntrance.Dto {
+    readonly sceneName: 'adminMenuMailingCustom'
 }
 type SceneEnterData = AdminMenuMailingCustomSceneEntranceDto
 type InlineButtonConfig =

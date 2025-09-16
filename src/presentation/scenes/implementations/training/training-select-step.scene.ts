@@ -11,8 +11,8 @@ import { InjectableSceneConstructor } from '../../scene-factory/scene-injections
 // =====================
 // Scene data classes
 // =====================
-export class TrainingSelectStepSceneEntranceDto implements SceneEntrance.Dto {
-    readonly sceneName = 'trainingSelectStep'
+export interface TrainingSelectStepSceneEntranceDto extends SceneEntrance.Dto {
+    readonly sceneName: 'trainingSelectStep'
 }
 type SceneEnterData = TrainingSelectStepSceneEntranceDto
 type SceneData = {

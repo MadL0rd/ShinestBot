@@ -16,8 +16,8 @@ import { InjectableSceneConstructor } from '../scene-factory/scene-injections-pr
 // =====================
 
 type OnboardingTypes = BotContent.Onboarding.PagesGroupType.Union
-export class OnboardingSceneEntranceDto implements SceneEntrance.Dto {
-    readonly sceneName = 'onboarding'
+export interface OnboardingSceneEntranceDto extends SceneEntrance.Dto {
+    readonly sceneName: 'onboarding'
     readonly type: OnboardingTypes
 }
 type SceneEnterData = OnboardingSceneEntranceDto

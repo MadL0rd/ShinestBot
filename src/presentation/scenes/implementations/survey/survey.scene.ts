@@ -14,8 +14,8 @@ import { InjectableSceneConstructor } from '../../scene-factory/scene-injections
 // =====================
 // Scene data classes
 // =====================
-export class SurveySceneEntranceDto implements SceneEntrance.Dto {
-    readonly sceneName = 'survey'
+export interface SurveySceneEntranceDto extends SceneEntrance.Dto {
+    readonly sceneName: 'survey'
     readonly providerType: SurveyContextProviderType.Union
     readonly allowContinueQuestion: boolean
     readonly allowBackToPreviousQuestion?: boolean

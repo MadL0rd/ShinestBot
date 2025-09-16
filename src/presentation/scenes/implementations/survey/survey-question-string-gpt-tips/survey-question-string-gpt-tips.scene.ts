@@ -16,8 +16,8 @@ import { InjectableSceneConstructor } from '../../../scene-factory/scene-injecti
 // =====================
 // Scene data classes
 // =====================
-export class SurveyQuestionStringGptTipsSceneEntranceDto implements SceneEntrance.Dto {
-    readonly sceneName = 'surveyQuestionStringGptTips'
+export interface SurveyQuestionStringGptTipsSceneEntranceDto extends SceneEntrance.Dto {
+    readonly sceneName: 'surveyQuestionStringGptTips'
     readonly providerType: SurveyContextProviderType.Union
     readonly question: Survey.QuestionStringGptTips
     readonly allowBackToPreviousQuestion: boolean

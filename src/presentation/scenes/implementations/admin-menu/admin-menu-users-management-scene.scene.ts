@@ -14,11 +14,11 @@ import { InjectableSceneConstructor } from '../../scene-factory/scene-injections
 // =====================
 // Scene data classes
 // =====================
-export class AdminMenuUsersManagementSceneSceneEntranceDto implements SceneEntrance.Dto {
-    readonly sceneName = 'adminMenuUsersManagement'
+export interface AdminMenuUsersManagementSceneEntranceDto extends SceneEntrance.Dto {
+    readonly sceneName: 'adminMenuUsersManagement'
     readonly targetUserTelegramId?: number
 }
-type SceneEnterData = AdminMenuUsersManagementSceneSceneEntranceDto
+type SceneEnterData = AdminMenuUsersManagementSceneEntranceDto
 type SceneData = {
     targetUserTelegramId?: number
 }
@@ -28,7 +28,7 @@ type SceneData = {
 // =====================
 
 @InjectableSceneConstructor()
-export class AdminMenuUsersManagementSceneScene extends Scene<SceneData, SceneEnterData> {
+export class AdminMenuUsersManagementScene extends Scene<SceneData, SceneEnterData> {
     // =====================
     // Properties
     // =====================

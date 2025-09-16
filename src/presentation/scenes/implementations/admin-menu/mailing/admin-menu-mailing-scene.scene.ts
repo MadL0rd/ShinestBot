@@ -10,10 +10,10 @@ import { InjectableSceneConstructor } from '../../../scene-factory/scene-injecti
 // =====================
 // Scene data classes
 // =====================
-export class AdminMenuMailingSceneSceneEntranceDto implements SceneEntrance.Dto {
-    readonly sceneName = 'adminMenuMailing'
+export interface AdminMenuMailingSceneEntranceDto extends SceneEntrance.Dto {
+    readonly sceneName: 'adminMenuMailing'
 }
-type SceneEnterData = AdminMenuMailingSceneSceneEntranceDto
+type SceneEnterData = AdminMenuMailingSceneEntranceDto
 type SceneData = {
     state: SceneState
 }
@@ -25,7 +25,7 @@ type SceneState = 'default'
 // =====================
 
 @InjectableSceneConstructor()
-export class AdminMenuMailingSceneScene extends Scene<SceneData, SceneEnterData> {
+export class AdminMenuMailingScene extends Scene<SceneData, SceneEnterData> {
     // =====================
     // Properties
     // =====================

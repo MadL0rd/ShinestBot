@@ -17,8 +17,8 @@ import { InjectableSceneConstructor } from '../../scene-factory/scene-injections
 // =====================
 // Scene data classes
 // =====================
-export class AdminMenuSceneEntranceDto implements SceneEntrance.Dto {
-    readonly sceneName = 'adminMenu'
+export interface AdminMenuSceneEntranceDto extends SceneEntrance.Dto {
+    readonly sceneName: 'adminMenu'
     readonly mode?: 'default' | 'other'
 }
 type SceneEnterData = AdminMenuSceneEntranceDto

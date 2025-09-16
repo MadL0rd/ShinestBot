@@ -12,11 +12,11 @@ import { InjectableSceneConstructor } from '../scene-factory/scene-injections-pr
 // =====================
 // Scene data classes
 // =====================
-export class LanguageSettingsSceneSceneEntranceDto implements SceneEntrance.Dto {
-    readonly sceneName = 'languageSettings'
+export interface LanguageSettingsSceneEntranceDto extends SceneEntrance.Dto {
+    readonly sceneName: 'languageSettings'
     readonly nextScene?: SceneEntrance.SomeSceneDto
 }
-type SceneEnterData = LanguageSettingsSceneSceneEntranceDto
+type SceneEnterData = LanguageSettingsSceneEntranceDto
 type SceneData = {
     readonly nextScene?: SceneEntrance.SomeSceneDto
 }
@@ -26,7 +26,7 @@ type SceneData = {
 // =====================
 
 @InjectableSceneConstructor()
-export class LanguageSettingsSceneScene extends Scene<SceneData, SceneEnterData> {
+export class LanguageSettingsScene extends Scene<SceneData, SceneEnterData> {
     // =====================
     // Properties
     // =====================

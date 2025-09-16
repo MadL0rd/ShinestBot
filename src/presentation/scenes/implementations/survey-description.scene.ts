@@ -10,8 +10,8 @@ import { InjectableSceneConstructor } from '../scene-factory/scene-injections-pr
 // =====================
 // Scene data classes
 // =====================
-export class SurveyDescriptionSceneEntranceDto implements SceneEntrance.Dto {
-    readonly sceneName = 'surveyDescription'
+export interface SurveyDescriptionSceneEntranceDto extends SceneEntrance.Dto {
+    readonly sceneName: 'surveyDescription'
 }
 type SceneEnterData = SurveyDescriptionSceneEntranceDto
 type SceneData = {}

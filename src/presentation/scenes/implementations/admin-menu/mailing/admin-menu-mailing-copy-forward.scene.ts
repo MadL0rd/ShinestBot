@@ -14,8 +14,8 @@ import { InjectableSceneConstructor } from '../../../scene-factory/scene-injecti
 // =====================
 // Scene data classes
 // =====================
-export class AdminMenuMailingCopyForwardSceneEntranceDto implements SceneEntrance.Dto {
-    readonly sceneName = 'adminMenuMailingCopyForward'
+export interface AdminMenuMailingCopyForwardSceneEntranceDto extends SceneEntrance.Dto {
+    readonly sceneName: 'adminMenuMailingCopyForward'
     readonly mailingType: SupportedMailingType
 }
 type SceneEnterData = AdminMenuMailingCopyForwardSceneEntranceDto
