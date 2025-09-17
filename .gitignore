@@ -3,8 +3,10 @@
 /scripts/dist
 /node_modules
 /scripts/files-buff
+/logs/buff
 .env
 
+*.zip
 *.xlsx
 
 *.log
@@ -39,9 +41,12 @@ lerna-debug.log*
 !.vscode/extensions.json
 .hypothesis
 
-# Python 
+# Python
 __pycache__/
 
 # Creds for google spreadsheet
 # credentials.json
 credentials.json
+
+*.obsidian
+/filesBuff

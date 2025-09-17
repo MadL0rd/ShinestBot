@@ -1,28 +1,26 @@
-import { logger } from 'src/app/app.logger'
+import { ChainTasksService } from 'src/business-logic/chain-tasks/chain-tasks.service'
+import { UserProfileDocument } from 'src/business-logic/user/schemas/user.schema'
 import { UserService } from 'src/business-logic/user/user.service'
-import { Markup, Context } from 'telegraf'
-import { Update } from 'telegraf/types'
-import { SceneCallbackData } from '../../models/scene-callback'
+import { UserProfile } from 'src/entities/user-profile'
+import { replaceMarkdownWithHtml } from 'src/utils/replace-markdown-with-html'
+import { ExtendedMessageContext } from 'src/utils/telegraf-middlewares/extended-message-context'
 import { SceneEntrance } from '../../models/scene-entrance.interface'
 import { SceneName } from '../../models/scene-name.enum'
-import { SceneHandlerCompletion } from '../../models/scene.interface'
-import { Scene } from '../../models/scene.abstract'
 import { SceneUsagePermissionsValidator } from '../../models/scene-usage-permissions-validator'
+import { Scene } from '../../models/scene.abstract'
+import { SceneHandlerCompletion } from '../../models/scene.interface'
 import { InjectableSceneConstructor } from '../../scene-factory/scene-injections-provider.service'
-import { UserProfileDocument } from 'src/business-logic/user/schemas/user.schema'
-import { replaceMarkdownWithHtml } from 'src/utils/replace-markdown-with-html'
-import { UserProfile } from 'src/entities/user-profile'
 
 // =====================
 // Scene data classes
 // =====================
-export class AdminMenuUsersManagementSceneSceneEntranceDto implements SceneEntrance.Dto {
-    readonly sceneName = 'adminMenuUsersManagement'
+export interface AdminMenuUsersManagementSceneEntranceDto extends SceneEntrance.Dto {
+    readonly sceneName: 'adminMenuUsersManagement'
+    readonly targetUserTelegramId?: number
 }
-type SceneEnterDataType = AdminMenuUsersManagementSceneSceneEntranceDto
-interface ISceneData {
+type SceneEnterData = AdminMenuUsersManagementSceneEntranceDto
+type SceneData = {
     targetUserTelegramId?: number
-    editPermissionsModeEnabled?: boolean | null
 }
 
 // =====================
@@ -30,20 +28,23 @@ interface ISceneData {
 // =====================
 
 @InjectableSceneConstructor()
-export class AdminMenuUsersManagementSceneScene extends Scene<ISceneData, SceneEnterDataType> {
+export class AdminMenuUsersManagementScene extends Scene<SceneData, SceneEnterData> {
     // =====================
     // Properties
     // =====================
 
-    readonly name: SceneName.Union = 'adminMenuUsersManagement'
-    protected get dataDefault(): ISceneData {
-        return {} as ISceneData
+    override readonly name: SceneName.Union = 'adminMenuUsersManagement'
+    protected override get dataDefault(): SceneData {
+        return {} as SceneData
     }
-    protected get permissionsValidator(): SceneUsagePermissionsValidator.IPermissionsValidator {
+    protected override get permissionsValidator(): SceneUsagePermissionsValidator.IPermissionsValidator {
         return new SceneUsagePermissionsValidator.OwnerOrAdminOnly()
     }
 
-    constructor(protected readonly userService: UserService) {
+    constructor(
+        protected override readonly userService: UserService,
+        private readonly chainTasksService: ChainTasksService
+    ) {
         super()
     }
 
@@ -51,238 +52,176 @@ export class AdminMenuUsersManagementSceneScene extends Scene<ISceneData, SceneE
     // Public methods
     // =====================
 
-    async handleEnterScene(
-        ctx: Context,
-        data?: SceneEnterDataType
-    ): Promise<SceneHandlerCompletion> {
-        logger.log(
-            `${this.name} scene handleEnterScene. User: ${this.user.telegramInfo.id} ${this.user.telegramInfo.username}`
-        )
-        await this.logToUserHistory({ type: 'startSceneAdminMenuUsersManagementScene' })
-
-        await ctx.replyWithHTML(
-            this.text.adminMenu.usersManagementTextFindUser,
-            Markup.removeKeyboard()
-        )
-
-        return this.completion.inProgress({})
+    override async handleEnterScene(data?: SceneEnterData): Promise<SceneHandlerCompletion> {
+        return await this.initState(data ?? {})
     }
 
-    async handleMessage(ctx: Context, dataRaw: object): Promise<SceneHandlerCompletion> {
-        logger.log(
-            `${this.name} scene handleMessage. User: ${this.user.telegramInfo.id} ${this.user.telegramInfo.username}`
-        )
-        const message = ctx.message
-        if (!message || !('text' in message)) return this.completion.canNotHandle({})
-        const messageText = message?.text
-
+    override async handleMessage(
+        ctx: ExtendedMessageContext,
+        dataRaw: object
+    ): Promise<SceneHandlerCompletion> {
         const data = this.restoreData(dataRaw)
+        const targetUser = data.targetUserTelegramId
+            ? await this.userService.findOneByTelegramId(data.targetUserTelegramId)
+            : null
 
-        if (data.targetUserTelegramId == null) {
-            let targetUser: UserProfileDocument | null = null
-            if (messageText.includes('@', 0)) {
-                targetUser = await this.userService.findByTelegramUsername(messageText)
-            } else if (parseInt(messageText)) {
-                const targetUserTelegramId = parseInt(messageText)
-                targetUser = await this.userService.findOneByTelegramId(targetUserTelegramId)
-            }
-
-            if (targetUser) {
-                await ctx.replyWithHTML(
-                    `Найден пользователь: \n${this.generateUserInfoString(targetUser)}`,
-                    this.keyboardMarkupWithAutoLayoutFor([
-                        this.text.adminMenu.usersManagementButtonEditPermissions,
-                        this.text.adminMenu.usersManagementButtonNewSearch,
-                        this.text.adminMenu.returnBack,
-                    ])
-                )
-                data.targetUserTelegramId = targetUser.telegramId
-                return this.completion.inProgress(data)
-            } else {
-                await ctx.replyWithHTML('Не удалось найти пользователя')
-                await ctx.replyWithHTML(
-                    this.text.adminMenu.usersManagementTextFindUser,
-                    Markup.removeKeyboard()
-                )
-                return this.completion.inProgress(data)
-            }
-        }
-
-        if (data.editPermissionsModeEnabled == null) {
-            switch (messageText) {
-                case this.text.adminMenu.usersManagementButtonEditPermissions:
-                    const targetUser = await this.userService.findOneByTelegramId(
-                        data.targetUserTelegramId
-                    )
-                    if (targetUser != null) {
-                        const targetUserActivePermissions =
-                            UserProfile.Helper.getActivePermissionNames(targetUser)
-                        const buttons: string[] = []
-                        for (const permission of UserProfile.PermissionNames.allCases) {
-                            const permissionValue = permission
-                            const prefix = targetUserActivePermissions.includes(permissionValue)
-                                ? '✅'
-                                : '❌'
-                            buttons.push(`${prefix} ${permission}`)
-                        }
-                        buttons.push(this.text.common.buttonBackToPreviousMenu)
-                        await ctx.replyWithHTML(
-                            this.text.adminMenu.usersManagementPermissionsInfo,
-                            this.keyboardMarkupWithAutoLayoutFor(buttons)
-                        )
-                        data.editPermissionsModeEnabled = true
-                        return this.completion.inProgress(data)
-                    }
-                    break
-                case this.text.adminMenu.usersManagementButtonNewSearch:
-                    await ctx.replyWithHTML(
-                        this.text.adminMenu.usersManagementTextFindUser,
-                        Markup.removeKeyboard()
-                    )
-                    return this.completion.inProgress({})
-
-                case this.text.adminMenu.returnBack:
-                    return this.completion.complete({ sceneName: 'adminMenu' })
-            }
-        }
-
-        if (data.editPermissionsModeEnabled == true) {
-            switch (messageText) {
-                case this.text.common.buttonBackToPreviousMenu:
-                    const targetUser = await this.userService.findOneByTelegramId(
-                        data.targetUserTelegramId
-                    )
-                    if (targetUser != null) {
-                        await ctx.replyWithHTML(
-                            `Найден пользователь: \n${this.generateUserInfoString(targetUser)}`,
-                            this.keyboardMarkupWithAutoLayoutFor([
-                                this.text.adminMenu.usersManagementButtonEditPermissions,
-                                this.text.adminMenu.usersManagementButtonNewSearch,
-                                this.text.adminMenu.returnBack,
-                            ])
-                        )
-                        data.editPermissionsModeEnabled = null
-                        return this.completion.inProgress(data)
-                    }
-            }
-
-            if (messageText.split(' ').length != 2) {
-                return this.completion.canNotHandle(data)
-            }
-            const targetPermission = messageText.split(' ')[1]
-
-            if (!UserProfile.PermissionNames.includes(targetPermission)) {
-                return this.completion.canNotHandle(data)
-            }
-            let permissionUpdateEnable = false
-
-            let targetUserActivePermissions: string[] | null = null
-            const targetUser = await this.userService.findOneByTelegramId(data.targetUserTelegramId)
-            if (targetUser) {
-                targetUserActivePermissions =
-                    UserProfile.Helper.getActivePermissionNames(targetUser)
-            }
-
-            // Include only enabled actions
-            switch (targetPermission) {
-                // Any actions with owner can do only developer
-                case 'owner':
-                    break
-
-                // Only owner can set admin permission
-                case 'admin':
-                    if (this.userActivePermissions.includes('owner')) {
-                        permissionUpdateEnable = true
-                    }
-                    break
-
-                // Owner and admin can ban user
-                // Nobody can ban owner and admin
-                case 'banned':
-                    if (
-                        targetUserActivePermissions &&
-                        targetUserActivePermissions.includes('owner') == false &&
-                        targetUserActivePermissions.includes('admin') == false
-                    ) {
-                        permissionUpdateEnable = true
-                    }
-                    break
-
-                // Other actions from admin and owner are enabled
-                default:
-                    permissionUpdateEnable = true
-            }
-
-            if (permissionUpdateEnable == false) {
-                await ctx.replyWithHTML('Вам не хватает прав чтобы совершить данное действие')
-                return this.completion.inProgress(data)
-            }
-
-            if (
-                targetUser &&
-                targetUserActivePermissions &&
-                targetUserActivePermissions.includes(targetPermission)
-            ) {
-                // Remove permission
-                targetUser.internalInfo.permissions = targetUser.internalInfo.permissions.filter(
-                    (permission) => permission.permissionName != targetPermission
-                )
-            } else {
-                // Add permission
-                if (targetUser && targetUser.internalInfo.permissions) {
-                    targetUser.internalInfo.permissions.push({
-                        permissionName: targetPermission,
-                        startDate: new Date(),
-                    })
-                } else if (targetUser) {
-                    targetUser.internalInfo.permissions = [
-                        {
-                            permissionName: targetPermission,
-                            startDate: new Date(),
-                        },
-                    ]
-                }
-            }
-            if (targetUser) {
-                await this.userService.update(targetUser)
-
-                await ctx.replyWithHTML(
-                    `Найден пользователь: \n${this.generateUserInfoString(targetUser)}`,
-                    this.keyboardMarkupWithAutoLayoutFor([
-                        this.text.adminMenu.usersManagementButtonEditPermissions,
-                        this.text.adminMenu.usersManagementButtonNewSearch,
-                        this.text.adminMenu.returnBack,
-                    ])
-                )
-                data.editPermissionsModeEnabled = null
-                return this.completion.inProgress(data)
-            }
-        }
-
-        return this.completion.canNotHandle(data)
-    }
-
-    async handleCallback(
-        ctx: Context<Update.CallbackQueryUpdate>,
-        data: SceneCallbackData
-    ): Promise<SceneHandlerCompletion> {
-        throw Error('Method not implemented.')
+        return !targetUser ? this.handleUserSearch(ctx) : this.handleUserManagement(ctx, targetUser)
     }
 
     // =====================
     // Private methods
     // =====================
+
+    private async initState(data: SceneData): Promise<SceneHandlerCompletion> {
+        const targetUser = data.targetUserTelegramId
+            ? await this.userService.findOneByTelegramId(data.targetUserTelegramId)
+            : null
+
+        // Search state
+        if (!targetUser) {
+            await this.ddi.sendHtml(
+                this.text.adminMenuUsersManagement.textFindUser,
+                this.keyboardMarkupWithAutoLayoutFor([
+                    this.text.adminMenuUsersManagement.buttonSelectMyAccount,
+                    this.text.adminMenu.returnBack,
+                ])
+            )
+
+            return this.completion.inProgress({})
+        }
+
+        const userTasksQueueInfo = await this.chainTasksService.getUserTasksQueueInfo(
+            this.user.telegramId
+        )
+
+        // Action select state
+        const emptyValue = 'Отсутствует'
+        await this.ddi.sendHtml(
+            this.text.adminMenuUsersManagement.textSelectedUserInfo({
+                firstAndLastNames: `${targetUser.telegramInfo.first_name ?? ''} ${targetUser.telegramInfo.last_name ?? ''}`,
+                telegramId: targetUser.telegramId,
+                telegramUsername: targetUser.telegramInfo.username
+                    ? `@${targetUser.telegramInfo.username}`
+                    : emptyValue,
+                activePermissions: UserProfile.Helper.getActivePermissionNames(
+                    targetUser.permissions
+                ).join(', '),
+                enableStartParamRewriting: targetUser.enableStartParamRewriting ? 'Да' : 'Нет',
+                chainTasksQueueIsIssued: userTasksQueueInfo.isIssued ? 'Да' : 'Нет',
+                chainTasksCount: userTasksQueueInfo.count,
+            }),
+            {
+                reply_markup: this.keyboardMarkup([
+                    this.text.adminMenuUsersManagement.buttonEditPermissions,
+                    this.text.adminMenuUsersManagement.buttonRestoreTopic,
+                    this.text.adminMenuUsersManagement.buttonEnableStartParamRewriting,
+                    this.text.adminMenuUsersManagement.buttonNewSearch,
+                    this.text.adminMenu.returnBack,
+                ]).reply_markup,
+                link_preview_options: { is_disabled: true },
+            }
+        )
+
+        return this.completion.inProgress(data)
+    }
+
+    async handleUserSearch(ctx: ExtendedMessageContext): Promise<SceneHandlerCompletion> {
+        const message = ctx.message
+        if (message.type !== 'text') return this.completion.canNotHandle()
+        const messageText = message.text
+
+        switch (messageText) {
+            case this.text.adminMenu.returnBack:
+                return this.completion.complete({ sceneName: 'adminMenu' })
+
+            case this.text.adminMenuUsersManagement.buttonSelectMyAccount:
+                return this.initState({ targetUserTelegramId: this.user.telegramId })
+
+            default: {
+                let targetUser: UserProfileDocument | null = null
+                if (messageText.startsWith('@')) {
+                    targetUser = await this.userService.findByTelegramUsername(messageText)
+                } else if (parseInt(messageText)) {
+                    const targetUserTelegramId = parseInt(messageText)
+                    targetUser = await this.userService.findOneByTelegramId(targetUserTelegramId)
+                }
+
+                if (targetUser) {
+                    return this.initState({ targetUserTelegramId: targetUser.telegramId })
+                }
+
+                await this.ddi.sendHtml(this.text.adminMenuUsersManagement.textCannotFindUser)
+                return this.completion.inProgress({})
+            }
+        }
+    }
+
+    async handleUserManagement(
+        ctx: ExtendedMessageContext,
+        targetUser: UserProfileDocument
+    ): Promise<SceneHandlerCompletion> {
+        const message = ctx.message
+        if (message.type !== 'text') {
+            return this.completion.canNotHandle()
+        }
+        const messageText = message.text
+
+        switch (messageText) {
+            case this.text.adminMenuUsersManagement.buttonEditPermissions:
+                return this.completion.complete({
+                    sceneName: 'adminMenuUserPermissionsEditor',
+                    targetUserTelegramId: targetUser.telegramId,
+                })
+
+            case this.text.adminMenuUsersManagement.buttonRestoreTopic: {
+                await this.chainTasksService.addTask({
+                    userTelegramId: targetUser.telegramId,
+                    action: {
+                        resourceType: 'telegram',
+                        actionType: 'createTopic',
+                        topicType: 'default',
+                    },
+                })
+                await this.ddi.sendHtml(
+                    'Запрос на создание нового топика для пользователя был получен, ожидайте его появление в соответствующем форуме'
+                )
+                return this.initState({ targetUserTelegramId: targetUser.telegramId })
+            }
+
+            case this.text.adminMenuUsersManagement.buttonEnableStartParamRewriting: {
+                const accessRules = UserProfile.Helper.getUserAccessRules(targetUser.permissions)
+                if (accessRules.canBeUsedForStartParamRewriting.isFalse) {
+                    await this.ddi.sendHtml(
+                        `Эту функцию можно применить только к пользователям с правами доступа 'admin' или 'owner'`
+                    )
+                    return this.initState({ targetUserTelegramId: targetUser.telegramId })
+                }
+                await this.userService.update({
+                    telegramId: targetUser.telegramId,
+                    enableStartParamRewriting: this.user.enableStartParamRewriting ? false : true,
+                })
+                return this.initState({ targetUserTelegramId: targetUser.telegramId })
+            }
+
+            case this.text.adminMenuUsersManagement.buttonNewSearch:
+                return this.initState({})
+
+            case this.text.adminMenu.returnBack:
+                return this.completion.complete({ sceneName: 'adminMenu' })
+
+            default:
+                return this.completion.canNotHandle()
+        }
+    }
+
+    // =====================
+    // Scene utils
+    // =====================
     private generateUserInfoString(user: UserProfileDocument): string {
         let result: string = ''
-        result += `\nTelegram id: *${user.telegramId}*`
-        result += `\nTelegram username: *@${user.telegramInfo.username}*`
-        result += `\n\nМодификаторы доступа:\n`
-        for (const permission of user.internalInfo.permissions ?? []) {
-            result += `\n*${permission.permissionName}*`
-            result += `\nВыдан: ${permission.startDate ?? 'Неизвестно'}`
-            result += `\nИстекает: ${permission.expirationDate ?? 'Никогда'}`
-            result += '\n'
-        }
+        result += `\nИмя: `
+        result += `\nTelegram id: <b>${user.telegramId}</b>`
+        result += `\nTelegram username: <b>@${user.telegramInfo.username}</b>`
 
         return replaceMarkdownWithHtml(result)
     }

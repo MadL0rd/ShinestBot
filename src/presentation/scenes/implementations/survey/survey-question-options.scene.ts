@@ -1,29 +1,27 @@
 import { logger } from 'src/app/app.logger'
 import { UserService } from 'src/business-logic/user/user.service'
-import { Markup, Context } from 'telegraf'
-import { Update } from 'telegraf/types'
-import { SceneCallbackData } from '../../models/scene-callback'
-import { SceneEntrance } from '../../models/scene-entrance.interface'
-import { SceneName } from '../../models/scene-name.enum'
-import { SceneHandlerCompletion } from '../../models/scene.interface'
-import { Scene } from '../../models/scene.abstract'
-import { SceneUsagePermissionsValidator } from '../../models/scene-usage-permissions-validator'
-import { InjectableSceneConstructor } from '../../scene-factory/scene-injections-provider.service'
+import { Survey } from 'src/entities/survey'
 import { SurveyContextProviderType } from 'src/presentation/survey-context/abstract/survey-context-provider.interface'
 import { SurveyContextProviderFactoryService } from 'src/presentation/survey-context/survey-context-provider-factory/survey-context-provider-factory.service'
-import { Survey } from 'src/entities/survey'
+import { ExtendedMessageContext } from 'src/utils/telegraf-middlewares/extended-message-context'
+import { SceneEntrance } from '../../models/scene-entrance.interface'
+import { SceneName } from '../../models/scene-name.enum'
+import { SceneUsagePermissionsValidator } from '../../models/scene-usage-permissions-validator'
+import { Scene } from '../../models/scene.abstract'
+import { SceneHandlerCompletion } from '../../models/scene.interface'
+import { InjectableSceneConstructor } from '../../scene-factory/scene-injections-provider.service'
 
 // =====================
 // Scene data classes
 // =====================
-export class SurveyQuestionOptionsSceneEntranceDto implements SceneEntrance.Dto {
-    readonly sceneName = 'surveyQuestionOptions'
+export interface SurveyQuestionOptionsSceneEntranceDto extends SceneEntrance.Dto {
+    readonly sceneName: 'surveyQuestionOptions'
     readonly providerType: SurveyContextProviderType.Union
     readonly question: Survey.QuestionWithOptions
     readonly allowBackToPreviousQuestion: boolean
 }
-type SceneEnterDataType = SurveyQuestionOptionsSceneEntranceDto
-interface ISceneData {
+type SceneEnterData = SurveyQuestionOptionsSceneEntranceDto
+type SceneData = {
     readonly providerType: SurveyContextProviderType.Union
     readonly question: Survey.QuestionWithOptions
 }
@@ -33,21 +31,21 @@ interface ISceneData {
 // =====================
 
 @InjectableSceneConstructor()
-export class SurveyQuestionOptionsScene extends Scene<ISceneData, SceneEnterDataType> {
+export class SurveyQuestionOptionsScene extends Scene<SceneData, SceneEnterData> {
     // =====================
     // Properties
     // =====================
 
-    readonly name: SceneName.Union = 'surveyQuestionOptions'
-    protected get dataDefault(): ISceneData {
-        return {} as ISceneData
+    override readonly name: SceneName.Union = 'surveyQuestionOptions'
+    protected override get dataDefault(): SceneData {
+        return {} as SceneData
     }
-    protected get permissionsValidator(): SceneUsagePermissionsValidator.IPermissionsValidator {
+    protected override get permissionsValidator(): SceneUsagePermissionsValidator.IPermissionsValidator {
         return new SceneUsagePermissionsValidator.CanUseIfNotBanned()
     }
 
     constructor(
-        protected readonly userService: UserService,
+        protected override readonly userService: UserService,
         private readonly dataProviderFactory: SurveyContextProviderFactoryService
     ) {
         super()
@@ -57,21 +55,14 @@ export class SurveyQuestionOptionsScene extends Scene<ISceneData, SceneEnterData
     // Public methods
     // =====================
 
-    async handleEnterScene(
-        ctx: Context,
-        data?: SceneEnterDataType
-    ): Promise<SceneHandlerCompletion> {
-        logger.log(
-            `${this.name} scene handleEnterScene. User: ${this.user.telegramInfo.id} ${this.user.telegramInfo.username}`
-        )
-        await this.logToUserHistory({ type: 'startSceneSurveyQuestionOptions' })
-
+    override async handleEnterScene(data?: SceneEnterData): Promise<SceneHandlerCompletion> {
         if (!data) {
             logger.error('Scene start data corrupted')
             return this.completion.complete()
         }
 
-        await ctx.replyWithHTML(
+        await this.ddi.sendMediaContent(data.question.media)
+        await this.ddi.sendHtml(
             data.question.questionText,
             super.keyboardMarkupWithAutoLayoutFor(
                 [
@@ -87,11 +78,10 @@ export class SurveyQuestionOptionsScene extends Scene<ISceneData, SceneEnterData
         return this.completion.inProgress(data)
     }
 
-    async handleMessage(ctx: Context, dataRaw: object): Promise<SceneHandlerCompletion> {
-        logger.log(
-            `${this.name} scene handleMessage. User: ${this.user.telegramInfo.id} ${this.user.telegramInfo.username}`
-        )
-
+    override async handleMessage(
+        ctx: ExtendedMessageContext,
+        dataRaw: object
+    ): Promise<SceneHandlerCompletion> {
         const data = this.restoreData(dataRaw)
         if (!data || !data.providerType || !data.question) {
             logger.error('Start data corrupted')
@@ -100,7 +90,7 @@ export class SurveyQuestionOptionsScene extends Scene<ISceneData, SceneEnterData
         const provider = this.dataProviderFactory.getSurveyContextProvider(data.providerType)
 
         const message = ctx.message
-        if (!message || !('text' in message)) return this.completion.canNotHandle(data)
+        if (message.type !== 'text') return this.completion.canNotHandle()
 
         switch (message.text) {
             case this.text.survey.buttonOptionalQuestionSkip:
@@ -126,10 +116,13 @@ export class SurveyQuestionOptionsScene extends Scene<ISceneData, SceneEnterData
                         questionId: data.question.id,
                     },
                 })
+
+            default:
+                break
         }
 
-        const selectedOption = data.question.options.find((option) => option.text == message.text)
-        if (!selectedOption) return this.completion.canNotHandle(data)
+        const selectedOption = data.question.options.find((option) => option.text === message.text)
+        if (!selectedOption) return this.completion.canNotHandle()
 
         await provider.pushAnswerToCache(this.user, {
             type: 'options',
@@ -141,13 +134,6 @@ export class SurveyQuestionOptionsScene extends Scene<ISceneData, SceneEnterData
             providerType: data.providerType,
             allowContinueQuestion: false,
         })
-    }
-
-    async handleCallback(
-        ctx: Context<Update.CallbackQueryUpdate>,
-        data: SceneCallbackData
-    ): Promise<SceneHandlerCompletion> {
-        throw Error('Method not implemented.')
     }
 
     // =====================

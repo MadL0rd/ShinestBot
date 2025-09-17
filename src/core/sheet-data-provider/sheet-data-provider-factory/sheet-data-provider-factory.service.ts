@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
+import { ISheetDataProvider } from '../abstract/sheet-data-provider.interface'
 import { GoogleSpreadsheetProviderService } from '../providers/google-spreadsheet-provider/google-spreadsheet-provider.service'
-import { ISheetDataProvider } from '../abscract/sheet-data-provider.interface'
 import { LocalXlsxProviderService } from '../providers/local-xlsx-provider/local-xlsx-provider.service'
 
 type SheetDataProvides = 'googleSpreadsheet' | 'localXlsx'

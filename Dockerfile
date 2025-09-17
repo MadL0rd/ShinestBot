@@ -1,4 +1,4 @@
-FROM node:21-alpine
+FROM node:22-alpine
 
 # Create app directory
 WORKDIR /usr/src/app
@@ -7,14 +7,14 @@ WORKDIR /usr/src/app
 COPY package*.json ./
 
 # Install app dependencies
-RUN npm ci
+RUN npm ci --legacy-peer-deps
 RUN npm i -g @nestjs/cli
 
 # Bundle app source
 COPY . .
 
 # Creates a "dist" folder with the production build
-RUN npm run build
+RUN NODE_OPTIONS=--max_old_space_size=4096 npm run build
 
 # Start the server using the production build
-CMD [ "node", "dist/main.js" ]
+CMD ["sh", "-c", "node dist/src/main.js"]

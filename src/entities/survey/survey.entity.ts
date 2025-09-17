@@ -1,3 +1,4 @@
+import { MediaContent } from '../common/media-content.entity'
 import { _SurveyFormatter } from './survey.formatter'
 import { _SurveyHelper } from './survey.helper'
 
@@ -25,37 +26,56 @@ export namespace _SurveyEntity {
     type QuestionCommonFields = {
         readonly id: string
         readonly isRequired: boolean
+        readonly showInTheLastStep: boolean
         readonly questionText: string
+        readonly media: MediaContent
         readonly publicTitle: string
         readonly filters: Filter[]
         readonly addAnswerToTelegramPublication: boolean
+        readonly serviceMessageNavigationText: string
     }
 
+    /**
+     * @param type filter type.
+     * "pre" for pre-filtration while preparing survey for user.
+     * "post" for post-filtration -- deleting user's answer if target option was found in target question
+     */
     export type Filter = {
+        readonly type: 'showIf' | 'removeIf'
         readonly targetQuestionId: string
         readonly validOptionIds: string[]
     }
 
     export type QuestionWithOptions = QuestionCommonFields & AnswerTypeWithOptions
+    export type QuestionAnswerOptionInline = QuestionCommonFields & AnswerTypeWithOptionsInline
     export type QuestionWithMultipleChoice = QuestionCommonFields & AnswerTypeWithMultipleChoice
     export type QuestionNumeric = QuestionCommonFields & AnswerTypeNumeric
     export type QuestionString = QuestionCommonFields & AnswerTypeString
     export type QuestionStringGptTips = QuestionCommonFields & AnswerTypeStringGptTips
     export type QuestionImage = QuestionCommonFields & AnswerTypeImage
+    export type QuestionSingleImage = QuestionCommonFields & AnswerTypeSingleImage
     export type QuestionVideo = QuestionCommonFields & AnswerTypeVideo
     export type QuestionMediaGroup = QuestionCommonFields & AnswerTypeMediaGroup
+    export type QuestionTelephoneNumber = QuestionCommonFields & AnswerTypeTelephoneNumber
 
     export type Question =
         | QuestionWithOptions
+        | QuestionAnswerOptionInline
         | QuestionWithMultipleChoice
         | QuestionNumeric
         | QuestionString
         | QuestionStringGptTips
         | QuestionImage
+        | QuestionSingleImage
         | QuestionVideo
         | QuestionMediaGroup
+        | QuestionTelephoneNumber
 
-    export type QuestionMedia = QuestionImage | QuestionVideo | QuestionMediaGroup
+    export type QuestionMedia =
+        | QuestionImage
+        | QuestionSingleImage
+        | QuestionVideo
+        | QuestionMediaGroup
 
     // =====================
     // Answer Types
@@ -64,7 +84,16 @@ export namespace _SurveyEntity {
         readonly type: 'options'
         readonly options: AnswerOption[]
         readonly useIdAsPublicationTag: boolean
+        readonly boolConvertibleAnswers: boolean
     }
+
+    export type AnswerTypeWithOptionsInline = {
+        readonly type: 'optionsInline'
+        readonly options: AnswerOption[]
+        readonly useIdAsPublicationTag: boolean
+        readonly boolConvertibleAnswers: boolean
+    }
+
     export type AnswerTypeWithMultipleChoice = {
         readonly type: 'multipleChoice'
         readonly options: AnswerOption[]
@@ -72,6 +101,7 @@ export namespace _SurveyEntity {
         readonly maxCount: number
         readonly useIdAsPublicationTag: boolean
     }
+
     export type AnswerOption = {
         readonly id: string
         readonly text: string
@@ -92,39 +122,63 @@ export namespace _SurveyEntity {
 
     type AnswerTypeImage = {
         readonly type: 'image'
-        readonly mediaMaxCount: number
+        readonly maxCount: number
+    }
+
+    type AnswerTypeSingleImage = {
+        readonly type: 'singleImage'
+        readonly maxCount: 1
+        readonly serviceMessageFilledText?: string
     }
 
     type AnswerTypeVideo = {
         readonly type: 'video'
-        readonly mediaMaxCount: number
+        readonly maxCount: number
     }
 
     type AnswerTypeMediaGroup = {
         readonly type: 'mediaGroup'
-        readonly mediaMaxCount: number
+        readonly maxCount: number
     }
 
-    export type AnswerTypeMedia = AnswerTypeImage | AnswerTypeVideo | AnswerTypeMediaGroup
+    type AnswerTypeTelephoneNumber = {
+        readonly type: 'phoneNumber'
+    }
+
+    export type AnswerTypeMedia =
+        | AnswerTypeImage
+        | AnswerTypeSingleImage
+        | AnswerTypeVideo
+        | AnswerTypeMediaGroup
     export type AnswerType =
         | AnswerTypeWithOptions
+        | AnswerTypeWithOptionsInline
         | AnswerTypeWithMultipleChoice
         | AnswerTypeNumeric
         | AnswerTypeString
         | AnswerTypeStringGptTips
         | AnswerTypeMedia
+        | AnswerTypeTelephoneNumber
 
     export type AnswerTypeName = AnswerType['type']
 
     // =====================
     // Passed Answers
     // =====================
-    export type PassedAnswerWithOptions = {
+
+    export type PassedAnswerWithOptionsDefault = {
         readonly type: 'options'
         question: QuestionWithOptions
         selectedOptionId: string | null
     }
-    export type PassedAnswerWhithMultipleChoice = {
+
+    export type PassedAnswerWithOptionsInline = {
+        readonly type: 'optionsInline'
+        question: QuestionAnswerOptionInline
+        selectedOptionId: string | null
+    }
+
+    export type PassedAnswerWithMultipleChoice = {
         readonly type: 'multipleChoice'
         question: QuestionWithMultipleChoice
         selectedOptionsIds: string[]
@@ -154,6 +208,12 @@ export namespace _SurveyEntity {
         media: TelegramFileData[]
     }
 
+    export type PassedAnswerSingleImage = {
+        readonly type: 'singleImage'
+        question: QuestionSingleImage
+        media: TelegramFileData[]
+    }
+
     export type PassedAnswerVideo = {
         readonly type: 'video'
         question: QuestionVideo
@@ -166,22 +226,41 @@ export namespace _SurveyEntity {
         media: TelegramFileData[]
     }
 
+    export type PassedAnswerTelephoneNumber = {
+        readonly type: 'phoneNumber'
+        question: QuestionTelephoneNumber
+        selectedString: string | null
+    }
+
     export type TelegramFileData = {
         readonly telegramFileId: string
+        readonly telegramFileUniqueId: string
         readonly telegramUrl?: string
         readonly cloudUrl?: string
         readonly fileType: 'photo' | 'video'
+        readonly receiveTimestamp?: Date
     }
 
     export type PassedAnswer =
-        | PassedAnswerWithOptions
-        | PassedAnswerWhithMultipleChoice
+        | PassedAnswerWithOptionsDefault
+        | PassedAnswerWithOptionsInline
+        | PassedAnswerWithMultipleChoice
         | PassedAnswerNumeric
         | PassedAnswerString
         | PassedAnswerStringGptTips
         | PassedAnswerImage
+        | PassedAnswerSingleImage
+        | PassedAnswerVideo
+        | PassedAnswerMediaGroup
+        | PassedAnswerTelephoneNumber
+
+    export type PassedAnswerMedia =
+        | PassedAnswerImage
+        | PassedAnswerSingleImage
         | PassedAnswerVideo
         | PassedAnswerMediaGroup
 
-    export type PassedAnswerMedia = PassedAnswerImage | PassedAnswerVideo | PassedAnswerMediaGroup
+    export type PassedAnswerWithOneSelectedOption =
+        | PassedAnswerWithOptionsDefault
+        | PassedAnswerWithOptionsInline
 }

@@ -1,16 +1,12 @@
-import { Injectable, OnModuleInit } from '@nestjs/common'
-
 declare global {
     interface String {
         get base64Encoded(): string | null
         get base64Decoded(): string | null
         get isEmpty(): boolean
         get isNotEmpty(): boolean
-        get trimmed(): string
-        get lowerCased(): string
         get lowerCasedFirstCharOnly(): string
-        get upperCased(): string
         get upperCasedFirstCharOnly(): string
+        substringOccurrences(substring: string): number[]
     }
 
     interface StringConstructor {
@@ -18,7 +14,6 @@ declare global {
     }
 }
 
-@Injectable()
 export class StringExtensionService {
     initExtensions() {
         Object.defineProperty(String.prototype, 'base64Encoded', {
@@ -35,7 +30,7 @@ export class StringExtensionService {
 
         Object.defineProperty(String.prototype, 'isEmpty', {
             get: function () {
-                return this.length == 0
+                return this.length === 0
             },
         })
 
@@ -45,33 +40,30 @@ export class StringExtensionService {
             },
         })
 
-        Object.defineProperty(String.prototype, 'trimmed', {
-            get: function () {
-                return this.trim()
-            },
-        })
-
-        Object.defineProperty(String.prototype, 'lowerCased', {
-            get: function () {
-                return this.toLowerCase()
-            },
-        })
-
         Object.defineProperty(String.prototype, 'lowerCasedFirstCharOnly', {
             get: function () {
                 return this.charAt(0).toLowerCase() + this.slice(1)
             },
         })
 
-        Object.defineProperty(String.prototype, 'upperCased', {
-            get: function () {
-                return this.toUpperCase()
-            },
-        })
-
         Object.defineProperty(String.prototype, 'upperCasedFirstCharOnly', {
             get: function () {
                 return this.charAt(0).toUpperCase() + this.slice(1)
+            },
+        })
+
+        Object.defineProperty(String.prototype, 'substringOccurrences', {
+            value: function (substring: string) {
+                const indices: number[] = []
+                if (substring === '') return indices
+                let index = this.indexOf(substring)
+
+                while (index !== -1) {
+                    indices.push(index)
+                    index = this.indexOf(substring, index + 1)
+                }
+
+                return indices
             },
         })
 
