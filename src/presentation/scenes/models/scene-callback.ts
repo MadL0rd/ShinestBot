@@ -128,7 +128,7 @@ export const sceneCallbackDataCompressedSchema = z
         })
         if (!actionParseResult.success) {
             for (const issue of actionParseResult.error.issues) {
-                ctx.addIssue(issue)
+                ctx.addIssue(issue as typeof issue & { [x: string]: unknown })
             }
             return z.NEVER
         }

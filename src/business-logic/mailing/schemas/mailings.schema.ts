@@ -8,7 +8,7 @@ import { MailingMessage } from './mailing-message.entity'
     timestamps: true,
     toJSON: {
         virtuals: true,
-        transform: (doc, ret, options) => {
+        transform: (doc, ret: any, options) => {
             delete ret.__v
             ret.id = ret._id.toString()
             delete ret._id
